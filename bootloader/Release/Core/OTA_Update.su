@@ -1,0 +1,6 @@
+../Core/OTA_Update.c:17:6:OTA_set_latest_image_bank	0	static
+../Core/OTA_Update.c:23:13:OTA_latest_image_bank	0	static
+../Core/OTA_Update.c:27:6:OTA_set_is_new_image	0	static
+../Core/OTA_Update.c:33:19:OTA_is_new_image	0	static
+../Core/OTA_Update.c:37:6:OTA_set_new_image_bank	0	static
+../Core/OTA_Update.c:43:13:OTA_new_image_bank	0	static
