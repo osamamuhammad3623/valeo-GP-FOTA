@@ -34,11 +34,10 @@ typedef enum{
 }OTA_New_Image_Status;
 
 
-
 /**************************************
  * 			Functions Prototypes
 **************************************/
 /* a function to validate address and value of the flags. If they are valid, write them */
-void OTA_set_flag(uint32_t address, uint8_t value);
+uint8_t OTA_set_flag(uint32_t address, uint8_t value);
 
 #endif /* INC_SHARED_FLAGS_H_ */

@@ -5,8 +5,9 @@
  *      Author: osama
  */
 #include "shared_flags.h"
+//#include "stm32f4xx_hal.h"
 
-void OTA_set_flag(uint32_t address, uint8_t value){
+uint8_t OTA_set_flag(uint32_t address, uint8_t value){
 
 	char is_valid = 0;
 	if (address == LATEST_IMAGE_BANK_ADDRESS || NEW_IMAGE_BANK_ADDRESS){
@@ -18,5 +19,9 @@ void OTA_set_flag(uint32_t address, uint8_t value){
 
 	if (is_valid){
 		*(uint8_t*)address=value;
+		// 	HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, address, value);
 	}
+
+	/* read the value again to check it's been written */
+	return (((*(uint8_t*)address) == value));
 }

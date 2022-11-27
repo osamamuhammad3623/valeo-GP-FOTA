@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "shared_flags.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -40,7 +39,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -48,46 +46,37 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-uint8_t bootloader_write_flags(void);
-
 /* USER CODE BEGIN PFP */
-uint8_t bootloader_write_flags(void/* add parameters when you check OTA_set_flag */){
-
-	HAL_FLASH_Unlock(); /* unlock the flash memory */
-
-	/* erase operation configurations: erase sectors, in bank 2, sector 23, only 1 sector */
-	FLASH_EraseInitTypeDef *flash_erase_config = {
-	  FLASH_TYPEERASE_SECTORS,
-	  FLASH_BANK_2,
-	  FLASH_SECTOR_23,
-	  1,
-	  FLASH_VOLTAGE_RANGE_3
-	};
-
-	/* enable sector erase */
-	SET_BIT(FLASH->CR, FLASH_CR_SER);
-
-	uint32_t sector_error=0;
-	HAL_StatusTypeDef error_type = HAL_FLASHEx_Erase(flash_erase_config, &sector_error);
-	//while(HAL_FLASHEx_Erase(flash_erase_config, &sector_error) != HAL_OK);
-
-	/* enable flash programming */
-	FLASH->CR |= FLASH_CR_PG;
-
-	uint8_t status=
-		(OTA_set_flag(LATEST_IMAGE_BANK_ADDRESS, BANK1) && \
-		HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, NEW_IMAGE_ADDRESS, OTA_New_Image) && \
-		OTA_set_flag(NEW_IMAGE_BANK_ADDRESS, BANK2));
-
-	HAL_FLASH_Lock(); /* lock the flash memory */
-
-	return status;
-}
+void program_user_options(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void activate_bank(uint8_t bank){
+	if ((bank != 1) && (bank!= 2)){
+		return;
+	}
 
+	// BOOT0 = 0 by default.
+
+	// clear option-lock bit
+	FLASH->OPTKEYR = 0x08192A3B;
+	FLASH->OPTKEYR = 0x4C5D6E7F;
+
+	// enable dual-bank boot by setting BFB2 bit
+	SET_BIT(FLASH->OPTCR, 4);
+
+	// configure FB_Mode in SYSCFG-MEMRMP register
+	if(bank == 1){
+		CLEAR_BIT(SYSCFG->MEMRMP, SYSCFG_MEMRMP_UFB_MODE);
+	}else{
+		SET_BIT(SYSCFG->MEMRMP, SYSCFG_MEMRMP_UFB_MODE);
+	}
+
+	// ensure no flash memory operation is ongoing
+	while((FLASH->SR & (1<<FLASH_SR_BSY)));
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -107,12 +96,6 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
-  bootloader_write_flags();
-
-  uint8_t flag_one = *(uint8_t*)LATEST_IMAGE_BANK_ADDRESS;
-  uint8_t flag_two = *(uint8_t*)NEW_IMAGE_ADDRESS;
-  uint8_t flag_three = *(uint8_t*)NEW_IMAGE_BANK_ADDRESS;
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -128,6 +111,7 @@ int main(void)
 
   /* USER CODE END 2 */
 
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -187,15 +171,115 @@ void SystemClock_Config(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : USER_Btn_Pin */
+  GPIO_InitStruct.Pin = USER_Btn_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */
+  GPIO_InitStruct.Pin = RMII_MDC_Pin|RMII_RXD0_Pin|RMII_RXD1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : RMII_REF_CLK_Pin RMII_MDIO_Pin RMII_CRS_DV_Pin */
+  GPIO_InitStruct.Pin = RMII_REF_CLK_Pin|RMII_MDIO_Pin|RMII_CRS_DV_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : RMII_TXD1_Pin */
+  GPIO_InitStruct.Pin = RMII_TXD1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(RMII_TXD1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : STLK_RX_Pin STLK_TX_Pin */
+  GPIO_InitStruct.Pin = STLK_RX_Pin|STLK_TX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
+  GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(USB_PowerSwitchOn_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : USB_OverCurrent_Pin */
+  GPIO_InitStruct.Pin = USB_OverCurrent_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : USB_SOF_Pin USB_ID_Pin USB_DM_Pin USB_DP_Pin */
+  GPIO_InitStruct.Pin = USB_SOF_Pin|USB_ID_Pin|USB_DM_Pin|USB_DP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : USB_VBUS_Pin */
+  GPIO_InitStruct.Pin = USB_VBUS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(USB_VBUS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : RMII_TX_EN_Pin RMII_TXD0_Pin */
+  GPIO_InitStruct.Pin = RMII_TX_EN_Pin|RMII_TXD0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
 }
 
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
 
 /**
   * @brief  This function is executed in case of error occurrence.
