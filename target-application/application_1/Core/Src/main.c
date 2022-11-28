@@ -39,6 +39,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -48,11 +49,41 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
 void program_user_options(void);
+void system_reset(void);
+
+/* function to erase first 256k from bank 2 */
+void flash_erase_bank2(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void activate_bank(uint8_t bank){
+void flash_erase_bank2(void){
+
+	HAL_FLASH_Unlock(); /* unlock the flash memory */
+
+	/* erase operation configurations: erase sectors, in bank 2, sectors 12 to (12+6) */
+	FLASH_EraseInitTypeDef *flash_erase_config = {
+	  FLASH_TYPEERASE_SECTORS,
+	  FLASH_BANK_2,
+	  FLASH_SECTOR_12,
+	  6,
+	  FLASH_VOLTAGE_RANGE_3
+	};
+
+	/* enable sector erase */
+	SET_BIT(FLASH->CR, FLASH_CR_SER);
+
+	uint32_t sector_error=0;
+	HAL_StatusTypeDef error_type;
+	do{
+		error_type = HAL_FLASHEx_Erase(flash_erase_config, &sector_error);
+	}while(HAL_FLASHEx_Erase(flash_erase_config, &sector_error) != HAL_OK);
+
+	HAL_FLASH_Lock(); /* lock the flash memory */
+
+}
+
+void set_next_boot_bank(uint8_t bank){
 	if ((bank != 1) && (bank!= 2)){
 		return;
 	}
@@ -76,6 +107,12 @@ void activate_bank(uint8_t bank){
 	// ensure no flash memory operation is ongoing
 	while((FLASH->SR & (1<<FLASH_SR_BSY)));
 
+	SET_BIT(FLASH->OPTCR, FLASH_OPTCR_OPTSTRT);
+	while((FLASH->SR & (1<<FLASH_SR_BSY)));
+}
+
+void system_reset(void){
+	NVIC_SystemReset();
 }
 /* USER CODE END 0 */
 
@@ -111,11 +148,12 @@ int main(void)
 
   /* USER CODE END 2 */
 
-  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -272,14 +310,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_StartDefaultTask */
-/**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartDefaultTask */
 
 /**
   * @brief  This function is executed in case of error occurrence.
