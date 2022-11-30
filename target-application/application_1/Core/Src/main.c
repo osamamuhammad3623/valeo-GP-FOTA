@@ -91,8 +91,8 @@ int main(void)
   // erase operation configurations
   FLASH_EraseInitTypeDef erase_last_sector_config={
 		  FLASH_TYPEERASE_SECTORS,
-		  FLASH_BANK_1,
-		  FLASH_SECTOR_11,
+		  FLASH_BANK_2,
+		  FLASH_SECTOR_12,
 		  1,
 		  FLASH_VOLTAGE_RANGE_3
   };
@@ -106,12 +106,13 @@ int main(void)
   SET_BIT(FLASH->CR, FLASH_CR_PG);
 
   // data to be written
-  uint8_t data[10]={0xA,0xB,0xC,0xD,0xE,
-		  	  	  	  0xF,0x0,0x1,0x2,0x3};
+  uint8_t data[10]={0xD,0xB,0xC,0xD,0xE,
+		  	  	  	  0xF,0xD,0x1,0x2,0x3};
 
   // write the data in contiguous memory, each element in a byte
   for(uint8_t i=0; i< 10;i++){
-	  HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, 0x080E0000+i, data[i]);
+	  // 0x08100000 is bank 2 start address
+	  HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, 0x08100000+i, data[i]);
   }
 
   // lock the flash
