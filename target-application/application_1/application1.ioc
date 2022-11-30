@@ -1,4 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
+CAD.formats=
+CAD.pinconfig=
+CAD.provider=
 File.Version=6
 GPIO.groupedBy=Expand Peripherals
 KeepUserPlacement=false
@@ -43,8 +46,8 @@ Mcu.PinsNb=29
 Mcu.ThirdPartyNb=0
 Mcu.UserConstants=
 Mcu.UserName=STM32F439ZITx
-MxCube.Version=6.6.1
-MxDb.Version=DB.6.0.60
+MxCube.Version=6.7.0
+MxDb.Version=DB.6.0.70
 NVIC.BusFault_IRQn=true\:0\:0\:false\:false\:true\:true\:false\:false
 NVIC.DebugMonitor_IRQn=true\:0\:0\:false\:false\:true\:true\:false\:false
 NVIC.ForceEnableDMAVector=true
@@ -109,7 +112,7 @@ PB14.GPIO_Label=LD3 [Red]
 PB14.Locked=true
 PB14.Signal=GPIO_Output
 PB7.GPIOParameters=GPIO_Label
-PB7.GPIO_Label=LD2 [Blue]
+PB7.GPIO_Label=blue_led [Blue]
 PB7.Locked=true
 PB7.Signal=GPIO_Output
 PC1.GPIOParameters=GPIO_Label

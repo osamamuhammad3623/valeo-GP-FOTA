@@ -48,72 +48,12 @@
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
-void program_user_options(void);
-void system_reset(void);
 
-/* function to erase first 256k from bank 2 */
-void flash_erase_bank2(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void flash_erase_bank2(void){
 
-	HAL_FLASH_Unlock(); /* unlock the flash memory */
-
-	/* erase operation configurations: erase sectors, in bank 2, sectors 12 to (12+6) */
-	FLASH_EraseInitTypeDef *flash_erase_config = {
-	  FLASH_TYPEERASE_SECTORS,
-	  FLASH_BANK_2,
-	  FLASH_SECTOR_12,
-	  6,
-	  FLASH_VOLTAGE_RANGE_3
-	};
-
-	/* enable sector erase */
-	SET_BIT(FLASH->CR, FLASH_CR_SER);
-
-	uint32_t sector_error=0;
-	HAL_StatusTypeDef error_type;
-	do{
-		error_type = HAL_FLASHEx_Erase(flash_erase_config, &sector_error);
-	}while(HAL_FLASHEx_Erase(flash_erase_config, &sector_error) != HAL_OK);
-
-	HAL_FLASH_Lock(); /* lock the flash memory */
-
-}
-
-void set_next_boot_bank(uint8_t bank){
-	if ((bank != 1) && (bank!= 2)){
-		return;
-	}
-
-	// BOOT0 = 0 by default.
-
-	// clear option-lock bit
-	FLASH->OPTKEYR = 0x08192A3B;
-	FLASH->OPTKEYR = 0x4C5D6E7F;
-
-	// enable dual-bank boot by setting BFB2 bit
-	SET_BIT(FLASH->OPTCR, 4);
-
-	// configure FB_Mode in SYSCFG-MEMRMP register
-	if(bank == 1){
-		CLEAR_BIT(SYSCFG->MEMRMP, SYSCFG_MEMRMP_UFB_MODE);
-	}else{
-		SET_BIT(SYSCFG->MEMRMP, SYSCFG_MEMRMP_UFB_MODE);
-	}
-
-	// ensure no flash memory operation is ongoing
-	while((FLASH->SR & (1<<FLASH_SR_BSY)));
-
-	SET_BIT(FLASH->OPTCR, FLASH_OPTCR_OPTSTRT);
-	while((FLASH->SR & (1<<FLASH_SR_BSY)));
-}
-
-void system_reset(void){
-	NVIC_SystemReset();
-}
 /* USER CODE END 0 */
 
 /**
@@ -137,7 +77,6 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -146,14 +85,48 @@ int main(void)
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
 
+  // unlock the Flash memory to enable erase/program operations
+  HAL_FLASH_Unlock();
+
+  // erase operation configurations
+  FLASH_EraseInitTypeDef erase_last_sector_config={
+		  FLASH_TYPEERASE_SECTORS,
+		  FLASH_BANK_1,
+		  FLASH_SECTOR_11,
+		  1,
+		  FLASH_VOLTAGE_RANGE_3
+  };
+
+  uint32_t sector_error=0;
+  if (HAL_FLASHEx_Erase(&erase_last_sector_config, &sector_error) == HAL_OK){
+	  HAL_GPIO_TogglePin(blue_led_GPIO_Port, blue_led_Pin);
+  }
+
+  // set the bit that enables Flash programming
+  SET_BIT(FLASH->CR, FLASH_CR_PG);
+
+  // data to be written
+  uint8_t data[10]={0xA,0xB,0xC,0xD,0xE,
+		  	  	  	  0xF,0x0,0x1,0x2,0x3};
+
+  // write the data in contiguous memory, each element in a byte
+  for(uint8_t i=0; i< 10;i++){
+	  HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, 0x080E0000+i, data[i]);
+  }
+
+  // lock the flash
+  HAL_FLASH_Lock();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	  // just toggling the blue LED
+	  HAL_GPIO_TogglePin(blue_led_GPIO_Port, blue_led_Pin);
 	  HAL_Delay(1000);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -220,7 +193,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|blue_led_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
@@ -247,8 +220,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin;
+  /*Configure GPIO pins : LD1_Pin LD3_Pin blue_led_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|blue_led_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
