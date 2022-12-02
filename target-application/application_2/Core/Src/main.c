@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "../shared_libs/bootloader.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -93,14 +92,15 @@ int main(void)
   uint8_t cnt=0;
   while (1)
   {
-	  HAL_GPIO_TogglePin(green_led_GPIO_Port, green_led_Pin);
+	  HAL_GPIO_TogglePin(blue_led_GPIO_Port, blue_led_Pin);
 	  HAL_Delay(1000);
 	  cnt++;
 
-	  if (cnt == 5){
-		  // something's wrong here!
-		  bootloader_set_boot_bank(1);
+	  if (cnt == 4){
+		  bootloader_switch_to_inactive_bank();
+		  NVIC_SystemReset();
 	  }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -175,7 +175,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : push_btn_Pin */
   GPIO_InitStruct.Pin = push_btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(push_btn_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */

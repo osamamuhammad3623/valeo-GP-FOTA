@@ -23,7 +23,6 @@ void bootloader_set_boot_bank(uint8_t bank){
 	// if it's required to set bank 1, then clear BFB2 bit
 	// and if it's required to set bank 2, set the BFB2 bit
 	if (bank==1){
-		/* doesn't work! */
 		CLEAR_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk);
 	}else{
 		SET_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk);
@@ -37,9 +36,18 @@ void bootloader_set_boot_bank(uint8_t bank){
 
 	// unlock option-bytes-bit
 	HAL_FLASH_OB_Lock();
+
 }
 
 
-uint8_t bootloader_get_active_bank(void){
+void bootloader_switch_to_inactive_bank(void){
 
+	// 0 represents bank 1, 1 represents bank 2
+	uint8_t active_bank = READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk);
+
+	if (active_bank == 0){
+		bootloader_set_boot_bank(2);
+	}else{
+		bootloader_set_boot_bank(1);
+	}
 }

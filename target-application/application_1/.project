@@ -29,4 +29,10 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<variableList>
+		<variable>
+			<name>shared_fota_libs</name>
+			<value>$%7BPARENT-5-PROJECT_LOC%7D/shared_fota_libs</value>
+		</variable>
+	</variableList>
 </projectDescription>

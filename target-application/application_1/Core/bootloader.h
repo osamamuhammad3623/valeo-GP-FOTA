@@ -10,8 +10,18 @@
 #ifndef BOOTLOADER_H_
 #define BOOTLOADER_H_
 
+/*
+ * A function to set the boot-bank for the next reset by changing BFB2 bit in Option Bytes
+ * - to set bank 1, reset the bit
+ * - to set bank 2, set the bit
+ * */
 void bootloader_set_boot_bank(uint8_t bank);
 
-uint8_t bootloader_get_active_bank(void);
+
+/*
+ * A function to set the inactive bank to be the next boot-bank
+ * if bank 1 is the active one, set bank 2, and vice versa
+ * */
+void bootloader_switch_to_inactive_bank(void);
 
 #endif /* BOOTLOADER_H_ */
