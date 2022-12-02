@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "../bootloader.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -63,6 +64,7 @@ static void MX_GPIO_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	//bootloader_function();
 
   /* USER CODE END 1 */
 
@@ -77,6 +79,7 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
+
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -85,48 +88,21 @@ int main(void)
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
 
-  // unlock the Flash memory to enable erase/program operations
-  HAL_FLASH_Unlock();
-
-  // erase operation configurations
-  FLASH_EraseInitTypeDef erase_last_sector_config={
-		  FLASH_TYPEERASE_SECTORS,
-		  FLASH_BANK_2,
-		  FLASH_SECTOR_12,
-		  1,
-		  FLASH_VOLTAGE_RANGE_3
-  };
-
-  uint32_t sector_error=0;
-  if (HAL_FLASHEx_Erase(&erase_last_sector_config, &sector_error) == HAL_OK){
-	  HAL_GPIO_TogglePin(blue_led_GPIO_Port, blue_led_Pin);
-  }
-
-  // set the bit that enables Flash programming
-  SET_BIT(FLASH->CR, FLASH_CR_PG);
-
-  // data to be written
-  uint8_t data[10]={0xD,0xB,0xC,0xD,0xE,
-		  	  	  	  0xF,0xD,0x1,0x2,0x3};
-
-  // write the data in contiguous memory, each element in a byte
-  for(uint8_t i=0; i< 10;i++){
-	  // 0x08100000 is bank 2 start address
-	  HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, 0x08100000+i, data[i]);
-  }
-
-  // lock the flash
-  HAL_FLASH_Lock();
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint8_t cnt=0;
   while (1)
   {
 	  // just toggling the blue LED
 	  HAL_GPIO_TogglePin(blue_led_GPIO_Port, blue_led_Pin);
-	  HAL_Delay(1000);
+	  HAL_Delay(1400);
+	  cnt++;
+
+	  if (cnt == 5){
+		  bootloader_set_boot_bank(2);
+	  }
 
     /* USER CODE END WHILE */
 
@@ -194,16 +170,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|blue_led_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, green_led_Pin|red_led_Pin|blue_led_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : USER_Btn_Pin */
-  GPIO_InitStruct.Pin = USER_Btn_Pin;
+  /*Configure GPIO pin : push_btn_Pin */
+  GPIO_InitStruct.Pin = push_btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(push_btn_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */
   GPIO_InitStruct.Pin = RMII_MDC_Pin|RMII_RXD0_Pin|RMII_RXD1_Pin;
@@ -221,8 +197,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin LD3_Pin blue_led_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|blue_led_Pin;
+  /*Configure GPIO pins : green_led_Pin red_led_Pin blue_led_Pin */
+  GPIO_InitStruct.Pin = green_led_Pin|red_led_Pin|blue_led_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
