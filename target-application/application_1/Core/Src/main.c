@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "bootloader.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -101,7 +102,7 @@ int main(void)
 
 	  if (cnt == 4){
 		  bootloader_switch_to_inactive_bank();
-		  NVIC_SystemReset();
+		  bootloader_reboot();
 	  }
 
     /* USER CODE END WHILE */
