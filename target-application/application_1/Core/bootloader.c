@@ -51,3 +51,8 @@ void bootloader_switch_to_inactive_bank(void){
 		bootloader_set_boot_bank(1);
 	}
 }
+
+
+void bootloader_reboot(void){
+	NVIC_SystemReset();
+}

@@ -24,4 +24,10 @@ void bootloader_set_boot_bank(uint8_t bank);
  * */
 void bootloader_switch_to_inactive_bank(void);
 
+
+/*
+ * A function to make a software reset
+ * */
+void bootloader_reboot(void);
+
 #endif /* BOOTLOADER_H_ */
