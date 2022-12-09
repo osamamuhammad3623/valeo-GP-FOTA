@@ -42,7 +42,8 @@ void bootloader_set_boot_bank(uint8_t bank){
 
 void bootloader_switch_to_inactive_bank(void){
 
-	// 0 represents bank 1, 1 represents bank 2
+	// 0 represents bank 1,
+	// 1 represents bank 2
 	uint8_t active_bank = READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk);
 
 	if (active_bank == 0){
@@ -50,6 +51,8 @@ void bootloader_switch_to_inactive_bank(void){
 	}else{
 		bootloader_set_boot_bank(1);
 	}
+
+	bootloader_reboot();
 }
 
 
