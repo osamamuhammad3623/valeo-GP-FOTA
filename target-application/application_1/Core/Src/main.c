@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "bootloader.h"
+#include "keypad.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -42,7 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint8_t g_key_states[KEYS] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -86,23 +87,20 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  keypad_init(g_key_states);
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t cnt=0;
   while (1)
   {
-	  // just toggling the blue LED
-	  HAL_GPIO_TogglePin(green_led_GPIO_Port, green_led_Pin);
-	  HAL_Delay(1000);
-	  cnt++;
+	  keypad_scan();
 
-	  if (cnt == 4){
-		  bootloader_switch_to_inactive_bank();
-		  bootloader_reboot();
+	  if (g_key_states[USER_ACCEPT_KEY] == KEY_PRESSED){
+		  HAL_GPIO_TogglePin(green_led_GPIO_Port, green_led_Pin);
+		  HAL_Delay(1000);
 	  }
 
     /* USER CODE END WHILE */
