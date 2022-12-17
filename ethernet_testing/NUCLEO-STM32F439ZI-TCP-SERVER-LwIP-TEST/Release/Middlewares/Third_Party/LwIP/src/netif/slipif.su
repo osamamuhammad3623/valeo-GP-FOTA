@@ -1,0 +1,3 @@
+slipif.c:172:1:slipif_output_v4	16	static
+slipif.c:360:1:slipif_init	16	static
+slipif.c:426:1:slipif_poll	48	static

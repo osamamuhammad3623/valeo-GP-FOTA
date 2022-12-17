@@ -1,0 +1,5 @@
+main.c:114:6:random_string	0	static
+main.c:127:6:random_string2	0	static
+main.c:139:6:SystemClock_Config	88	static,ignoring_inline_asm
+main.c:65:5:main	56	static
+main.c:259:6:Error_Handler	0	static,ignoring_inline_asm

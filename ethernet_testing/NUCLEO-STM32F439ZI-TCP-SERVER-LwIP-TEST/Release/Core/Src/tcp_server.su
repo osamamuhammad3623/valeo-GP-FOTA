@@ -1,0 +1,9 @@
+tcp_server.c:238:13:tcp_server_error	0	static
+tcp_server.c:288:13:tcp_server_connection_close	16	static
+tcp_server.c:73:14:tcp_server_accept	16	static
+tcp_server.c:244:13:tcp_server_send.isra.0	24	static
+tcp_server.c:336:13:tcp_server_handle	128	static
+tcp_server.c:306:14:tcp_server_poll	8	static
+tcp_server.c:117:14:tcp_server_recv	24	static
+tcp_server.c:213:14:tcp_server_sent	8	static
+tcp_server.c:44:6:tcp_server_init	16	static
