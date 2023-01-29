@@ -90,17 +90,15 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t cnt=0;
+
   while (1)
   {
 	  HAL_GPIO_TogglePin(blue_led_GPIO_Port, blue_led_Pin);
 	  HAL_Delay(1000);
-	  cnt++;
 
-	  if (cnt == 4){
-		  bootloader_switch_to_inactive_bank();
-		  bootloader_reboot();
-	  }
+	  bootloader_switch_to_inactive_bank();
+	  bootloader_reboot();
+
 
     /* USER CODE END WHILE */
 
