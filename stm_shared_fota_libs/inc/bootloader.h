@@ -15,7 +15,7 @@
  * - to set bank 1, reset the bit
  * - to set bank 2, set the bit
  * */
-void bootloader_set_boot_bank(uint8_t bank);
+void static bootloader_set_boot_bank(uint8_t bank);
 
 
 /*

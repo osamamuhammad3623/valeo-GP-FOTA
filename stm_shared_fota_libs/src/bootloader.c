@@ -8,7 +8,7 @@
 #include "stm32f4xx_hal.h"
 #include "bootloader.h"
 
-void bootloader_set_boot_bank(uint8_t bank){
+void static bootloader_set_boot_bank(uint8_t bank){
 
 	if ((bank != 1) && (bank!=2)){
 		return;
@@ -52,7 +52,6 @@ void bootloader_switch_to_inactive_bank(void){
 		bootloader_set_boot_bank(1);
 	}
 
-	bootloader_reboot();
 }
 
 
