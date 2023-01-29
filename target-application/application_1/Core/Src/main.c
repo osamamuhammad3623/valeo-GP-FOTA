@@ -93,7 +93,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  HAL_GPIO_TogglePin(red_led_GPIO_Port, blue_led_Pin);
+	  HAL_GPIO_TogglePin(red_led_GPIO_Port, red_led_Pin);
 	  HAL_Delay(1000);
 
 	  bootloader_switch_to_inactive_bank();
