@@ -30,4 +30,10 @@ void bootloader_switch_to_inactive_bank(void);
  * */
 void bootloader_reboot(void);
 
+
+/*
+ * A function to jump to an application
+ * */
+void bootloader_jump_to_application(uint32 start_addr);
+
 #endif /* BOOTLOADER_H_ */
