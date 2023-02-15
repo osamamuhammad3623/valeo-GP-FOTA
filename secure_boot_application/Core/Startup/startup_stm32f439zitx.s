@@ -54,10 +54,10 @@ defined in linker script */
  * @retval : None
 */
 
-    .section  .text.Reset_Handler
-  .weak  Reset_Handler
-  .type  Reset_Handler, %function
-Reset_Handler:  
+    .section  .text.Secure_Boot_Reset_Handler
+  .weak  Secure_Boot_Reset_Handler
+  .type  Secure_Boot_Reset_Handler, %function
+Secure_Boot_Reset_Handler:
   ldr   sp, =_estack     /* set stack pointer */
 
 /* Copy the data segment initializers from flash to SRAM */  
@@ -98,7 +98,7 @@ LoopFillZerobss:
 /* Call the application's entry point.*/
   bl  main
   bx  lr    
-.size  Reset_Handler, .-Reset_Handler
+.size  Secure_Boot_Reset_Handler, .-Secure_Boot_Reset_Handler
 
 /**
  * @brief  This is the code that gets called when the processor receives an 
@@ -125,7 +125,7 @@ Infinite_Loop:
   
   g_pfnVectors:
   .word  _estack
-  .word  Reset_Handler
+  .word  Secure_Boot_Reset_Handler
 
   .word  NMI_Handler
   .word  HardFault_Handler

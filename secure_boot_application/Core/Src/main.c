@@ -17,7 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include "secure_boot.h"
+#include "bootloader.h"
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -32,6 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define app1_start_addr		(0x08004000U)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -86,18 +87,10 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+  if(1){
+	  bootloader_jump_to_application(app1_start_addr);
   }
-  /* USER CODE END 3 */
+  /* USER CODE END 2 */
 }
 
 /**

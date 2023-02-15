@@ -34,6 +34,6 @@ void bootloader_reboot(void);
 /*
  * A function to jump to an application
  * */
-void bootloader_jump_to_application(uint32 start_addr);
+void bootloader_jump_to_application(uint32_t start_addr);
 
 #endif /* BOOTLOADER_H_ */
