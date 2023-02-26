@@ -8,6 +8,8 @@
 #include "stm32f4xx_hal.h"
 #include "bootloader.h"
 
+#if (IS_APPLICATION_CODE == 1)
+
 void static bootloader_set_boot_bank(uint8_t bank){
 
 	if ((bank != 1) && (bank!=2)){
@@ -51,7 +53,6 @@ void bootloader_switch_to_inactive_bank(void){
 	}else{
 		bootloader_set_boot_bank(1);
 	}
-
 }
 
 
@@ -59,6 +60,7 @@ void bootloader_reboot(void){
 	NVIC_SystemReset();
 }
 
+#else
 
 void bootloader_jump_to_application(uint32_t start_addr){
 
@@ -82,3 +84,5 @@ void bootloader_jump_to_application(uint32_t start_addr){
     // Now jump to the main application
     app_ptr();
 }
+
+#endif
