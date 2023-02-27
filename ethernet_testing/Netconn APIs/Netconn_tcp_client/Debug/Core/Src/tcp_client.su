@@ -1,0 +1,6 @@
+tcp_client.c:42:13:tcpinit_thread	32	static
+tcp_client.c:90:6:tcpsend	32	static
+tcp_client.c:96:13:tcp_SendProgram	24	static
+tcp_client.c:106:13:tcp_SendMessage	24	static
+tcp_client.c:117:6:tcp_ReseveMessage	24	static
+tcp_client.c:157:6:tcpclient_init	24	static
