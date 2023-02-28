@@ -1,2 +1,0 @@
-tcp_server.c:26:13:tcp_thread	48	static
-tcp_server.c:97:6:tcpserver_init	16	static
