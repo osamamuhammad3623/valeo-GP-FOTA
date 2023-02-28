@@ -59,18 +59,18 @@ DEFAULT=1, PROGRAMMING, EXTENDED, SAFETY, MAX_SESSIONS
  *******************************************************************************/ 
 //callback .. execute request and send response 
 
-void UDS_execute_request(struct netbuf *buf);	// switch case
+void UDS_execute_request(uint8_t *requestFrame);	// switch case
 
-void UDS_change_session(struct netbuf *buf); 
-void UDS_security_access(struct netbuf *buf); 
-void UDS_generate_seed(struct netbuf *buf); 
-void UDS_verify_key(struct netbuf *buf);	 
-void UDS_call_routine(struct netbuf *buf); 
-void UDS_erase_memory_routine(struct netbuf *buf);
-void UDS_check_memory_routine(struct netbuf *buf);
-void UDS_start_download(struct netbuf *buf);
-void UDS_process_data(struct netbuf *buf);
-void UDS_exit_download(struct netbuf *buf);
-void UDS_reboot(struct netbuf *buf); 
+void UDS_change_session(uint8_t *requestFrame);
+void UDS_security_access(uint8_t *requestFrame);
+void UDS_generate_seed(uint8_t *requestFrame);
+void UDS_verify_key(uint8_t *requestFrame);	 
+void UDS_call_routine(uint8_t *requestFrame);
+void UDS_erase_memory_routine(uint8_t *requestFrame);
+void UDS_check_memory_routine(uint8_t *requestFrame);
+void UDS_start_download(uint8_t *requestFrame);
+void UDS_process_data(uint8_t *requestFrame);
+void UDS_exit_download(uint8_t *requestFrame);
+void UDS_reboot(uint8_t *requestFrame);
 
 #endif /* UDS_SERVER_H_ */
