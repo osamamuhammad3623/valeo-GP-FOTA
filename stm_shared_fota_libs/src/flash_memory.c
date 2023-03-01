@@ -6,8 +6,7 @@
  */
 #include "flash_memory.h"
 #include "stm32f4xx_hal.h"
-#include "string.h"
-#include "stdio.h"
+
 /*
  * Description:
  * function to get the sector number of a specific address.
@@ -141,20 +140,16 @@ static uint32_t GetSector(uint32_t Address)
 }
 
 
-uint8_t Flash_Memory_Write(uint32_t StartSectorAddress ,uint32_t *data, uint32_t dataSizeInBytes){
-
-	static FLASH_EraseInitTypeDef EraseInitStruct;   /* Struct to erase the flash area */
+uint8_t Flash_Memory_Erase(uint32_t StartSectorAddress , uint32_t dataSizeInBytes){
+	static FLASH_EraseInitTypeDef EraseInitStruct;   /* Structure to erase the flash area */
 	uint32_t SECTORError;
-	uint32_t numofWords=dataSizeInBytes/4;
-	uint32_t numofWordsWritten=0;
 
 	/* Getting the number of sector to erase from the first sector */
-	uint32_t StartSector = GetSector(StartSectorAddress);
-	uint32_t EndSectorAddress = StartSectorAddress + dataSizeInBytes;
-	uint32_t EndSector = GetSector(EndSectorAddress);
+	uint32_t StartSector = GetSector(StartSectorAddress);                /*getting the start sector number*/
+	uint32_t EndSectorAddress = StartSectorAddress + dataSizeInBytes;    /*getting the end sector address*/
+	uint32_t EndSector = GetSector(EndSectorAddress);                    /*getting the end sector number*/
 
-
-	/* Filling the erasing struct */
+	/* Filling the erasing structure */
 	EraseInitStruct.TypeErase     = FLASH_TYPEERASE_SECTORS;
 	EraseInitStruct.VoltageRange  = FLASH_VOLTAGE_RANGE_3;
 	EraseInitStruct.Sector        = StartSector;
@@ -169,6 +164,20 @@ uint8_t Flash_Memory_Write(uint32_t StartSectorAddress ,uint32_t *data, uint32_t
 		/*Error occurred while page erase*/
 		return FAILED;
 	}
+
+	/* Locking the Flash control register */
+	HAL_FLASH_Lock();
+
+	return SUCCEED;
+}
+
+
+uint8_t Flash_Memory_Write(uint32_t StartSectorAddress ,uint32_t *data, uint32_t dataSizeInBytes){
+	uint32_t numofWords=dataSizeInBytes/4;     /*getting number of words to write*/
+	uint32_t numofWordsWritten=0;
+
+	/* Unlocking the Flash control register */
+	HAL_FLASH_Unlock();
 
 	/* looping on the data word by word to write it in the flash */
 	while(numofWordsWritten < numofWords){
@@ -190,6 +199,7 @@ uint8_t Flash_Memory_Write(uint32_t StartSectorAddress ,uint32_t *data, uint32_t
 	HAL_FLASH_Lock();
 
 	return SUCCEED;
+
 }
 
 
