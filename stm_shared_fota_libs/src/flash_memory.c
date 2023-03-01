@@ -215,3 +215,4 @@ void Flash_Memory_Read (uint32_t StartSectorAddress, uint32_t *buffer, uint16_t 
 	}
 
 }
+
