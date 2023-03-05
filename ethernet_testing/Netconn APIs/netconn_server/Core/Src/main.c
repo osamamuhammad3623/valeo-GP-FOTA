@@ -282,7 +282,6 @@ void StartDefaultTask(void *argument)
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
   tcpserver_init();
-
   /* Infinite loop */
   for(;;)
   {
