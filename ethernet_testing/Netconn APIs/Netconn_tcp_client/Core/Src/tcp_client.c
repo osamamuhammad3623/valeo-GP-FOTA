@@ -18,26 +18,56 @@
 //============netconn parameters=============================================
 static struct netconn *conn;
 static struct netbuf *buf;
-static ip_addr_t *addr, dest_addr;
-static unsigned short port, dest_port;
+static ip_addr_t  dest_addr;
+static unsigned short  dest_port;
 //=========================================================================
 
 //==================ARRAYS to Hold DATA===================================
 char ReceivedMessage[100];
-char ToSendMessage[200];
+char ToSendMessage[100];
 char* ProgramToSend = (char*)0x10000000;
 //====================================================================
 
 //===================static functions used ===========================
 
 // Function to send the data to the server
-static void tcpsend (char *data);
-static void tcp_ReseveMessage (void *arg );
-static void tcp_SendMessage (void *arg);
-static void tcp_SendProgram (void *arg);
-
+static void tcp_ReseveMessage (void );
+void tcp_SendMessage (char *Message , int messageLength);
 
 //==========================================================
+
+void UDS_receive_response(char* message)
+{
+
+	memset (ToSendMessage, '\0', 100);
+
+	if(strcmp(message,"hi")==0)
+	{
+		int len = sprintf (ToSendMessage, "\n pleased to meet you ");
+		tcp_SendMessage(ToSendMessage , len);
+	}
+	else if(strcmp(message,"delay")==0)
+	{
+		for(int i=0;i<1000;i++);
+
+		int len = sprintf (ToSendMessage, "\n Process done");
+		tcp_SendMessage(ToSendMessage , len);
+	}
+	else if(strcmp(message,"send")==0)
+	{
+		int len = sprintf (ToSendMessage, "\n i will send first the program length");
+		tcp_SendMessage(ToSendMessage , len);
+
+		 len = sprintf (ToSendMessage, "\n 3000");
+		 tcp_SendMessage(ToSendMessage , len);
+
+		 len = sprintf (ToSendMessage, "\n Be ready to receive the program /n/n");
+		 tcp_SendMessage(ToSendMessage , len);
+
+		 tcp_SendMessage(ProgramToSend , 3000);
+
+	}
+}
 
 static void tcpinit_thread(void *arg)
 {
@@ -48,12 +78,12 @@ static void tcpinit_thread(void *arg)
 
 	if (conn!=NULL)
 	{
-		/* Bind connection to the port number 7 (port of the Client). */
-		err = netconn_bind(conn, IP_ADDR_ANY, 7);
+		/* Bind connection to the port number 10 (port of the Client). */
+		err = netconn_bind(conn, IP_ADDR_ANY, 10);
 
 		if (err == ERR_OK)
 		{
-			/* The desination IP adress of the computer */
+			/* The designation IP address of the computer */
 			IP_ADDR4(&dest_addr, 169, 254, 84, 57);
 			dest_port = 10;  // server port
 
@@ -63,10 +93,12 @@ static void tcpinit_thread(void *arg)
 			// If the connection to the server is established, the following will continue, else delete the connection
 			if (connect_error == ERR_OK)
 			{
-				//sys_thread_new("tcp_ReseveMessage", tcp_ReseveMessage, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+				//send a "hi" message at first
+				int messageLength = sprintf(ToSendMessage , "hi");
+				tcp_SendMessage(ToSendMessage, messageLength);
 
-				sys_thread_new("tcp_SendProgram", tcp_SendProgram, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
-
+				//start receiving
+				tcp_ReseveMessage();
 			}
 			else
 			{
@@ -82,39 +114,15 @@ static void tcpinit_thread(void *arg)
 		}
 	}
 
-	osThreadId_t id;
-	id = osThreadGetId();
-	osThreadTerminate(id);
 }
 
-void tcpsend (char *data)
+ void tcp_SendMessage (char *Message , int messageLength)
 {
-	netconn_write(conn, data, strlen(data), NETCONN_COPY);
+	netconn_write(conn, Message, messageLength, NETCONN_COPY);
 }
 
 
-static void tcp_SendProgram (void *arg)
-{
-
-	tcpsend(ProgramToSend);
-	osThreadId_t id;
-	id = osThreadGetId();
-	osThreadTerminate(id);
-}
-
-
-static void tcp_SendMessage (void *arg)
-{
-	sprintf (ToSendMessage, "\"%s\" was sent by the Server\n", ReceivedMessage);
-	tcpsend(ToSendMessage);
-	memset (ToSendMessage, '\0', 200);  // clear the buffer
-
-	osThreadId_t id;
-	id = osThreadGetId();
-	osThreadTerminate(id);
-}
-
-void tcp_ReseveMessage (void *arg )
+ static void tcp_ReseveMessage (void)
 {
 
 	while (1)
@@ -122,29 +130,12 @@ void tcp_ReseveMessage (void *arg )
 		/* wait until the data is sent by the server */
 		if (netconn_recv(conn, &buf) == ERR_OK)
 		{
-			/* Extract the address and port in case they are required */
-			addr = netbuf_fromaddr(buf);  // get the address of the client
-			port = netbuf_fromport(buf);  // get the Port of the client
-
 			/* If there is some data remaining to be sent, the following process will continue */
 			do
 			{
-
-				strncpy (ReceivedMessage, buf->p->payload, buf->p->len);   // get the message from the server
-
-				if(strcmp(ReceivedMessage , "SEND")==0)
-				{
-					sys_thread_new("tcp_SendProgram", tcp_SendProgram, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
-
-				}
-				else
-				{
-					// send the received data  using tcp_SendMessage
-					sys_thread_new("tcp_SendMessage", tcp_SendMessage, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
-				}
-
-				//memset (ReceivedMessage, '\0', 100);  // clear the buffer
-
+				memset (ReceivedMessage, '\0', 100);
+				strncpy(ReceivedMessage,buf->p->payload, buf->p->len);
+				UDS_receive_response(ReceivedMessage);
 			}
 			while (netbuf_next(buf) >0);
 
@@ -162,9 +153,5 @@ void tcpclient_init (void)
 	}
 
 	sys_thread_new("tcpinit_thread", tcpinit_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
-
-	osThreadId_t id;
-	id = osThreadGetId();
-	osThreadTerminate(id);
 
 }
