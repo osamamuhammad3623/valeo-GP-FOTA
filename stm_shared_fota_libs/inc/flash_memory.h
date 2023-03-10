@@ -13,6 +13,9 @@
 /******************************* DEFINITIONS **************************/
 #define SUCCEED  1
 #define FAILED   0
+#define START_ADDRESS_BANK2  0x08102000
+#define START_ADDRESS_BANK1  0x08002000
+
 
 /************************* FUNCTION PROTOTYPING ***********************/
 /*
@@ -21,6 +24,17 @@
  * and the data size
  * */
 uint8_t Flash_Memory_Erase(uint32_t StartSectorAddress , uint32_t dataSizeInBytes);
+/*
+ * Description:
+ * Function to get the inactive bank and erase it
+ * */
+uint8_t erase_inactive_bank(void);
+/*
+ * Description:
+ * Function to write data in the flash memory from a specific starting address defined
+ * and increase the starting address depending on the data written before when the function has been called.
+ * */
+uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes);
 /*
  * Description:
  * Function to write data in the flash memory
@@ -35,4 +49,3 @@ uint8_t Flash_Memory_Write(uint32_t StartSectorAddress ,uint32_t *data, uint32_t
 void Flash_Memory_Read (uint32_t StartSectorAddress, uint32_t *buffer, uint16_t numofWords);
 
 #endif /* INC_FLASH_MEMORY_H_ */
-
