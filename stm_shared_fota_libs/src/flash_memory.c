@@ -6,6 +6,8 @@
  */
 #include "flash_memory.h"
 #include "stm32f4xx_hal.h"
+//#include "string.h"
+//#include "stdio.h"
 
 /*
  * Description:
@@ -216,3 +218,95 @@ void Flash_Memory_Read (uint32_t StartSectorAddress, uint32_t *buffer, uint16_t 
 
 }
 
+
+
+uint8_t erase_inactive_bank(void){
+	static FLASH_EraseInitTypeDef EraseInitStruct;   /* Structure to erase the flash area */
+	uint32_t SECTORError;
+	uint32_t InactiveBank;
+
+	/*check the inactive bank to erase*/
+	if(READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk)){
+		/* active bank -> bank2
+		 * inactive bank -> bank1
+		 */
+		InactiveBank=FLASH_BANK_1;
+	}
+	else{
+		/* active bank -> bank1
+		 * inactive bank -> bank2
+		 */
+		InactiveBank=FLASH_BANK_2;
+	}
+
+	/* Filling the erasing structure */
+	EraseInitStruct.TypeErase     = FLASH_TYPEERASE_MASSERASE;
+	EraseInitStruct.VoltageRange  = FLASH_VOLTAGE_RANGE_3;
+	EraseInitStruct.Banks=InactiveBank;
+
+
+	/* Unlocking the Flash control register */
+	HAL_FLASH_Unlock();
+
+	/* check if the erasing process is done correctly */
+	if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK)
+	{
+		/*Error occurred while page erase*/
+		return FAILED;
+	}
+
+	/* Locking the Flash control register */
+	HAL_FLASH_Lock();
+
+	return SUCCEED;
+
+
+}
+
+uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes){
+	/* begin from the start
+	 * initialized only once, then increased at each call
+	 * depending on the data size that will be written */
+	static uint32_t StartAddress;
+	uint32_t numofWords=dataSizeInBytes/4;     /*getting number of words to write*/
+	uint32_t numofWordsWritten=0;
+
+	/*check the inactive bank to write in*/
+	if(READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk)){
+		/* active bank -> bank2
+		 * inactive bank -> bank1
+		 */
+		StartAddress=START_ADDRESS_BANK1;
+	}
+	else{
+		/* active bank -> bank1
+		 * inactive bank -> bank2
+		 */
+		StartAddress=START_ADDRESS_BANK2;
+	}
+
+
+	/* Unlocking the Flash control register */
+	HAL_FLASH_Unlock();
+
+	/* looping on the data word by word to write it in the flash */
+	while(numofWordsWritten < numofWords){
+
+		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, StartAddress, data[numofWordsWritten]) == HAL_OK)
+		{
+			StartAddress += 4;
+			numofWordsWritten++;
+		}
+		else
+		{
+			/* Error occurred while writing data in Flash memory*/
+			return FAILED;
+		}
+
+	}
+
+	/* Locking the Flash control register */
+	HAL_FLASH_Lock();
+
+	return SUCCEED;
+}
