@@ -19,8 +19,7 @@
  * if it's an application code, bootloader_jump_to_application will not be compiled
  * if it's NOT an application code (a secure boot code), only bootloader_jump_to_application will be compiled
  * */
-#define IS_APPLICATION_CODE		1
-
+#define IS_APPLICATION_CODE		0
 
 
 /**********************************************************************************

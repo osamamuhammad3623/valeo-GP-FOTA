@@ -32,7 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define app1_start_addr		(0x08004000U)
+#define app1_start_addr		(0x08060000U)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/

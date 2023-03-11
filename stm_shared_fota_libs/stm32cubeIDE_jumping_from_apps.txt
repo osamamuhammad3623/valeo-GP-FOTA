@@ -3,6 +3,7 @@ This file describes the steps to jump from one application to another using STM3
 - In application project:
 1. Change flash start address & size in flash/RAM linker scripts.
 2. Enable IRQ in the main function (use __enable_irq() )
+3. Uncomment USER_VECT_TAB_ADDRESS
 
 - In bootloader project:
 1. Change flash size in the flash/RAM linker scripts.
