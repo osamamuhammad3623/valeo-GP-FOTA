@@ -1,6 +1,0 @@
-D:/CSE/GraduationProject/valeo-GP-FOTA/stm_shared_fota_libs/src/flash_memory.c:16:17:GetSector	8	static
-D:/CSE/GraduationProject/valeo-GP-FOTA/stm_shared_fota_libs/src/flash_memory.c:145:9:Flash_Memory_Erase	24	static
-D:/CSE/GraduationProject/valeo-GP-FOTA/stm_shared_fota_libs/src/flash_memory.c:177:9:Flash_Memory_Write	16	static
-D:/CSE/GraduationProject/valeo-GP-FOTA/stm_shared_fota_libs/src/flash_memory.c:208:6:Flash_Memory_Read	8	static
-D:/CSE/GraduationProject/valeo-GP-FOTA/stm_shared_fota_libs/src/flash_memory.c:223:9:erase_inactive_bank	24	static
-D:/CSE/GraduationProject/valeo-GP-FOTA/stm_shared_fota_libs/src/flash_memory.c:266:9:flash_memory_write	16	static
