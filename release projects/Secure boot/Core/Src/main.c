@@ -1,32 +1,3 @@
-//boot manger from sector 0 to sector 4
-//sector 6 for certificates , meta-data, signature
-//2k for each certificate , 1k for meta-data , 1k for signature then application
-//sector 7 for app
-#define APPLICATION_EXENSIONS_ADDRESS    0x08040000
-
-#define ROOT_CERT_ADDRESS 				 APPLICATION_EXENSIONS_ADDRESS
-#define SB_CERT_ADDRESS 			    (APPLICATION_EXENSIONS_ADDRESS + 0x0800)    //0x08040800 //2K byte offset from Application_extensions_Address
-#define META_DATA_ADDRESS               (APPLICATION_EXENSIONS_ADDRESS + 0x01000)   //0x08041000 //4k byte offset from Application_extensions_Address
-#define SIGNATURE_ADDRESS               (APPLICATION_EXENSIONS_ADDRESS + 0x01400)	//0x08041400 //5k byte offset from Application_extensions_Address
-#define CERTIFICATES_METADATA_ADDRESS   (APPLICATION_EXENSIONS_ADDRESS + 0x01600)   //0x08041600
-
-#define MAIN_APPLICATION_START_ADDRESS  (0x08060000)   //6k byte offset from Application_extensions_Address
-
-#define ROOT_1_REVOCATION_ADDRESS  (0x1fff7800) //first byte in the Block 0 - OTP
-#define ROOT_2_REVOCATION_ADDRESS  (0x1fff7820) //first byte in the Block 1 - OTP
-
-
-#define META_DATA_LENGTH 82
-
-#define MAJOR_V_METADATA_OFFSET         8
-#define MINOR_V_METADATA_OFFSET         10
-#define PATCH_V_METADATA_OFFSET         12
-#define APP_SIZE__METADATA_OFFSET       20
-#define ROOT_INDEX__METADATA_OFFSET     38
-#define APP_HASH__METADATA_OFFSET       50
-
-#define ROOT_CERT_SIZE_C_METADATA_OFFSET  15
-#define SB_CERT_SIZE_C_METADATA_OFFSET    34
 /* USER CODE BEGIN Header */
 /**
  ******************************************************************************
@@ -47,9 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "rng.h"
-#include "usart.h"
-#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -71,7 +39,31 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+#define APPLICATION_EXENSIONS_ADDRESS    0x08040000
 
+#define ROOT_CERT_ADDRESS 				 APPLICATION_EXENSIONS_ADDRESS
+#define SB_CERT_ADDRESS 			    (APPLICATION_EXENSIONS_ADDRESS + 0x0800)    //0x08040800 //2K byte offset from Application_extensions_Address
+#define META_DATA_ADDRESS               (APPLICATION_EXENSIONS_ADDRESS + 0x01000)   //0x08041000 //4k byte offset from Application_extensions_Address
+#define SIGNATURE_ADDRESS               (APPLICATION_EXENSIONS_ADDRESS + 0x01400)	//0x08041400 //5k byte offset from Application_extensions_Address
+#define CERTIFICATES_METADATA_ADDRESS   (APPLICATION_EXENSIONS_ADDRESS + 0x01600)   //0x08041600
+
+#define MAIN_APPLICATION_START_ADDRESS  (0x08060000U)   //6k byte offset from Application_extensions_Address
+
+#define ROOT_1_REVOCATION_ADDRESS  (0x1fff7800) //first byte in the Block 0 - OTP
+#define ROOT_2_REVOCATION_ADDRESS  (0x1fff7820) //first byte in the Block 1 - OTP
+
+
+#define META_DATA_LENGTH 82
+
+#define MAJOR_V_METADATA_OFFSET         8
+#define MINOR_V_METADATA_OFFSET         10
+#define PATCH_V_METADATA_OFFSET         12
+#define APP_SIZE__METADATA_OFFSET       20
+#define ROOT_INDEX__METADATA_OFFSET     38
+#define APP_HASH__METADATA_OFFSET       50
+
+#define ROOT_CERT_SIZE_C_METADATA_OFFSET  15
+#define SB_CERT_SIZE_C_METADATA_OFFSET    34
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -115,6 +107,9 @@ long expected_e_root_chain_2_public_key= 0x010001;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_RNG_Init(void);
+static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -325,29 +320,6 @@ int compare_long(long *n_public_key_1,long *n_public_key_2,int size){
 	return 0;
 }
 
-void bootloader_jump_to_application(uint32_t start_addr){
-
-	/* First, disable all IRQs */
-    __disable_irq(); // ensure to __enable_irq() in the application main function
-
-    // set vector table offset
-    SCB->VTOR = (start_addr - 0x08000000);
-
-    /* Get the main application start address */
-    uint32_t jump_address = *(uint32_t *)(start_addr + 4);
-
-    /* Set the main stack pointer to to the application start address */
-    __set_MSP(*(uint32_t *)start_addr);
-    __set_PSP(*(uint32_t *)start_addr);
-
-    // Create function pointer for the main application
-    void (*app_ptr)(void);
-    app_ptr = (void *)(jump_address);
-
-    // Now jump to the main application
-    app_ptr();
-}
-
 int Secure_boot_goooooo(){
 	int ret=0;
 	/************** fetch needed data from memory****************/
@@ -508,7 +480,13 @@ int main(void)
 //  }else{
 //	  //stuck on the while 1
 //  }
-  bootloader_jump_to_application(MAIN_APPLICATION_START_ADDRESS);
+
+  /*
+   * The following 2/3 lines seems to have an issue :D
+   * */
+  //LL_RNG_DeInit(RNG);
+  //HAL_DeInit();
+  //bootloader_jump_to_application(0x08060000U);
 
   /* USER CODE END 2 */
 
@@ -516,6 +494,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
+		HAL_GPIO_TogglePin(blue_led_GPIO_Port, blue_led_Pin);
+		HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -569,6 +549,107 @@ void SystemClock_Config(void)
   }
 }
 
+/**
+  * @brief RNG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RNG_Init(void)
+{
+
+  /* USER CODE BEGIN RNG_Init 0 */
+
+  /* USER CODE END RNG_Init 0 */
+
+  /* Peripheral clock enable */
+  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_RNG);
+
+  /* USER CODE BEGIN RNG_Init 1 */
+
+  /* USER CODE END RNG_Init 1 */
+  LL_RNG_Enable(RNG);
+  /* USER CODE BEGIN RNG_Init 2 */
+
+  /* USER CODE END RNG_Init 2 */
+
+}
+
+/**
+  * @brief UART4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART4_Init(void)
+{
+
+  /* USER CODE BEGIN UART4_Init 0 */
+
+  /* USER CODE END UART4_Init 0 */
+
+  LL_USART_InitTypeDef USART_InitStruct = {0};
+
+  LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* Peripheral clock enable */
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_UART4);
+
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+  /**UART4 GPIO Configuration
+  PA0/WKUP   ------> UART4_TX
+  PA1   ------> UART4_RX
+  */
+  GPIO_InitStruct.Pin = LL_GPIO_PIN_0|LL_GPIO_PIN_1;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Alternate = LL_GPIO_AF_8;
+  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN UART4_Init 1 */
+
+  /* USER CODE END UART4_Init 1 */
+  USART_InitStruct.BaudRate = 115200;
+  USART_InitStruct.DataWidth = LL_USART_DATAWIDTH_8B;
+  USART_InitStruct.StopBits = LL_USART_STOPBITS_1;
+  USART_InitStruct.Parity = LL_USART_PARITY_NONE;
+  USART_InitStruct.TransferDirection = LL_USART_DIRECTION_TX_RX;
+  USART_InitStruct.HardwareFlowControl = LL_USART_HWCONTROL_NONE;
+  USART_InitStruct.OverSampling = LL_USART_OVERSAMPLING_16;
+  LL_USART_Init(UART4, &USART_InitStruct);
+  LL_USART_ConfigAsyncMode(UART4);
+  LL_USART_Enable(UART4);
+  /* USER CODE BEGIN UART4_Init 2 */
+
+  /* USER CODE END UART4_Init 2 */
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(blue_led_GPIO_Port, blue_led_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : blue_led_Pin */
+  GPIO_InitStruct.Pin = blue_led_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(blue_led_GPIO_Port, &GPIO_InitStruct);
+
+}
+
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
@@ -604,4 +685,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-

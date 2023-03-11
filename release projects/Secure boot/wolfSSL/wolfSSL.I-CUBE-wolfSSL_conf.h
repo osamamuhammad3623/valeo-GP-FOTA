@@ -27,7 +27,7 @@
 
 /**
 	MiddleWare name : wolfSSL.I-CUBE-wolfSSL.5.5.4
-	MiddleWare fileName : wolfSSL.I-CUBE-wolfSSL_conf.h
+	MiddleWare fileName : ./wolfSSL.I-CUBE-wolfSSL_conf.h
 	MiddleWare version :
 */
 /*---------- WOLF_CONF_DEBUG -----------*/
@@ -202,7 +202,7 @@
         #define WOLFSSL_STM32_PKA
     #endif
 #else
-    //#warning Please define a hardware platform!
+    #warning Please define a hardware platform!
     /* This means there is not a pre-defined platform for your board/CPU */
     /* You need to define a CPU type, HW crypto and debug UART */
     /* CPU Type: WOLFSSL_STM32F1, WOLFSSL_STM32F2, WOLFSSL_STM32F4,
@@ -229,7 +229,8 @@
 /* ------------------------------------------------------------------------- */
 #define SIZEOF_LONG_LONG 8
 #define WOLFSSL_GENERAL_ALIGNMENT 4
-#define WOLFSSL_STM32_CUBEMX
+//#define WOLFSSL_STM32_CUBEMX
+#define WOLFSSL_STM32_RNG_NOLIB
 #define WOLFSSL_SMALL_STACK
 #define WOLFSSL_USER_IO
 #define WOLFSSL_NO_SOCK
