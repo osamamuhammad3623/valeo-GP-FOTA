@@ -6,8 +6,6 @@
  */
 #include "flash_memory.h"
 #include "stm32f4xx_hal.h"
-//#include "string.h"
-//#include "stdio.h"
 
 /*
  * Description:
@@ -263,7 +261,7 @@ uint8_t erase_inactive_bank(void){
 
 }
 
-uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes){
+uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes, FLASH_DataType dataType){
 	/* begin from the start
 	 * initialized only once, then increased at each call
 	 * depending on the data size that will be written */
@@ -271,18 +269,44 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes){
 	uint32_t numofWords=dataSizeInBytes/4;     /*getting number of words to write*/
 	uint32_t numofWordsWritten=0;
 
-	/*check the inactive bank to write in*/
-	if(READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk)){
-		/* active bank -> bank2
-		 * inactive bank -> bank1
-		 */
-		StartAddress=START_ADDRESS_BANK1;
-	}
-	else{
-		/* active bank -> bank1
-		 * inactive bank -> bank2
-		 */
-		StartAddress=START_ADDRESS_BANK2;
+	/*depending on the type of data to be written, the start address will be determined*/
+	switch (dataType){
+	case META_DATA:
+		/*check the inactive bank to write in*/
+		if(READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk)){
+			/* active bank -> bank2
+			 * inactive bank -> bank1
+			 */
+			StartAddress=META_DATA_START_ADDRESS_BANK1;
+		}
+		else{
+			/* active bank -> bank1
+			 * inactive bank -> bank2
+			 */
+			StartAddress=META_DATA_START_ADDRESS_BANK2;
+		}
+
+		break;
+
+	case APP:
+		/*check the inactive bank to write in*/
+		if(READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk)){
+			/* active bank -> bank2
+			 * inactive bank -> bank1
+			 */
+			StartAddress=APP_START_ADDRESS_BANK1;
+		}
+		else{
+			/* active bank -> bank1
+			 * inactive bank -> bank2
+			 */
+			StartAddress=APP_START_ADDRESS_BANK2;
+		}
+
+		break;
+	default:
+		return FAILED;
+
 	}
 
 

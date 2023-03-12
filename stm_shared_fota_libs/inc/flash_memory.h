@@ -11,11 +11,19 @@
 #include "stm32f4xx_hal.h"
 
 /******************************* DEFINITIONS **************************/
-#define SUCCEED  1
-#define FAILED   0
-#define START_ADDRESS_BANK2  0x08102000
-#define START_ADDRESS_BANK1  0x08002000
+#define SUCCEED              1
+#define FAILED               0
 
+#define APP_START_ADDRESS_BANK1        0x08002100
+#define APP_START_ADDRESS_BANK2        0x08102100
+#define META_DATA_START_ADDRESS_BANK1  0x08002000
+#define META_DATA_START_ADDRESS_BANK2  0x08102000
+
+/************************* TYPES DDECLERATIONS ************************/
+typedef enum
+{
+	META_DATA,APP
+}FLASH_DataType;
 
 /************************* FUNCTION PROTOTYPING ***********************/
 /*
@@ -31,10 +39,10 @@ uint8_t Flash_Memory_Erase(uint32_t StartSectorAddress , uint32_t dataSizeInByte
 uint8_t erase_inactive_bank(void);
 /*
  * Description:
- * Function to write data in the flash memory from a specific starting address defined
+ * Function to write data in the flash memory from a specific starting address defined based on the type of data
  * and increase the starting address depending on the data written before when the function has been called.
  * */
-uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes);
+uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes, FLASH_DataType dataType);
 /*
  * Description:
  * Function to write data in the flash memory
