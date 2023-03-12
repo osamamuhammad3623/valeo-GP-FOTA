@@ -105,6 +105,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
   MX_RNG_Init();
+  HAL_RNG_DeInit(&hrng);
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */

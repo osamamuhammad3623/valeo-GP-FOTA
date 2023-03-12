@@ -1,0 +1,5 @@
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/wolfmath.c:75:6:mp_reverse	32	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/wolfmath.c:94:5:get_digit_count	16	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/wolfmath.c:102:10:get_digit	16	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/wolfmath.c:160:5:get_rand_digit	16	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/wolfmath.c:166:5:mp_rand	32	static
