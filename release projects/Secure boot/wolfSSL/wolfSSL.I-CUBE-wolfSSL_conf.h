@@ -229,8 +229,7 @@
 /* ------------------------------------------------------------------------- */
 #define SIZEOF_LONG_LONG 8
 #define WOLFSSL_GENERAL_ALIGNMENT 4
-//#define WOLFSSL_STM32_CUBEMX
-#define WOLFSSL_STM32_RNG_NOLIB
+#define WOLFSSL_STM32_CUBEMX
 #define WOLFSSL_SMALL_STACK
 #define WOLFSSL_USER_IO
 #define WOLFSSL_NO_SOCK

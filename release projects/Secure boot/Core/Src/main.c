@@ -67,6 +67,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+RNG_HandleTypeDef hrng;
 
 /* USER CODE BEGIN PV */
 
@@ -108,8 +109,8 @@ long expected_e_root_chain_2_public_key= 0x010001;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_RNG_Init(void);
 static void MX_UART4_Init(void);
+static void MX_RNG_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -468,34 +469,19 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_RNG_Init();
   MX_UART4_Init();
+  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
-
-//  int ret =1;
-//  ret = Secure_boot_goooooo();
-//  if(ret == 0){
-//	  //jump to application
-//
-//  }else{
-//	  //stuck on the while 1
-//  }
-
-  /*
-   * The following 2/3 lines seems to have an issue :D
-   * */
-  //LL_RNG_DeInit(RNG);
-  //HAL_DeInit();
-  //bootloader_jump_to_application(0x08060000U);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  bootloader_jump_to_application(0x08060000);
 	while (1)
 	{
-		HAL_GPIO_TogglePin(blue_led_GPIO_Port, blue_led_Pin);
-		HAL_Delay(1000);
+		//HAL_GPIO_TogglePin(blue_led_GPIO_Port, blue_led_Pin);
+		//HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -561,13 +547,14 @@ static void MX_RNG_Init(void)
 
   /* USER CODE END RNG_Init 0 */
 
-  /* Peripheral clock enable */
-  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_RNG);
-
   /* USER CODE BEGIN RNG_Init 1 */
 
   /* USER CODE END RNG_Init 1 */
-  LL_RNG_Enable(RNG);
+  hrng.Instance = RNG;
+  if (HAL_RNG_Init(&hrng) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN RNG_Init 2 */
 
   /* USER CODE END RNG_Init 2 */
