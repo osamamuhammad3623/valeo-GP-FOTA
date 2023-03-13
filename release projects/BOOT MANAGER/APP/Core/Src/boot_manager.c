@@ -249,7 +249,7 @@ void jump_to_application(void){
 
 	/* Set the main stack pointer to to the application start address */
 	__set_MSP(*(uint32_t *)MAIN_APPLICATION_START_ADDRESS);
-	//__set_PSP(*(uint32_t *)start_addr);
+	//__set_PSP(*(uint32_t *)MAIN_APPLICATION_START_ADDRESS);
 
 	// Create function pointer for the main application
 	void (*app_ptr)(void);
