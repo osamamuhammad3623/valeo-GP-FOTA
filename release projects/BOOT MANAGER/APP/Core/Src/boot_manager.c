@@ -235,19 +235,19 @@ uint8_t secure_boot_verify(void){
 	return SUCCEEDED;
 }
 
-void jump_to_application(uint32_t start_addr){
+void jump_to_application(void){
 
 	/* First, disable all IRQs */
 	__disable_irq(); // ensure to __enable_irq() in the application main function
 
 	// set vector table offset
-	SCB->VTOR = (start_addr - 0x08000000);
+	SCB->VTOR = (MAIN_APPLICATION_START_ADDRESS - 0x08000000);
 
 	/* Get the main application start address */
-	uint32_t jump_address = *(uint32_t *)(start_addr + 4);
+	uint32_t jump_address = *(uint32_t *)(MAIN_APPLICATION_START_ADDRESS + 4);
 
 	/* Set the main stack pointer to to the application start address */
-	__set_MSP(*(uint32_t *)start_addr);
+	__set_MSP(*(uint32_t *)MAIN_APPLICATION_START_ADDRESS);
 	//__set_PSP(*(uint32_t *)start_addr);
 
 	// Create function pointer for the main application
@@ -494,6 +494,3 @@ static uint8_t DigestCompare ( byte *Digest , byte *MetaDigest){
 	}
 	return ret;
 }
-
-
-
