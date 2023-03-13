@@ -83,7 +83,7 @@ int main(void)
   /* USER CODE END Init */
 
   /* Configure the system clock */
-  SystemClock_Config();
+  SystemClock_Config(); 
 
   /* USER CODE BEGIN SysInit */
 
@@ -102,7 +102,7 @@ int main(void)
   ret = secure_boot_verify();
   if(ret == SUCCEEDED){
 	  //jump to application
-	  jump_to_application(MAIN_APPLICATION_START_ADDRESS);
+	  jump_to_application();
   }else{
 	  //Failed
   }
@@ -202,4 +202,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
