@@ -38,7 +38,6 @@ uint8_t secure_boot_verify(void);
 /* \Description:
  * function to jump to application at specific address                        */
 /******************************************************************************/
-void jump_to_application(uint32_t start_addr);
+void jump_to_application(void);
 
 #endif /* BOOT_MANAGER_H_ */
-
