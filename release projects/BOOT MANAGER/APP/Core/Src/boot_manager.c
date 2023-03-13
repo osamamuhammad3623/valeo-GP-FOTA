@@ -6,6 +6,7 @@
 
 /********************************** Includes **********************************/
 #include "boot_manager.h"
+#include "boot_manager_confg.h"
 #include "stdio.h"
 #include "wolfssl/wolfcrypt/signature.h"
 #include "wolfssl/wolfcrypt/rsa.h"
