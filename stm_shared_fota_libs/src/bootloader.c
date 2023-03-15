@@ -73,6 +73,9 @@ void bootloader_jump_to_application(uint32_t start_addr){
     void (*app_ptr)(void);
     app_ptr = (void *)(jump_address);
 
+	// change the vector table offset
+	SCB->VTOR = (start_addr - 0x08000000);
+
     /* disable all IRQs */
     __disable_irq(); // ensure to __enable_irq() in the application main function
 
