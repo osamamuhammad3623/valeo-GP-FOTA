@@ -279,13 +279,12 @@ uint8_t erase_inactive_bank(void){
 }
 
 
-
-uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes, FLASH_DataType dataType){
+uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataType dataType){
 	/* begin from the start
 	 * initialized only once, then increased at each call
 	 * depending on the data size that will be written */
 	static uint32_t StartAddress;
-	uint32_t numofWords=dataSizeInBytes/4;     /*getting number of words to write*/
+	uint32_t numofWords=dataSizeInWords;     /*getting number of words to write*/
 	uint32_t numofWordsWritten=0;
 
 	/*depending on the type of data to be written, the start address will be determined*/
