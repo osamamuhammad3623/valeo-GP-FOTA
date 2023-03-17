@@ -12,6 +12,7 @@ def get_file_digest(file_path):
         return hashlib.file_digest(f, 'sha256').hexdigest()
 
 def write_metadata_file(image_info):
+    pckg_version = package_info["package_version"]
     digest = image_info["digest"]
     root_index = image_info["root_index"]
     version = image_info["version"]
@@ -21,20 +22,23 @@ def write_metadata_file(image_info):
     elif len(size) == 6:
         size += " "
     
-    data = f"version:{package_version}.{version}.1 ,size:{size},rootIndex:{root_index} ,App_Hash:{digest}"
+    data = f"version:{pckg_version}.{version}.1 ,size:{size},rootIndex:{root_index} ,App_Hash:{digest}"
     image_number = image_info["img"]
     metadata_file = open(f'app{image_number}_md.bin', 'w')
     metadata_file.write(data)
 
 
 def read_package_info(window):
-    global package_version # to reference the global variable, instead of creating a local one
-    package_version = window.version.value()
+    # read package info from UI (version, urgency & #images)
 
-    global urgency
-    urgency = window.urgency.isChecked()
+    global package_info # to reference the global variable, instead of creating a local one
+    package_info["package_version"] = window.version.value()
+    package_info["urgency"] = window.urgency.isChecked()
 
     n_img = window.n_images.value()
+    package_info["n_images"] = n_img
+
+    # read every image's info
     if n_img >= 1:
         image1_info["img"] = 1
         image1_info["version"] = window.image_version_1.value()

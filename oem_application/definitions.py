@@ -1,5 +1,3 @@
-package_version =0
-urgency = False
 
 image1_info = {
     "img" : 1,
@@ -35,4 +33,13 @@ image3_info = {
     # app info
     "crc": 0,
     "target" :0
+}
+
+package_info = {
+    "package_version": 0,
+    "urgency" : 0,
+    "n_images" : 0,
+    "image1_info": image1_info,
+    "image2_info": image2_info,
+    "image3_info": image3_info
 }
