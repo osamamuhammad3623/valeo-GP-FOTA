@@ -1,0 +1,14 @@
+uds_server.c:32:6:UDS_execute_request	24	static
+uds_server.c:72:6:UDS_change_session	24	static
+uds_server.c:87:6:UDS_security_access	24	static
+uds_server.c:112:6:UDS_generate_seed	48	static
+uds_server.c:128:6:UDS_verify_key	72	static
+uds_server.c:166:6:UDS_call_routine	32	static
+uds_server.c:199:6:UDS_erase_memory_routine	24	static
+uds_server.c:216:6:UDS_check_memory_routine	16	static
+uds_server.c:221:6:UDS_start_download	32	static
+uds_server.c:241:6:UDS_process_data	40	static
+uds_server.c:277:6:UDS_exit_download	32	static
+uds_server.c:292:6:UDS_reboot	32	static
+uds_server.c:317:5:bytesToWords	40	static
+uds_server.c:341:6:padWithOnes	32	static
