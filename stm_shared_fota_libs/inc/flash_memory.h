@@ -19,6 +19,10 @@
 #define META_DATA_START_ADDRESS_BANK1  0x08002000
 #define META_DATA_START_ADDRESS_BANK2  0x08102000
 
+#define MAIN_APP_SECTOR_BANK1          FLASH_SECTOR_7
+#define MAIN_APP_SECTOR_BANK2          FLASH_SECTOR_18;
+
+
 /************************* TYPES DDECLERATIONS ************************/
 typedef enum
 {
@@ -34,7 +38,7 @@ typedef enum
 uint8_t Flash_Memory_Erase(uint32_t StartSectorAddress , uint32_t dataSizeInBytes);
 /*
  * Description:
- * Function to get the inactive bank and erase it
+ * Function to get the inactive bank and erase it from the main Application address
  * */
 uint8_t erase_inactive_bank(void);
 /*
@@ -42,7 +46,7 @@ uint8_t erase_inactive_bank(void);
  * Function to write data in the flash memory from a specific starting address defined based on the type of data
  * and increase the starting address depending on the data written before when the function has been called.
  * */
-uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes, FLASH_DataType dataType);
+uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataType dataType);
 /*
  * Description:
  * Function to write data in the flash memory
