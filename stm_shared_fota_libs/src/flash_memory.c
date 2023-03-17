@@ -161,7 +161,7 @@ uint8_t Flash_Memory_Erase(uint32_t StartSectorAddress , uint32_t dataSizeInByte
 	/* check if the erasing process is done correctly */
 	if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK)
 	{
-		/*Error occurred while page erase*/
+		/*Error occurred while erasing*/
 		return FAILED;
 	}
 
@@ -218,9 +218,12 @@ void Flash_Memory_Read (uint32_t StartSectorAddress, uint32_t *buffer, uint16_t 
 
 
 
+
 uint8_t erase_inactive_bank(void){
+
 	static FLASH_EraseInitTypeDef EraseInitStruct;   /* Structure to erase the flash area */
 	uint32_t SECTORError;
+
 	uint32_t InactiveBank;
 
 	/*check the inactive bank to erase*/
@@ -238,10 +241,25 @@ uint8_t erase_inactive_bank(void){
 	}
 
 	/* Filling the erasing structure */
-	EraseInitStruct.TypeErase     = FLASH_TYPEERASE_MASSERASE;
+	EraseInitStruct.TypeErase     = FLASH_TYPEERASE_SECTORS;
 	EraseInitStruct.VoltageRange  = FLASH_VOLTAGE_RANGE_3;
-	EraseInitStruct.Banks=InactiveBank;
 
+    /* Determine the start sector based on which Bank that will be erased */
+	switch (InactiveBank){
+	/*erase from sector 7 in case of bank 1*/
+	case FLASH_BANK_1:
+		EraseInitStruct.Sector        = MAIN_APP_SECTOR_BANK1;
+		break;
+	/*erase from sector 18 in case of bank 2*/
+	case FLASH_BANK_2:
+		EraseInitStruct.Sector        = MAIN_APP_SECTOR_BANK2;
+		break;
+	default:
+		return FAILED;
+
+	}
+
+	EraseInitStruct.NbSectors       = 5;
 
 	/* Unlocking the Flash control register */
 	HAL_FLASH_Unlock();
@@ -249,7 +267,7 @@ uint8_t erase_inactive_bank(void){
 	/* check if the erasing process is done correctly */
 	if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK)
 	{
-		/*Error occurred while page erase*/
+		/*Error occurred while erasing*/
 		return FAILED;
 	}
 
@@ -258,8 +276,9 @@ uint8_t erase_inactive_bank(void){
 
 	return SUCCEED;
 
-
 }
+
+
 
 uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInBytes, FLASH_DataType dataType){
 	/* begin from the start
