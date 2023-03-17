@@ -1,7 +1,0 @@
-stm32f4xx_hal_msp.c:64:6:HAL_MspInit	16	static
-stm32f4xx_hal_msp.c:86:6:HAL_CRC_MspInit	24	static
-stm32f4xx_hal_msp.c:108:6:HAL_CRC_MspDeInit	16	static
-stm32f4xx_hal_msp.c:130:6:HAL_HASH_MspInit	24	static
-stm32f4xx_hal_msp.c:149:6:HAL_HASH_MspDeInit	16	static
-stm32f4xx_hal_msp.c:168:6:HAL_RNG_MspInit	24	static
-stm32f4xx_hal_msp.c:190:6:HAL_RNG_MspDeInit	16	static

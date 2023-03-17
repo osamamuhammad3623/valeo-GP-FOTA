@@ -1,6 +1,0 @@
-flash_memory.c:14:17:GetSector	24	static
-flash_memory.c:143:9:Flash_Memory_Erase	32	static
-flash_memory.c:175:9:Flash_Memory_Write	32	static
-flash_memory.c:206:6:Flash_Memory_Read	24	static
-flash_memory.c:222:9:erase_inactive_bank	16	static
-flash_memory.c:282:9:flash_memory_write	32	static
