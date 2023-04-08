@@ -5,38 +5,19 @@
  *      Author: Kyrillos Sawiris
  */
 
-#include "lwip/opt.h"
-
-#include "lwip/api.h"
-#include "lwip/sys.h"
-
 #include "tcp_client.h"
 #include "string.h"
-
-//=============================================================================
-
-//============netconn parameters=============================================
-static struct netconn *conn;
-static struct netbuf *buf;
-static ip_addr_t  dest_addr;
-static unsigned short  dest_port;
-//=========================================================================
 
 //==================ARRAYS to Hold DATA===================================
 char ReceivedMessage[100];
 char ToSendMessage[100];
 char* ProgramToSend = (char*)0x10000000;
 //====================================================================
-
-//===================static functions used ===========================
-
-// Function to send the data to the server
-static void tcp_ReseveMessage (void );
-void tcp_SendMessage (char *Message , int messageLength);
+struct target_confg target_1;
 
 //==========================================================
 
-void UDS_receive_response(char* message)
+void UDS_receive_response(struct netconn *conn,char* message)
 {
 
 	memset (ToSendMessage, '\0', 100);
@@ -44,34 +25,52 @@ void UDS_receive_response(char* message)
 	if(strcmp(message,"hi")==0)
 	{
 		int len = sprintf (ToSendMessage, "\n pleased to meet you ");
-		tcp_SendMessage(ToSendMessage , len);
+		tcp_SendMessage(conn,ToSendMessage , len);
 	}
 	else if(strcmp(message,"delay")==0)
 	{
 		for(int i=0;i<1000;i++);
 
 		int len = sprintf (ToSendMessage, "\n Process done");
-		tcp_SendMessage(ToSendMessage , len);
+		tcp_SendMessage(conn,ToSendMessage , len);
 	}
 	else if(strcmp(message,"send")==0)
 	{
 		int len = sprintf (ToSendMessage, "\n i will send first the program length");
-		tcp_SendMessage(ToSendMessage , len);
+		tcp_SendMessage(conn,ToSendMessage , len);
 
-		 len = sprintf (ToSendMessage, "\n 3000");
-		 tcp_SendMessage(ToSendMessage , len);
+		len = sprintf (ToSendMessage, "\n 3000");
+		tcp_SendMessage(conn,ToSendMessage , len);
 
-		 len = sprintf (ToSendMessage, "\n Be ready to receive the program /n/n");
-		 tcp_SendMessage(ToSendMessage , len);
+		len = sprintf (ToSendMessage, "\n Be ready to receive the program /n/n");
+		tcp_SendMessage(conn,ToSendMessage , len);
 
-		 tcp_SendMessage(ProgramToSend , 3000);
+		tcp_SendMessage(conn,ProgramToSend , 3000);
 
 	}
 }
 
 static void tcpinit_thread(void *arg)
 {
+
+	// Cast the argument to the correct type
+	if(arg == NULL)
+		return ;
+	struct target_confg *config = (struct target_confg*)arg;
+	struct netconn *conn;
+	struct netbuf *buf;
 	err_t err, connect_error;
+	ip_addr_t dest_addr;
+
+
+	// Extract the IP address and port number
+	char* ip_address = malloc(strlen(config->ip_add) + 1); // allocate memory for the string
+	strcpy(ip_address, config->ip_add); // copy the string into the new buffer
+	ip_address[strlen(config->ip_add)] = '\0'; // add null terminat
+	unsigned short dest_port = config->portNum;
+
+
+
 
 	/* Create a new connection identifier. */
 	conn = netconn_new(NETCONN_TCP);
@@ -84,8 +83,8 @@ static void tcpinit_thread(void *arg)
 		if (err == ERR_OK)
 		{
 			/* The designation IP address of the computer */
-			IP_ADDR4(&dest_addr, 169, 254, 84, 57);
-			dest_port = 10;  // server port
+			err = ipaddr_aton(ip_address, &dest_addr);
+			//dest_port = 10;  // server port
 
 			/* Connect to the TCP Server */
 			connect_error = netconn_connect(conn, &dest_addr, dest_port);
@@ -95,10 +94,10 @@ static void tcpinit_thread(void *arg)
 			{
 				//send a "hi" message at first
 				int messageLength = sprintf(ToSendMessage , "hi");
-				tcp_SendMessage(ToSendMessage, messageLength);
+				tcp_SendMessage(conn,ToSendMessage, messageLength);
 
 				//start receiving
-				tcp_ReseveMessage();
+				tcp_ReseveMessage(conn, buf);
 			}
 			else
 			{
@@ -116,13 +115,13 @@ static void tcpinit_thread(void *arg)
 
 }
 
- void tcp_SendMessage (char *Message , int messageLength)
+void tcp_SendMessage (struct netconn *conn, char *Message , int messageLength)
 {
 	netconn_write(conn, Message, messageLength, NETCONN_COPY);
 }
 
 
- static void tcp_ReseveMessage (void)
+static void tcp_ReseveMessage (struct netconn *conn ,struct netbuf *buf )
 {
 
 	while (1)
@@ -135,7 +134,7 @@ static void tcpinit_thread(void *arg)
 			{
 				memset (ReceivedMessage, '\0', 100);
 				strncpy(ReceivedMessage,buf->p->payload, buf->p->len);
-				UDS_receive_response(ReceivedMessage);
+				UDS_receive_response(conn,ReceivedMessage);
 			}
 			while (netbuf_next(buf) >0);
 
@@ -152,6 +151,9 @@ void tcpclient_init (void)
 		ProgramToSend[i] = 'a';
 	}
 
-	sys_thread_new("tcpinit_thread", tcpinit_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+	target_1.ip_add = "169.254.84.57";
+	target_1.portNum = 10;
+
+	sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
 
 }
