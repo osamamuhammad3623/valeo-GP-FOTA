@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -24,8 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "tcp_server.h"
-
+#include"tcp_client.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,6 +42,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+UART_HandleTypeDef huart2;
+
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
@@ -52,11 +53,16 @@ const osThreadAttr_t defaultTask_attributes = {
 };
 /* USER CODE BEGIN PV */
 
+#define app_size 6516
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_USART2_UART_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -65,8 +71,82 @@ void StartDefaultTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-char RecivedProgram[6516];
 
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_USART2_UART_Init(void);
+void StartDefaultTask(void *argument);
+
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_USART2_UART_Init(void);
+void StartDefaultTask(void *argument);
+
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_USART2_UART_Init(void);
+void StartDefaultTask(void *argument);
+
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+
+//uint8_t data_received[]="jawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nui";
+uint8_t data_received[6516];
+int   flag=0;
+
+//uint64_t array_data[]
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+
+	flag =100;
+
+}
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+
+
+
+}
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_ETH_Init(void);
+static void MX_USART2_UART_Init(void);
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
 
@@ -98,7 +178,18 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  /* USER CODE BEGIN 2 */
+  MX_USART2_UART_Init();
+//  /* USER CODE BEGIN 2 */
+	uint8_t xx[1]= {0x03};
+	HAL_UART_Transmit(&huart2, (uint8_t *)xx, sizeof(xx), HAL_MAX_DELAY);
+	//HAL_UART_Transmit_IT(&huart2,xx, 2);
+
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6516);
+	while(flag !=100);
+//  	for(int i =0;i<10000;i++)
+//  	{
+//  		data_received[i]=0x03;
+//  	}
 
   /* USER CODE END 2 */
 
@@ -135,12 +226,12 @@ int main(void)
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	while (1)
+	{
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+	}
   /* USER CODE END 3 */
 }
 
@@ -192,6 +283,39 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
 }
 
 /**
@@ -283,7 +407,7 @@ void StartDefaultTask(void *argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
-  tcpserver_init();
+  tcpclient_init ();
   /* Infinite loop */
   for(;;)
   {
@@ -294,7 +418,7 @@ void StartDefaultTask(void *argument)
 
 /**
   * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM1 interrupt took place, inside
+  * @note   This function is called  when TIM6 interrupt took place, inside
   * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
   * a global variable "uwTick" used as application time base.
   * @param  htim : TIM handle
@@ -305,7 +429,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM1) {
+  if (htim->Instance == TIM6) {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
@@ -320,7 +444,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
+	/* User can add his own implementation to report the HAL error return state */
 
   /* USER CODE END Error_Handler_Debug */
 }
@@ -336,7 +460,7 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
+	/* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }

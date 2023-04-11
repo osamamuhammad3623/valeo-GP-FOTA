@@ -18,8 +18,9 @@ static struct netbuf *buf;
 static ip_addr_t *addr;
 static unsigned short port;
 char msg[100];
-char * data = (char*)0x10000000;
+//char * data = (char*)0x10000000;
 char smsg[200];
+extern char RecivedProgram[6516];
 
 
 /**** Send RESPONSE every time the client sends some data ******/
@@ -63,19 +64,10 @@ static void tcp_thread(void *arg)
 							//To store data
 
 							static int i=0;
-							static int c=0;
-							strncpy((data+i*c)  ,buf->p->payload, buf->p->len );
-							i = buf->p->len;
-							c++;
-
-							// Or modify the message received, so that we can send it back to the client
-							//int len = sprintf (smsg, "\"%s\" was sent by the Server\n", msg);
-							int len = sprintf (smsg, " message was sent by the Server\n");
-
-							netconn_write(newconn, smsg, len, NETCONN_COPY);  // send the message back to the client
-							memset (msg, '\0', 100);  // clear the buffer
+							memcpy((RecivedProgram +i) ,buf->p->payload,buf->p->len );
+							i+=buf->p->len;
 						}
-						while (netbuf_next(buf) >0);
+						while (netbuf_next(buf) >=0);
 
 						netbuf_delete(buf);
 					}

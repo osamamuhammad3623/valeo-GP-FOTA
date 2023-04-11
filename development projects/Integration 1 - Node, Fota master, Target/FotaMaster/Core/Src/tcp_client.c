@@ -26,7 +26,8 @@ static unsigned short port, dest_port;
 //==================ARRAYS to Hold DATA===================================
 char ReceivedMessage[100];
 char ToSendMessage[200];
-char* ProgramToSend = (char*)0x10000000;
+char ProgramToSend [10000];
+extern uint8_t data_received[6516];
 //====================================================================
 
 //===================static functions used ===========================
@@ -90,14 +91,14 @@ static void tcpinit_thread(void *arg)
 
 void tcpsend (char *data)
 {
-	netconn_write(conn, data, strlen(data), NETCONN_COPY);
+	netconn_write(conn, data, 6516, NETCONN_COPY);
 }
 
 
 static void tcp_SendProgram (void *arg)
 {
 
-	tcpsend(ProgramToSend);
+	tcpsend(data_received);
 	osThreadId_t id;
 	id = osThreadGetId();
 	osThreadTerminate(id);
@@ -157,11 +158,10 @@ void tcp_ReseveMessage (void *arg )
 
 void tcpclient_init (void)
 {
-	for(int i=0;i<3000;i++)
-	{
-		ProgramToSend[i] = 'a';
-	}
-
+//	for(int i =0;i<10000;i++)
+//	{
+//		ProgramToSend[i]='k';
+//	}
 	sys_thread_new("tcpinit_thread", tcpinit_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
 
 	osThreadId_t id;
