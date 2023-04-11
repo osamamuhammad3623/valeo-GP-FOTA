@@ -14,41 +14,12 @@ char ToSendMessage[100];
 char* ProgramToSend = (char*)0x10000000;
 //====================================================================
 struct target_confg target_1;
+struct target_confg target_2;
+
+
 
 //==========================================================
 
-void UDS_receive_response(struct netconn *conn,char* message)
-{
-
-	memset (ToSendMessage, '\0', 100);
-
-	if(strcmp(message,"hi")==0)
-	{
-		int len = sprintf (ToSendMessage, "\n pleased to meet you ");
-		tcp_SendMessage(conn,ToSendMessage , len);
-	}
-	else if(strcmp(message,"delay")==0)
-	{
-		for(int i=0;i<1000;i++);
-
-		int len = sprintf (ToSendMessage, "\n Process done");
-		tcp_SendMessage(conn,ToSendMessage , len);
-	}
-	else if(strcmp(message,"send")==0)
-	{
-		int len = sprintf (ToSendMessage, "\n i will send first the program length");
-		tcp_SendMessage(conn,ToSendMessage , len);
-
-		len = sprintf (ToSendMessage, "\n 3000");
-		tcp_SendMessage(conn,ToSendMessage , len);
-
-		len = sprintf (ToSendMessage, "\n Be ready to receive the program /n/n");
-		tcp_SendMessage(conn,ToSendMessage , len);
-
-		tcp_SendMessage(conn,ProgramToSend , 3000);
-
-	}
-}
 
 static void tcpinit_thread(void *arg)
 {
@@ -77,8 +48,8 @@ static void tcpinit_thread(void *arg)
 
 	if (conn!=NULL)
 	{
-		/* Bind connection to the port number 10 (port of the Client). */
-		err = netconn_bind(conn, IP_ADDR_ANY, 10);
+		/* Bind connection to the port number bind to the same port as the server. */
+		err = netconn_bind(conn, IP_ADDR_ANY, dest_port);
 
 		if (err == ERR_OK)
 		{
@@ -144,6 +115,43 @@ static void tcp_ReseveMessage (struct netconn *conn ,struct netbuf *buf )
 }
 
 
+void UDS_receive_response(struct netconn *conn,char* message)
+{
+
+	memset (ToSendMessage, '\0', 100);
+
+	if(strcmp(message,"hi")==0)
+	{
+		int len = sprintf (ToSendMessage, "\n pleased to meet you ");
+		tcp_SendMessage(conn,ToSendMessage , len);
+	}
+	else if(strcmp(message,"delay")==0)
+	{
+		//for(int i=0;i<1000;i++);
+
+		int len = sprintf (ToSendMessage, "\n about to switch to another task");
+		tcp_SendMessage(conn,ToSendMessage , len);
+		sys_thread_new("tcpinit_thread2", tcpinit_thread, (void*)&target_2, DEFAULT_THREAD_STACKSIZE,osPriorityAboveNormal);
+
+	}
+	else if(strcmp(message,"send")==0)
+	{
+		int len = sprintf (ToSendMessage, "\n i will send first the program length");
+		tcp_SendMessage(conn,ToSendMessage , len);
+
+		len = sprintf (ToSendMessage, "\n 3000");
+		tcp_SendMessage(conn,ToSendMessage , len);
+
+		len = sprintf (ToSendMessage, "\n Be ready to receive the program /n/n");
+		tcp_SendMessage(conn,ToSendMessage , len);
+
+		tcp_SendMessage(conn,ProgramToSend , 3000);
+
+	}
+}
+
+
+
 void tcpclient_init (void)
 {
 	for(int i=0;i<3000;i++)
@@ -153,6 +161,10 @@ void tcpclient_init (void)
 
 	target_1.ip_add = "169.254.84.57";
 	target_1.portNum = 10;
+
+	target_2.ip_add = "169.254.84.57";
+	target_2.portNum = 7;
+
 
 	sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
 
