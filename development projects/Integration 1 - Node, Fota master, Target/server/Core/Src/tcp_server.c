@@ -15,18 +15,17 @@
 #include "string.h"
 static struct netconn *conn, *newconn;
 static struct netbuf *buf;
-static ip_addr_t *addr;
-static unsigned short port;
-char msg[100];
-//char * data = (char*)0x10000000;
-char smsg[200];
-extern char RecivedProgram[6516];
+
+
+char RecivedProgram[6516];
+#define MESSAGE_SIZE 6516
 
 
 /**** Send RESPONSE every time the client sends some data ******/
 static void tcp_thread(void *arg)
 {
-	err_t err, accept_err, recv_error;
+	err_t err, accept_err;
+	int recv_len =0;
 
 	/* Create a new connection identifier. */
 	conn = netconn_new(NETCONN_TCP);
@@ -51,24 +50,19 @@ static void tcp_thread(void *arg)
 				{
 
 					/* receive the data from the client */
-					while (netconn_recv(newconn, &buf) == ERR_OK)
-					{
-						/* Extrct the address and port in case they are required */
-						addr = netbuf_fromaddr(buf);  // get the address of the client
-						port = netbuf_fromport(buf);  // get the Port of the client
-
-						/* If there is some data remaining to be sent, the following process will continue */
-						do
-						{
-
-							//To store data
-
-							static int i=0;
-							memcpy((RecivedProgram +i) ,buf->p->payload,buf->p->len );
-							i+=buf->p->len;
+					while (recv_len < MESSAGE_SIZE) {
+						// Receive a packet
+						err = netconn_recv(newconn, &buf);
+						if (err != ERR_OK) {
+							break;
 						}
-						while (netbuf_next(buf) >=0);
 
+						memcpy((RecivedProgram +recv_len) ,(char *)buf->p->payload,buf->p->len );
+						recv_len+=buf->p->len;
+
+
+
+						// Free the packet buffer
 						netbuf_delete(buf);
 					}
 
@@ -88,7 +82,7 @@ static void tcp_thread(void *arg)
 
 void tcpserver_init(void)
 {
-  sys_thread_new("tcp_thread", tcp_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+	sys_thread_new("tcp_thread", tcp_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
 }
 
 
