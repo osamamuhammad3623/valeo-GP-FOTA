@@ -1,6 +1,0 @@
-tcp_client.c:25:6:init_uds_request_callback	16	static
-tcp_client.c:29:6:init_uds_recv_resp_clbk	16	static
-tcp_client.c:66:13:tcpinit_thread	48	static
-tcp_client.c:138:6:tcp_SendMessage	32	static
-tcp_client.c:152:13:tcp_ReceiveMessage	128	static
-tcp_client.c:179:6:tcpclient_init	24	static

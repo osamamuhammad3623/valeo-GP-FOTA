@@ -142,21 +142,20 @@ static void tcp_ReceiveMessage (TargetECU targetECU, struct netconn *conn ,struc
 }
 
 
-void tcpclient_init (void)
+void tcpclient_init (uint8_t targetToConnectWith)
 {
-	/*for(int i=0;i<3000;i++)
-	{
-		ProgramToSend[i] = 'a';
-	}*/
+	if (targetToConnectWith&0x02) {
+		target_1.ip_add = "169.254.84.57";
+		target_1.portNum = 10;
+		target_1.targetECU = PS_TARGET;
 
-	target_1.ip_add = "169.254.84.57";
-	target_1.portNum = 10;
-	target_1.targetECU = PS_TARGET;
+		sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+	}
+	if (targetToConnectWith&0x04) {
+		target_2.ip_add = "169.254.84.57";
+		target_2.portNum = 7;
+		target_2.targetECU = WIPERS_TARGET;
 
-	target_2.ip_add = "169.254.84.57";
-	target_2.portNum = 7;
-	target_2.targetECU = WIPERS_TARGET;
-
-	sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
-	sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_2, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+		sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_2, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+	}
 }
