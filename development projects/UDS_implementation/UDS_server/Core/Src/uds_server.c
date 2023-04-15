@@ -151,7 +151,7 @@ void UDS_verify_key(uint8_t *requestFrame)
 		attemptsCount ++;
 		if(attemptsCount >= MAX_NUMBER_OF_ATTEMPTS)
 		{
-			uint8_t responseFrame[] = {NEGATIVE_RESPONSE, SECURITY_ACCESS, EXTENDED_NUMBER_OF_ATTEMPTS};
+			uint8_t responseFrame[] = {NEGATIVE_RESPONSE, SECURITY_ACCESS, EXCEEDED_NUMBER_OF_ATTEMPTS};
 			tcp_SendResponse(responseFrame, 3);
 		}
 		else
