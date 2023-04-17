@@ -1,4 +1,3 @@
-
 /* USER CODE BEGIN Header */
 /**
  ******************************************************************************
@@ -18,9 +17,10 @@
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <boot_manager.h>
 #include "main.h"
+#include "iwdg.h"
 #include "rng.h"
+#include "rtc.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -83,41 +83,51 @@ int main(void)
   /* USER CODE END Init */
 
   /* Configure the system clock */
-  SystemClock_Config(); 
+  SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
+  MX_RTC_Init();
 
+  	uint8_t Attempt_counter = read_backup_reg(0);
+  	Attempt_counter++;
+	write_Attempt_Counter(Attempt_counter);
+	if(Attempt_counter > 3){
+		write_Attempt_Counter(0x00);
+		//swap banks
+
+	}else{
+		//continue in the main function
+	}
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_RNG_Init();
   MX_UART4_Init();
+  MX_IWDG_Init();
+
   /* USER CODE BEGIN 2 */
-/*
- * test
- */
 
   int ret =FAILED;
   ret = secure_boot_verify();
   if(ret == SUCCEEDED){
 	  //jump to application
-	  jump_to_application();
+	  jump_to_application(MAIN_APPLICATION_START_ADDRESS);
   }else{
-	  //Failed
+	  printf("%d\n",Attempt_counter);
   }
-
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1)
-	{
+  while (1)
+  {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	}
+
+  }
   /* USER CODE END 3 */
 }
 
@@ -138,9 +148,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 16;

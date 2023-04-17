@@ -1,0 +1,14 @@
+../Drivers/CMSIS/Include/core_cm4.h:1939:34:__NVIC_SystemReset	4	static,ignoring_inline_asm
+../Core/Src/boot_manager.c:76:9:secure_boot_verify	9288	static
+../Core/Src/boot_manager.c:238:6:jump_to_application	32	static,ignoring_inline_asm
+../Core/Src/boot_manager.c:267:16:Certificates_Verify	40	static
+../Core/Src/boot_manager.c:312:16:public_key_Extraction	40	static
+../Core/Src/boot_manager.c:357:16:compare_keys	32	static
+../Core/Src/boot_manager.c:373:16:signature_verify	256	static
+../Core/Src/boot_manager.c:451:18:CalculateDigest	136	static
+../Core/Src/boot_manager.c:487:16:DigestCompare	24	static
+../Core/Src/boot_manager.c:498:9:read_backup_reg	16	static
+../Core/Src/boot_manager.c:502:6:write_Attempt_Counter	16	static
+../Core/Src/boot_manager.c:509:13:bootloader_set_boot_bank	16	static
+../Core/Src/boot_manager.c:541:6:bootloader_switch_to_inactive_bank	16	static
+../Core/Src/boot_manager.c:555:6:bootloader_reboot	8	static

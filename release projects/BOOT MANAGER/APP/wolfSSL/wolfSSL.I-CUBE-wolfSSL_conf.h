@@ -202,7 +202,7 @@
         #define WOLFSSL_STM32_PKA
     #endif
 #else
-    //#warning Please define a hardware platform!
+    #warning Please define a hardware platform!
     /* This means there is not a pre-defined platform for your board/CPU */
     /* You need to define a CPU type, HW crypto and debug UART */
     /* CPU Type: WOLFSSL_STM32F1, WOLFSSL_STM32F2, WOLFSSL_STM32F4,

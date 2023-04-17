@@ -1,0 +1,7 @@
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:121:5:wc_ChaCha20Poly1305_CheckTag	12	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:136:5:wc_ChaCha20Poly1305_Init	56	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:188:5:wc_ChaCha20Poly1305_UpdateAad	16	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:215:5:wc_ChaCha20Poly1305_UpdateData	24	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:258:5:wc_ChaCha20Poly1305_Final	16	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:51:5:wc_ChaCha20Poly1305_Encrypt	192	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:84:5:wc_ChaCha20Poly1305_Decrypt	216	static

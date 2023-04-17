@@ -1,0 +1,12 @@
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:159:5:BioReceive	16	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:220:5:BioSend	8	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:1927:6:wolfSSL_CTX_SetIORecv	0	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:1938:6:wolfSSL_CTX_SetIOSend	0	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:1950:6:wolfSSL_SSLSetIORecv	0	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:1962:6:wolfSSL_SSLSetIOSend	0	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:1973:6:wolfSSL_SetIOReadCtx	0	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:1980:6:wolfSSL_SetIOWriteCtx	0	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:1987:7:wolfSSL_GetIOReadCtx	0	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:1996:7:wolfSSL_GetIOWriteCtx	0	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:2005:6:wolfSSL_SetIOReadFlags	0	static
+../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/src/wolfio.c:2012:6:wolfSSL_SetIOWriteFlags	0	static

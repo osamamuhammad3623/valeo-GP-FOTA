@@ -9,6 +9,7 @@
 
 /********************************** Includes **********************************/
 #include "stdint.h"
+#include "boot_manager_confg.h"
 
 /******************************************************************************/
 /******************************************************************************/
@@ -37,6 +38,17 @@ uint8_t secure_boot_verify(void);
 /* \Description:
  * function to jump to application at specific address                        */
 /******************************************************************************/
-void jump_to_application(void);
+void jump_to_application(uint32_t start_addr);
+
+
+uint8_t read_backup_reg(uint8_t reg);
+
+void write_Attempt_Counter(uint32_t data);
+
+
+void bootloader_switch_to_inactive_bank(void);
+
+void bootloader_reboot(void);
 
 #endif /* BOOT_MANAGER_H_ */
+

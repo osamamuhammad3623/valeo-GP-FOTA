@@ -41,16 +41,18 @@
 /******************************************************************************/
 /* \Description: address of the version threshold                             */
 /******************************************************************************/
-#define THRESHOLD_ADDRESS               (0x1fff7840)
+//#define THRESHOLD_ADDRESS               (0x1fff7840)
 
 /******************************************************************************/
 /* \Description: Revocation blocks for root index 1 and 2 at OIP memory
  * Root 1 revocation -> first byte at Block 0
- * Root 2 revocation -> first byte at Block 1                               */
+ * Root 2 revocation -> first byte at Block 1
+ *                         */
 /******************************************************************************/
 
 #define ROOT_1_REVOCATION_ADDRESS  (0x1fff7800)
 #define ROOT_2_REVOCATION_ADDRESS  (0x1fff7820)
+
 
 /******************************************************************************
  * \Description: length of the fixed length data

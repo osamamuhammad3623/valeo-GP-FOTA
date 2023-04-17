@@ -6,11 +6,11 @@
 
 /********************************** Includes **********************************/
 #include "boot_manager.h"
-#include "boot_manager_confg.h"
 #include "stdio.h"
 #include "wolfssl/wolfcrypt/signature.h"
 #include "wolfssl/wolfcrypt/rsa.h"
 #include "wolfssl/ssl.h"
+#include "rtc.h"
 
 /******************************************************************************/
 /******************************************************************************/
@@ -142,8 +142,6 @@ uint8_t secure_boot_verify(void){
 	}
 
 
-
-
 	/************** secure boot public key Extraction ****************/
 	RsaKey SB_pubKey ;
 	ret = public_key_Extraction(ptr_sbCert,SB_cert_size,&SB_pubKey);
@@ -177,9 +175,10 @@ uint8_t secure_boot_verify(void){
 	uint8_t Minor_Version = *((char *)META_DATA_ADDRESS+MINOR_V_METADATA_OFFSET) - '0';
 	uint8_t Patch_Version = *((char *)META_DATA_ADDRESS+PATCH_V_METADATA_OFFSET) - '0';
 
-	uint8_t threshold_Major_Version = *((uint8_t *)THRESHOLD_ADDRESS);
-	uint8_t threshold_Minor_Version = *((uint8_t *)THRESHOLD_ADDRESS + 1);
-	uint8_t threshold_Patch_Version = *((uint8_t *)THRESHOLD_ADDRESS + 2);
+
+	uint8_t threshold_Major_Version = read_backup_reg(0x1);
+	uint8_t threshold_Minor_Version = read_backup_reg(0x2);
+	uint8_t threshold_Patch_Version = read_backup_reg(0x3);
 
 	byte threshold_approval=0;
 
@@ -236,20 +235,20 @@ uint8_t secure_boot_verify(void){
 	return SUCCEEDED;
 }
 
-void jump_to_application(void){
+void jump_to_application(uint32_t start_addr){
 
 	/* First, disable all IRQs */
 	__disable_irq(); // ensure to __enable_irq() in the application main function
 
 	// set vector table offset
-	SCB->VTOR = (MAIN_APPLICATION_START_ADDRESS - 0x08000000);
+	SCB->VTOR = (start_addr - 0x08000000);
 
 	/* Get the main application start address */
-	uint32_t jump_address = *(uint32_t *)(MAIN_APPLICATION_START_ADDRESS + 4);
+	uint32_t jump_address = *(uint32_t *)(start_addr + 4);
 
 	/* Set the main stack pointer to to the application start address */
-	__set_MSP(*(uint32_t *)MAIN_APPLICATION_START_ADDRESS);
-	//__set_PSP(*(uint32_t *)MAIN_APPLICATION_START_ADDRESS);
+	__set_MSP(*(uint32_t *)start_addr);
+	//__set_PSP(*(uint32_t *)start_addr);
 
 	// Create function pointer for the main application
 	void (*app_ptr)(void);
@@ -494,4 +493,65 @@ static uint8_t DigestCompare ( byte *Digest , byte *MetaDigest){
 		ret = FAILED;
 	}
 	return ret;
+}
+
+uint8_t read_backup_reg(uint8_t reg) {
+    return (uint8_t)HAL_RTCEx_BKUPRead(&hrtc, reg);
+}
+
+void write_Attempt_Counter(uint32_t data) {
+    HAL_PWR_EnableBkUpAccess();
+    HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR0, data);
+    HAL_PWR_DisableBkUpAccess();
+
+}
+
+void static bootloader_set_boot_bank(uint8_t bank){
+
+	if ((bank != 1) && (bank!=2)){
+		return;
+	}
+
+	// clear OPTLOCK bit to enable modifying the option bytes
+	HAL_FLASH_OB_Unlock();
+
+	// Check that no Flash memory operation is ongoing
+	while(FLASH->SR & FLASH_SR_BSY_Msk);
+
+	// if it's required to set bank 1, then clear BFB2 bit
+	// and if it's required to set bank 2, set the BFB2 bit
+	if (bank==1){
+		CLEAR_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk);
+	}else{
+		SET_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk);
+	}
+
+	// start changing user option bytes
+	HAL_FLASH_OB_Launch();
+
+	// Wait for the operation to be completed
+	while(FLASH->SR & FLASH_SR_BSY_Msk);
+
+	// unlock option-bytes-bit
+	HAL_FLASH_OB_Lock();
+
+}
+
+
+void bootloader_switch_to_inactive_bank(void){
+
+	// 0 represents bank 1,
+	// 1 represents bank 2
+	uint8_t active_bank = READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk);
+
+	if (active_bank == 0){
+		bootloader_set_boot_bank(2);
+	}else{
+		bootloader_set_boot_bank(1);
+	}
+}
+
+
+void bootloader_reboot(void){
+	NVIC_SystemReset();
 }
