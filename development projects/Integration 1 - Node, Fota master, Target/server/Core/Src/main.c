@@ -65,8 +65,6 @@ void StartDefaultTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-char RecivedProgram[6516];
-
 
 /* USER CODE END 0 */
 
@@ -284,10 +282,12 @@ void StartDefaultTask(void *argument)
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
   tcpserver_init();
+
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
+
   }
   /* USER CODE END 5 */
 }
