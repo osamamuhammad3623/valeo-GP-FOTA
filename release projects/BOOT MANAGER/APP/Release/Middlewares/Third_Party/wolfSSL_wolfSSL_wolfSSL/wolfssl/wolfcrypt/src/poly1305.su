@@ -1,9 +1,0 @@
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/poly1305.c:226:19:U8TO32	0	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/poly1305.c:266:12:poly1305_blocks	104	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/poly1305.c:416:5:wc_Poly1305SetKey	8	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/poly1305.c:505:5:wc_Poly1305Final	40	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/poly1305.c:690:5:wc_Poly1305Update	24	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/poly1305.c:809:5:wc_Poly1305_Pad	32	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/poly1305.c:837:5:wc_Poly1305_EncodeSizes	24	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/poly1305.c:857:5:wc_Poly1305_EncodeSizes64	24	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/poly1305.c:891:5:wc_Poly1305_MAC	24	static

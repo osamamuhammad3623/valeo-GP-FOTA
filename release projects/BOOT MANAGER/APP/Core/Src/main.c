@@ -70,7 +70,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+__enable_irq();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -94,7 +94,8 @@ int main(void)
 	if(Attempt_counter > 3){
 		write_Attempt_Counter(0x00);
 		//swap banks
-
+		bootloader_switch_to_inactive_bank();
+		bootloader_reboot();
 	}else{
 		//continue in the main function
 	}
@@ -105,17 +106,20 @@ int main(void)
   MX_RNG_Init();
   MX_UART4_Init();
   MX_IWDG_Init();
-
+  HAL_IWDG_Refresh(&hiwdg);
   /* USER CODE BEGIN 2 */
 
-  int ret =FAILED;
+  //int ret =FAILED;
+  int ret =SUCCEEDED;
   ret = secure_boot_verify();
   if(ret == SUCCEEDED){
 	  //jump to application
 	  jump_to_application(MAIN_APPLICATION_START_ADDRESS);
+
   }else{
-	  printf("%d\n",Attempt_counter);
+	 // printf("%d\n",Attempt_counter);
   }
+
 
   /* USER CODE END 2 */
 
@@ -124,6 +128,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+//	  HAL_GPIO_TogglePin(green_GPIO_Port, red_Pin);
+//	  HAL_Delay(500);
 
     /* USER CODE BEGIN 3 */
 

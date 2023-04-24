@@ -14,6 +14,32 @@
 
 /******************************************************************************/
 /******************************************************************************/
+/************************** Externs **************************/
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
+extern uint32_t _sdata;
+extern uint32_t _eRAM;
+
+/******************************************************************************/
+/******************************************************************************/
+/************************** Defines **************************/
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
+#define BL_SRAM1_START ((uint32_t)&_sdata)
+#define BL_SRAM1_END ((uint32_t)&_eRAM)
+
+#define SRAM_Erase() \
+  {\
+    uint32_t *pRam;\
+    for (pRam = (uint32_t *)BL_SRAM1_START; pRam < (uint32_t *)BL_SRAM1_END; pRam++)\
+    {\
+      *pRam = 0U;\
+    }\
+  }
+/******************************************************************************/
+/******************************************************************************/
 /************************** Private Global Variables **************************/
 /******************************************************************************/
 /******************************************************************************/
@@ -235,11 +261,39 @@ uint8_t secure_boot_verify(void){
 	return SUCCEEDED;
 }
 
+
+	/* First, disable all IRQs */
+//	__disable_irq(); // ensure to __enable_irq() in the application main function
+//
+//	// set vector table offset
+//	//0x08160000
+//	SCB->VTOR = (start_addr - 0x08000000);
+//
+//	/* Get the main application start address */
+//	//start_addr-= 0x0100000;
+//	uint32_t jump_address = *(uint32_t *)(start_addr + 4);
+//
+//	/* Set the main stack pointer to to the application start address */
+//	__set_MSP(*(uint32_t *)start_addr);
+//	//__set_PSP(*(uint32_t *)start_addr);
+//
+//	// Create function pointer for the main application
+//	void (*app_ptr)(void);
+//	app_ptr = (void *)(jump_address);
+//
+//	// Now jump to the main application
+//	app_ptr();
+
+
 void jump_to_application(uint32_t start_addr){
 
 	/* First, disable all IRQs */
 	__disable_irq(); // ensure to __enable_irq() in the application main function
 
+	 /* Destroy the Volatile data and CSTACK in SRAM used by Secure Boot in order to prevent any access to sensitive data
+	     from the loader.
+	  */
+	SRAM_Erase();
 	// set vector table offset
 	SCB->VTOR = (start_addr - 0x08000000);
 

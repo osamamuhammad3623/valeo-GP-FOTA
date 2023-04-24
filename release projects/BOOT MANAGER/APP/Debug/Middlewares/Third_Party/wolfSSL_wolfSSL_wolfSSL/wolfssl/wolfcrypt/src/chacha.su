@@ -1,7 +1,0 @@
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/misc.c:111:32:rotlFixed	16	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha.c:112:5:wc_Chacha_SetIV	40	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha.c:139:5:wc_Chacha_SetKey	64	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha.c:205:23:wc_Chacha_wordtobyte	88	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha.c:334:13:wc_Chacha_encrypt_bytes	96	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha.c:387:5:wc_Chacha_Process	24	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha.c:443:6:wc_Chacha_purge_current_block	80	static

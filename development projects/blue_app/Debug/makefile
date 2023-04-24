@@ -63,8 +63,8 @@ all: main-build
 main-build: blue_app.elf secondary-outputs
 
 # Tool invocations
-blue_app.elf blue_app.map: $(OBJS) $(USER_OBJS) D:\CSE\GraduationProject\valeo-GP-FOTA\development\ projects\blue_app\STM32F439ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "blue_app.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\CSE\GraduationProject\valeo-GP-FOTA\development projects\blue_app\STM32F439ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="blue_app.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+blue_app.elf blue_app.map: $(OBJS) $(USER_OBJS) F:\collage\4th_year\GP\valeo-GP-FOTA\development\ projects\blue_app\STM32F439ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "blue_app.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"F:\collage\4th_year\GP\valeo-GP-FOTA\development projects\blue_app\STM32F439ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="blue_app.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

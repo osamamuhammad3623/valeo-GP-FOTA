@@ -1,9 +1,0 @@
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/misc.c:323:26:ForceZero	24	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/misc.c:350:25:ConstantCompare	32	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:51:5:wc_ChaCha20Poly1305_Encrypt	192	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:84:5:wc_ChaCha20Poly1305_Decrypt	208	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:121:5:wc_ChaCha20Poly1305_CheckTag	24	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:136:5:wc_ChaCha20Poly1305_Init	64	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:188:5:wc_ChaCha20Poly1305_UpdateAad	32	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:215:5:wc_ChaCha20Poly1305_UpdateData	32	static
-../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/chacha20_poly1305.c:258:5:wc_ChaCha20Poly1305_Final	24	static
