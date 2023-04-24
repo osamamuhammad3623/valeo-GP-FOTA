@@ -117,6 +117,21 @@ void StartDefaultTask(void *argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_USART2_UART_Init(void);
+void StartDefaultTask(void *argument);
+
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
 
 //uint8_t data_received[]="jawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuivvjawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nuijawnrwnhawnsetfseltnmgjksetiomseotgnrfsejktnioawhqajr5qwh785rhwuiosernhwshtr78wstiuw3nui";
 uint8_t data_received[6516];
@@ -179,17 +194,18 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-//  /* USER CODE BEGIN 2 */
-	uint8_t xx[1]= {0x03};
-	HAL_UART_Transmit(&huart2, (uint8_t *)xx, sizeof(xx), HAL_MAX_DELAY);
-	//HAL_UART_Transmit_IT(&huart2,xx, 2);
+  /* USER CODE BEGIN 2 */
+//	uint8_t xx[1]= {0x03};
+//	HAL_UART_Transmit(&huart2, (uint8_t *)xx, sizeof(xx), HAL_MAX_DELAY);
+//	//HAL_UART_Transmit_IT(&huart2,xx, 2);
+//
+//	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6516);
+//	while(flag !=100);
 
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6516);
-	while(flag !=100);
-//  	for(int i =0;i<10000;i++)
-//  	{
-//  		data_received[i]=0x03;
-//  	}
+for(int i =0 ;i<6516;i++)
+{
+	data_received[i]='a';
+}
 
   /* USER CODE END 2 */
 
