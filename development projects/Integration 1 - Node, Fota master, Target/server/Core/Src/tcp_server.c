@@ -1,11 +1,3 @@
-/*
- * tcp_server.c
- *
- *  Created on: Mar 6, 2023
- *      Author: kyrillos Phelopos Sawiris
- */
-
-
 #include "lwip/opt.h"
 
 #include "lwip/api.h"
@@ -17,15 +9,18 @@ static struct netconn *conn, *newconn;
 static struct netbuf *buf;
 
 
-char RecivedProgram[6516];
-#define MESSAGE_SIZE 6516
+char RecivedProgram[7200];
+#define MESSAGE_SIZE 7200
+int recv_len = 0;
+int Flag = 0;
+
+
 
 
 /**** Send RESPONSE every time the client sends some data ******/
 static void tcp_thread(void *arg)
 {
 	err_t err, accept_err;
-	int recv_len =0;
 
 	/* Create a new connection identifier. */
 	conn = netconn_new(NETCONN_TCP);
@@ -48,24 +43,24 @@ static void tcp_thread(void *arg)
 				/* Process the new connection. */
 				if (accept_err == ERR_OK)
 				{
-
-					/* receive the data from the client */
 					while (recv_len < MESSAGE_SIZE) {
-						// Receive a packet
-						err = netconn_recv(newconn, &buf);
-						if (err != ERR_OK) {
-							break;
+
+						/* receive the data from the client */
+						if (netconn_recv(newconn, &buf) == ERR_OK)
+						{
+							/* If there is some data remaining to be sent, the following process will continue */
+							do
+							{
+								memcpy((RecivedProgram +recv_len) ,buf->p->payload,buf->p->len );
+								recv_len+=buf->p->len;
+							}
+							while (netbuf_next(buf) >=0);
+
+							netbuf_delete(buf);
 						}
 
-						memcpy((RecivedProgram +recv_len) ,(char *)buf->p->payload,buf->p->len );
-						recv_len+=buf->p->len;
-
-
-
-						// Free the packet buffer
-						netbuf_delete(buf);
 					}
-
+					Flag = 1;
 					/* Close connection and discard connection identifier. */
 					netconn_close(newconn);
 					netconn_delete(newconn);
@@ -84,5 +79,4 @@ void tcpserver_init(void)
 {
 	sys_thread_new("tcp_thread", tcp_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
 }
-
 
