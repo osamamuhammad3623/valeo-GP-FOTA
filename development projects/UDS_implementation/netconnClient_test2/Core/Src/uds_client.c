@@ -14,6 +14,8 @@
  *******************************************************************************/
 extern HASH_HandleTypeDef hhash;
 int count = 0;
+uint8_t requestFrame[app_size + 1]; // uint8_t *requestFrame; 6416+1  1024+1
+
 
 /*******************************************************************************
  *                      Functions Implementations		* 
@@ -68,7 +70,7 @@ void UDS_transfer_data(TargetECU targetECU, void *arg)
 	//use the array used by uart to save data and forward it
 	//frame: (TRANSFER_DATA, data)
 	uint8_t *data = (uint8_t *)arg;
-	uint8_t requestFrame[app_size + 1]; // uint8_t *requestFrame; 6416+1  1024+1
+	//uint8_t requestFrame[app_size + 1]; // uint8_t *requestFrame; 6416+1  1024+1
 	requestFrame[0] = TRANSFER_DATA;
 	uint16_t i;
 //	for (i = 0; i < app_size; i++) {  // PACKET_SIZE 6416

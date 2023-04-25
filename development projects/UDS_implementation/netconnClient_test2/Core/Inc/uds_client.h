@@ -14,7 +14,7 @@
 #include "tcp_client.h"
 
 /*--------------FOR TESTING INITIAL INTEGRATION-------------------*/
-#define app_size 2500 //6416 //2000 //500 //7200 // 6516
+#define app_size 50000 //6416 //2000 //500 //7200 // 6516
 extern uint8_t data_received[app_size]; /////////
 /*----------------------------------------------------------------*/
 

@@ -6,12 +6,13 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
+  * <h2><center>&copy; Copyright (c) 2023 STMicroelectronics.
+  * All rights reserved.</center></h2>
   *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
   *
   ******************************************************************************
   */
@@ -49,7 +50,6 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 
   /* Enable the TIM1 global Interrupt */
   HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
-
   /* Enable TIM1 clock */
   __HAL_RCC_TIM1_CLK_ENABLE();
 
@@ -58,8 +58,9 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 
   /* Compute TIM1 clock */
   uwTimclock = 2*HAL_RCC_GetPCLK2Freq();
+
   /* Compute the prescaler value to have TIM1 counter clock equal to 1MHz */
-  uwPrescalerValue = (uint32_t) ((uwTimclock / 1000000U) - 1U);
+  uwPrescalerValue = (uint32_t) ((uwTimclock / 1000000) - 1);
 
   /* Initialize TIM1 */
   htim1.Instance = TIM1;
@@ -70,11 +71,10 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   + ClockDivision = 0
   + Counter direction = Up
   */
-  htim1.Init.Period = (1000000U / 1000U) - 1U;
+  htim1.Init.Period = (1000000 / 1000) - 1;
   htim1.Init.Prescaler = uwPrescalerValue;
   htim1.Init.ClockDivision = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-
   if(HAL_TIM_Base_Init(&htim1) == HAL_OK)
   {
     /* Start the TIM time Base generation in interrupt mode */
@@ -109,3 +109,4 @@ void HAL_ResumeTick(void)
   __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE);
 }
 
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
