@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="7f90abd5-8947-4334-b92c-2b097c31fc4b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/gpio.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/gpio.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/gpio.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/main.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/main.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/main.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/stm32f4xx_hal_msp.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/stm32f4xx_hal_msp.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/stm32f4xx_hal_msp.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/stm32f4xx_it.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/stm32f4xx_it.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/stm32f4xx_it.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/subdir.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/syscalls.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/syscalls.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/syscalls.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/sysmem.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/sysmem.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/sysmem.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/system_stm32f4xx.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/system_stm32f4xx.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/system_stm32f4xx.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/usart.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/usart.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Src/usart.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Startup/startup_stm32f439zitx.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Startup/startup_stm32f439zitx.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Core/Startup/subdir.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/makefile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/objects.list" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/objects.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/sources.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/test_board.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/test_board.elf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/test_board.hex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/test_board.list" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/Communication_FOTAMaster_NodeMCU/FOTAMaster/test_board/Debug/test_board.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/.cproject" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/.cproject" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/.settings/language.settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/.settings/language.settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/Core/Src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/Core/Src/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/Core/Src/system_stm32f4xx.c" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/Core/Src/system_stm32f4xx.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/Debug/Core/Src/main.o" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/Debug/Core/Src/main.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/Debug/Core/Src/main.su" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/Debug/Core/Src/main.su" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/Debug/Core/Src/system_stm32f4xx.o" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/Debug/Core/Src/system_stm32f4xx.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/Debug/blue_app.bin" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/Debug/blue_app.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/Debug/blue_app.elf" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/Debug/blue_app.elf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/Debug/blue_app.list" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/Debug/blue_app.list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/Debug/blue_app.map" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/Debug/blue_app.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/blue_app/blue_app.ioc" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/blue_app/blue_app.ioc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/.settings/language.settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/.settings/language.settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Core/Src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Core/Src/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/Core/Src/main.o" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/Core/Src/main.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/Core/Src/main.su" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/Core/Src/main.su" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/objects.list" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/objects.list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/src/flash_memory.o" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/src/flash_memory.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/src/flash_memory.su" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/src/flash_memory.su" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/src/secure_boot.d" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/src/secure_boot.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/src/secure_boot.su" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/src/subdir.mk" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/src/subdir.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/test_bm.bin" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/test_bm.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/test_bm.elf" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/test_bm.elf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/test_bm.list" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/test_bm.list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../development projects/custom_bm/Debug/test_bm.map" beforeDir="false" afterPath="$PROJECT_DIR$/../development projects/custom_bm/Debug/test_bm.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app1_md.bin" beforeDir="false" afterPath="$PROJECT_DIR$/app1_md.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app_slots.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_slots.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui.ui" beforeDir="false" afterPath="$PROJECT_DIR$/gui.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/db.sqlite3" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/manage.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_application/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_application/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_application/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_application/firebase_interface.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_application/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_application/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_application/tests.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_application/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_application/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_project/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_project/asgi.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_project/settings.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_project/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/oem_web_project/wsgi.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../oem_web_project/templates/home_page.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/.cproject" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/.cproject" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/.mxproject" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/.mxproject" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/.project" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/.project" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/.settings/language.settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/.settings/language.settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Inc/FreeRTOSConfig.h" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Inc/FreeRTOSConfig.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Inc/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Inc/main.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Inc/master_application_tasks.h" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Inc/master_application_tasks.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Src/freertos.c" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Src/freertos.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Core/Src/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/LWIP/App/lwip.c" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/LWIP/App/lwip.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/LWIP/Target/ethernetif.c" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/LWIP/Target/ethernetif.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/LWIP/Target/ethernetif.h" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/LWIP/Target/ethernetif.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/LWIP/Target/lwipopts.h" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/LWIP/Target/lwipopts.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/freertos_mpool.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/freertos_os2.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../release projects/Master_ECU_Application/test_netconn.ioc" beforeDir="false" afterPath="$PROJECT_DIR$/../release projects/Master_ECU_Application/test_netconn.ioc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stm_shared_fota_libs/inc/bootloader.h" beforeDir="false" afterPath="$PROJECT_DIR$/../stm_shared_fota_libs/inc/bootloader.h" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="2NSyShhFb8vgx6lRbhQb6UwLb8Z" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7f90abd5-8947-4334-b92c-2b097c31fc4b" name="Changes" comment="" />
+      <created>1679671783249</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1679671783249</updated>
+    </task>
+    <servers />
+  </component>
+</project>

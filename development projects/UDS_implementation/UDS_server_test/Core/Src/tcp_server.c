@@ -19,14 +19,16 @@
 static struct netconn *conn, *newconn;
 static struct netbuf *buf;
 void (*UDS_exec_req_p) (void *argument);
-static int executeTaskCreated = 0;
+//static int executeTaskCreated = 0;
 //============================================================
 
 //============ data structures used in send and receive ========================
-char msg[6416];
+char msg[100]; // 6416
+uint8_t chunk[50001];
 char * data = (char*)0x10000000;
 uint8_t smsg[200];
 int recv_len = 0;
+int isDataFrame = 1;
 //==============================================================================
 
 void init_execute_request_callback(void (*p)(void *argument)) {
@@ -51,32 +53,33 @@ const osThreadAttr_t executeRequestTask_attributes = {
 
 /**** Send RESPONSE every time the client sends some data ******/
 
-void UDS_execute_response(char* message)
-{
-	if(strcmp(message,"hi")==0)
-	{
-		int len = sprintf (smsg, "\nhi from the server ");
-		tcp_SendResponse(smsg , len);
-	}
-	else if(strcmp(message,"delay")==0)
-	{
-		for(int i=0;i<1000;i++);
+//void UDS_execute_response(char* message)
+//{
+//	if(strcmp(message,"hi")==0)
+//	{
+//		int len = sprintf (smsg, "\nhi from the server ");
+//		tcp_SendResponse(smsg , len);
+//	}
+//	else if(strcmp(message,"delay")==0)
+//	{
+//		for(int i=0;i<1000;i++);
+//
+//		int len = sprintf (smsg, "\nProcess done");
+//		tcp_SendResponse(smsg , len);
+//	}
+//	else if(strcmp(message,"store")==0)
+//	{
+//		int len = sprintf (smsg, "\nsend program length");
+//		tcp_SendResponse(smsg , len);
+//		if(netconn_recv(newconn, &buf) == ERR_OK)
+//		{
+//			int programLength = atoi(buf->p->payload);
+//			netbuf_delete(buf);
+//			tcp_RecievePrograme(programLength);
+//		}
+//	}
+//}
 
-		int len = sprintf (smsg, "\nProcess done");
-		tcp_SendResponse(smsg , len);
-	}
-	else if(strcmp(message,"store")==0)
-	{
-		int len = sprintf (smsg, "\nsend program length");
-		tcp_SendResponse(smsg , len);
-		if(netconn_recv(newconn, &buf) == ERR_OK)
-		{
-			int programLength = atoi(buf->p->payload);
-			netbuf_delete(buf);
-			tcp_RecievePrograme(programLength);
-		}
-	}
-}
 static void tcp_thread(void *arg)
 {
 	err_t err, accept_err;
@@ -102,26 +105,49 @@ static void tcp_thread(void *arg)
 				/* Process the new connection. */
 				if (accept_err == ERR_OK)
 				{
+				/* ---------------- FOR TESTING ------------------------------- */
+//					err_t recvErr;
+//
+//					do {
+//						recvErr = netconn_recv(newconn, &buf);
+//						if (recvErr != ERR_OK) {
+//							break;
+//						}
+//						memcpy((msg + recv_len),buf->p->payload,buf->p->len);
+//						recv_len+=buf->p->len;
+//
+//						netbuf_delete(buf); ////////////////
+//
+//					} while (isDataFrame && recv_len < 2000);
+//					isDataFrame = 1; ///////////////
+//					UDS_exec_req_p((void *)msg); ////////////////
+//					recv_len = 0;
+
+				/* ------------------------------------------------------------ */
 
 					/* receive the data from the client */
 					while (netconn_recv(newconn, &buf) == ERR_OK)
 					{
-						/* If there is some data remaining to be sent, the following process will continue */
-						do
-						{
-							//strncpy(msg,buf->p->payload,buf->p->len);
-							memcpy((msg + recv_len),buf->p->payload,buf->p->len);
-							recv_len+=buf->p->len;
+						if ((*(uint8_t*)buf->p->payload) == 0x36) {
+							tcp_receiveChunk(50000);
+						} else {
+							/* If there is some data remaining to be sent, the following process will continue */
+							do
+							{
+								//strncpy(msg,buf->p->payload,buf->p->len);
+								memcpy((msg + recv_len),buf->p->payload,buf->p->len);
+								recv_len+=buf->p->len;
 
-							//UDS_exec_req_p((void *)msg);
+								//UDS_exec_req_p((void *)msg);
 
+							}
+							while (netbuf_next(buf) >=0);
+
+							UDS_exec_req_p((void *)msg); ////////////////
+							recv_len = 0;
+
+							netbuf_delete(buf);
 						}
-						while (netbuf_next(buf) >=0);
-
-						UDS_exec_req_p((void *)msg); ////////////////
-						recv_len = 0;
-
-						netbuf_delete(buf);
 					}
 
 					/* Close connection and discard connection identifier. */
@@ -137,35 +163,60 @@ static void tcp_thread(void *arg)
 	}
 }
 
-void tcp_RecievePrograme(int length)
-{
-	int len = sprintf (smsg, "/nstart Sending\n");
-	tcp_SendResponse(smsg,len);
-	static int i=0;
-	while (i <length)
-	{
-		if(netconn_recv(newconn, &buf) == ERR_OK)
+void tcp_receiveChunk(uint16_t chunkSize) {
+	memcpy((chunk +recv_len) ,buf->p->payload,buf->p->len );
+	recv_len+=buf->p->len;
+
+	netbuf_delete(buf);
+	while (recv_len < chunkSize) {
+
+		/* receive the data from the client */
+		if (netconn_recv(newconn, &buf) == ERR_OK)
 		{
 			/* If there is some data remaining to be sent, the following process will continue */
 			do
 			{
-				//To store data
-				static int c = 0;
-				int mss =buf->p->len;
-				strncpy((data+mss*c)  ,buf->p->payload, buf->p->len );
-				i += buf->p->len;
-				c++;
+				memcpy((chunk +recv_len) ,buf->p->payload,buf->p->len );
+				recv_len+=buf->p->len;
 			}
 			while (netbuf_next(buf) >=0);
 
-			if(i<length)
 			netbuf_delete(buf);
 		}
-
 	}
-	len = sprintf (smsg, "Done, Length = %d\n",length);
-	tcp_SendResponse(smsg,len);
+	UDS_exec_req_p((void *)chunk);
+	recv_len = 0;
 }
+
+//void tcp_RecievePrograme(int length)
+//{
+//	int len = sprintf (smsg, "/nstart Sending\n");
+//	tcp_SendResponse(smsg,len);
+//	static int i=0;
+//	while (i <length)
+//	{
+//		if(netconn_recv(newconn, &buf) == ERR_OK)
+//		{
+//			/* If there is some data remaining to be sent, the following process will continue */
+//			do
+//			{
+//				//To store data
+//				static int c = 0;
+//				int mss =buf->p->len;
+//				strncpy((data+mss*c)  ,buf->p->payload, buf->p->len );
+//				i += buf->p->len;
+//				c++;
+//			}
+//			while (netbuf_next(buf) >=0);
+//
+//			if(i<length)
+//			netbuf_delete(buf);
+//		}
+//
+//	}
+//	len = sprintf (smsg, "Done, Length = %d\n",length);
+//	tcp_SendResponse(smsg,len);
+//}
 
 void tcp_SendResponse(uint8_t *data , int len)
 {

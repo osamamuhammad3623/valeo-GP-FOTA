@@ -478,7 +478,7 @@
      </font>
     </property>
     <property name="text">
-     <string>OEM OTA-Application</string>
+     <string>OEM Client Application</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>

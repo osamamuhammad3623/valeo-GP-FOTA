@@ -1,8 +1,0 @@
-../Core/Src/boot_manager.c:312:16:public_key_Extraction	32	static
-../Core/Src/boot_manager.c:509:13:bootloader_set_boot_bank.part.0	16	static
-../Core/Src/boot_manager.c:238:6:jump_to_application	0	static,ignoring_inline_asm
-../Core/Src/boot_manager.c:498:9:read_backup_reg	8	static
-../Core/Src/boot_manager.c:76:9:secure_boot_verify	9456	static
-../Core/Src/boot_manager.c:502:6:write_Attempt_Counter	16	static
-../Core/Src/boot_manager.c:541:6:bootloader_switch_to_inactive_bank	0	static
-../Core/Src/boot_manager.c:555:6:bootloader_reboot	0	static,ignoring_inline_asm

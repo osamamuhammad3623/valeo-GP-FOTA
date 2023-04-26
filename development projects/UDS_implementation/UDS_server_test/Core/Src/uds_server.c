@@ -234,7 +234,7 @@ void UDS_start_download(uint8_t *requestFrame)
 	downloadSize = (requestFrame[2]<<(8*2)) | (requestFrame[1]<<8) | requestFrame[0];
 
 	// send response
-	uint16_t packetSize = PACKET_SIZE;
+	uint16_t packetSize = CHUNK_SIZE;
 	uint8_t packetSizeBytes[] = {((uint16_t)packetSize&(0xFF00))>>8, packetSize&(0x00FF)};
 
 	uint8_t responseFrame[] = {REQUEST_DOWNLOAD + POSITIVE_RESPONSE_OFFSET, packetSizeBytes[0], packetSizeBytes[1]};
@@ -254,9 +254,9 @@ void UDS_process_data(uint8_t *requestFrame)
 	uint8_t *dataBytes = &requestFrame[1];
 	uint32_t *dataWords;
 	// decrement frame size from image size, and converting data array from bytes to words
-	if (downloadSize >= PACKET_SIZE) {
-		downloadSize -= PACKET_SIZE;
-		dataSizeInWords = bytesToWords(dataBytes, PACKET_SIZE, dataWords);
+	if (downloadSize >= CHUNK_SIZE) {
+		downloadSize -= CHUNK_SIZE;
+		dataSizeInWords = bytesToWords(dataBytes, CHUNK_SIZE, dataWords);
 	} else {
 		dataSizeInWords = bytesToWords(dataBytes, downloadSize, dataWords);
 	}
@@ -272,9 +272,10 @@ void UDS_process_data(uint8_t *requestFrame)
 	// calculate CRC, to check: reset at the start of each file ?
 	CRC_result = HAL_CRC_Accumulate(&hcrc, dataWords, (uint32_t) dataSizeInWords);
 */
+//	tcp_receiveChunk(CHUNK_SIZE);
 	// flash
 	//erase_inactive_bank();
-	uint8_t errorState = flash_memory_write((uint32_t *)((uint8_t *)requestFrame+1), 500, APP); //1604 // always APP just for testing
+	uint8_t errorState = flash_memory_write((uint32_t *)((uint8_t *)requestFrame+1), CHUNK_SIZE/4, APP); //1604 // always APP just for testing
 	//recvd_msg[msgSize] =
 
 	// send response

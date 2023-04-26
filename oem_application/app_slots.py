@@ -9,7 +9,7 @@ def get_file_size(file_path):
 
 def get_file_digest(file_path):
     with open(file_path, 'rb', buffering=0) as f:
-        return hashlib.file_digest(f, 'sha256').hexdigest()
+        return hashlib.file_digest(f, 'sha256').digest()
 
 def write_metadata_file(image_info):
     pckg_version = package_info["package_version"]

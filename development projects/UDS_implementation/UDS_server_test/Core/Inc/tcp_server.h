@@ -12,5 +12,6 @@ void tcpserver_init (void);
 void tcp_RecievePrograme(programLength);
 void tcp_SendResponse(uint8_t *data , int len);
 void init_execute_request_callback(void (*p)(void *argument));
+void tcp_receiveChunk(uint16_t chunkSize);
 
 #endif /* INC_TCP_SERVER_H_ */

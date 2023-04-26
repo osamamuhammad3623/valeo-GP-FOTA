@@ -1,0 +1,2 @@
+Convert UI to py:
+pyuic5.exe -x FILE.ui -o FILE.py

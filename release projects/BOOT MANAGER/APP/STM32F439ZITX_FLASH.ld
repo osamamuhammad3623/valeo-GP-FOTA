@@ -191,6 +191,7 @@ SECTIONS
     PROVIDE ( _end = . );
     . = . + _Min_Heap_Size;
     . = . + _Min_Stack_Size;
+    _eRAM = .; /* define a global symbol at heap stack end */
     . = ALIGN(8);
   } >RAM
 
