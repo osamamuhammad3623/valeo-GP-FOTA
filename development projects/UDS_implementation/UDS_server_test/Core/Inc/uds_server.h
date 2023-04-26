@@ -24,7 +24,7 @@
 #define RC_START_ROUTINE				0X01U 
 
 #define REQUEST_DOWNLOAD				0X34U 
-#define PACKET_SIZE						1024U
+#define CHUNK_SIZE						50000U
 #define TRANSFER_DATA					0X36U
 #define REQUEST_TRANSFER_EXIT			0X37U 
 #define ECU_RESET						0X11U
