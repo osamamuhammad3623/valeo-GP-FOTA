@@ -6,33 +6,23 @@
  */
 
 #include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
 
 #ifndef INC_MASTER_APPLICATION_TASKS_H_
 #define INC_MASTER_APPLICATION_TASKS_H_
 
+
 /***************************************************************
- * Definitions & Global variables
+ * Definitions
  ***************************************************************/
-typedef enum {
-	No_Pending_Update,
-	Pending_Update, // a notification is received and waiting for user response
-	Downloading_From_Server,
-	Updating_Targets, // sending updates on Ethernet network
-	Installing // all targets received and ready to activate
-}Update_State;
 
-/* A global variable that holds the current update state */
-extern Update_State current_update_state;
-
+/* A queue to store the image chunks */
+extern xQueueHandle chunks_queue;
 
 /***************************************************************
  * Function Prototypes
  ***************************************************************/
-
-/*
- * Description: A task to update LCD message, display the current update status every 1 second
- * */
-void application_update_LCD_task(void);
 
 /*
  * Description: A task to receive update chunks from UART

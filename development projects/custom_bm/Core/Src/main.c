@@ -336,11 +336,16 @@ int compare_long(long *n_public_key_1,long *n_public_key_2,int size){
 
 int Secure_boot_goooooo(){
 	int ret=0;
+	//2
+	HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin); HAL_Delay(3000);
+		  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);HAL_Delay(3000);
+
 	/************** fetch needed data from memory****************/
 	byte rootIndex = *((char *)META_DATA_ADDRESS+ROOT_INDEX__METADATA_OFFSET) - '0';
 	int appSize = atoi((char *)META_DATA_ADDRESS+APP_SIZE__METADATA_OFFSET);
-
-
+	//3
+	HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin); HAL_Delay(3000);
+		  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);HAL_Delay(3000);
 
 
 	  const byte* ptr_sbCert = (byte*)(SB_CERT_ADDRESS);
@@ -348,6 +353,9 @@ int Secure_boot_goooooo(){
 
 	  int SB_cert_size = atoi((char *)CERTIFICATES_METADATA_ADDRESS + SB_CERT_SIZE_C_METADATA_OFFSET);
 	  int root_cert_size = atoi((char *)CERTIFICATES_METADATA_ADDRESS +ROOT_CERT_SIZE_C_METADATA_OFFSET);
+	  //4
+		HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin); HAL_Delay(3000);
+			  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);HAL_Delay(3000);
 
 	/*************** Root certificates Revocation*********************/
 	 byte root_1_revoked = *((byte *)ROOT_1_REVOCATION_ADDRESS);
@@ -355,8 +363,9 @@ int Secure_boot_goooooo(){
 	  if(((rootIndex == 1) && (root_1_revoked != 0xff)) || ((rootIndex == 2) && (root_2_revoked != 0xff))){
 		  return 1;
 	  }
-
-
+	  //5
+	  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin); HAL_Delay(3000);
+	  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);HAL_Delay(3000);
 	  /*************** certificates verifications *********************/
 	  ret = Certificates_Verify(ptr_rootCert, ptr_sbCert, root_cert_size, SB_cert_size);
 	   if (ret != 0){
@@ -399,8 +408,9 @@ int Secure_boot_goooooo(){
 	   }else{
 		   return 1;
 	   }
-
-
+	   //6
+	   HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin); HAL_Delay(3000);
+	   HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
 
 
 	  /************** secure boot public key Extraction ****************/
@@ -438,8 +448,9 @@ int Secure_boot_goooooo(){
 //		if (Current_Version < Threshold ){
 //			return 1;
 //		}
-
-
+		//7
+		HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin); HAL_Delay(3000);
+		HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
 		/************* Hash  ***************/
 		byte *Hash_value= (byte*)(Meta_Data+APP_HASH__METADATA_OFFSET);
 		byte *Start_Add_App = (byte*)MAIN_APPLICATION_START_ADDRESS;
@@ -492,6 +503,15 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  //1
+  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin); HAL_Delay(2000);
+  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin); HAL_Delay(2000);
+
+  int ret = Secure_boot_goooooo();
+  //8
+  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin); HAL_Delay(2000);
+  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin); HAL_Delay(2000);
+
   bootloader_jump_to_application(0x08060000);
   while (1)
   {

@@ -13,17 +13,14 @@
 /************************************************************
  * Definitions
  * **********************************************************/
-#define BUZZER_PIN
-#define BUZZER_PORT
+#define BUZZER_PIN		GPIOA
+#define BUZZER_PORT		GPIO_PIN_0
 
 /************************************************************
  * Function Prototypes
  * **********************************************************/
 
-/*
- * Description: A function to initialize the buzzer pin & port, and set it off
- * */
-void buzzer_init(void);
+// buzzer_init function only configures the pin as output using CubeMX GUI.
 
 /*
  * Description: A function to enable the buzzer
@@ -34,4 +31,5 @@ void buzzer_on(void);
  * Description: A function to disable the buzzer
  * */
 void buzzer_off(void);
+
 #endif /* INC_BUZZER_H_ */

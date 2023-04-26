@@ -113,6 +113,7 @@ ETH_HandleTypeDef heth;
 ETH_TxPacketConfig TxConfig;
 
 /* Private function prototypes -----------------------------------------------*/
+static void ethernetif_input(void const * argument);
 int32_t ETH_PHY_IO_Init(void);
 int32_t ETH_PHY_IO_DeInit (void);
 int32_t ETH_PHY_IO_ReadReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t *pRegVal);
@@ -181,9 +182,6 @@ void HAL_ETH_ErrorCallback(ETH_HandleTypeDef *handlerEth)
 static void low_level_init(struct netif *netif)
 {
   HAL_StatusTypeDef hal_eth_init_status = HAL_OK;
-/* USER CODE BEGIN OS_THREAD_ATTR_CMSIS_RTOS_V2 */
-  osThreadAttr_t attributes;
-/* USER CODE END OS_THREAD_ATTR_CMSIS_RTOS_V2 */
   uint32_t duplex, speed = 0;
   int32_t PHYLinkState = 0;
   ETH_MACConfigTypeDef MACConf = {0};
@@ -244,19 +242,16 @@ static void low_level_init(struct netif *netif)
   #endif /* LWIP_ARP */
 
   /* create a binary semaphore used for informing ethernetif of frame reception */
-  RxPktSemaphore = osSemaphoreNew(1, 1, NULL);
+  RxPktSemaphore = xSemaphoreCreateBinary();
 
   /* create a binary semaphore used for informing ethernetif of frame transmission */
-  TxPktSemaphore = osSemaphoreNew(1, 1, NULL);
+  TxPktSemaphore = xSemaphoreCreateBinary();
 
   /* create the task that handles the ETH_MAC */
-/* USER CODE BEGIN OS_THREAD_NEW_CMSIS_RTOS_V2 */
-  memset(&attributes, 0x0, sizeof(osThreadAttr_t));
-  attributes.name = "EthIf";
-  attributes.stack_size = INTERFACE_THREAD_STACK_SIZE;
-  attributes.priority = osPriorityRealtime;
-  osThreadNew(ethernetif_input, netif, &attributes);
-/* USER CODE END OS_THREAD_NEW_CMSIS_RTOS_V2 */
+/* USER CODE BEGIN OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
+  osThreadDef(EthIf, ethernetif_input, osPriorityRealtime, 0, INTERFACE_THREAD_STACK_SIZE);
+  osThreadCreate (osThread(EthIf), netif);
+/* USER CODE END OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
 
 /* USER CODE BEGIN PHY_PRE_CONFIG */
 
@@ -383,7 +378,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
   pbuf_ref(p);
 
   HAL_ETH_Transmit_IT(&heth, &TxConfig);
-  while(osSemaphoreAcquire(TxPktSemaphore, TIME_WAITING_FOR_INPUT)!=osOK)
+  while(osSemaphoreWait(TxPktSemaphore, TIME_WAITING_FOR_INPUT)!=osOK)
 
   {
   }
@@ -422,14 +417,14 @@ static struct pbuf * low_level_input(struct netif *netif)
  *
  * @param netif the lwip network interface structure for this ethernetif
  */
-void ethernetif_input(void* argument)
+static void ethernetif_input(void const * argument)
 {
   struct pbuf *p = NULL;
   struct netif *netif = (struct netif *) argument;
 
   for( ;; )
   {
-    if (osSemaphoreAcquire(RxPktSemaphore, TIME_WAITING_FOR_INPUT) == osOK)
+    if (osSemaphoreWait(RxPktSemaphore, TIME_WAITING_FOR_INPUT) == osOK)
     {
       do
       {
@@ -744,7 +739,8 @@ int32_t ETH_PHY_IO_GetTick(void)
   * @brief  Check the ETH link state then update ETH driver and netif link accordingly.
   * @retval None
   */
-void ethernet_link_thread(void* argument)
+
+void ethernet_link_thread(void const * argument)
 {
   ETH_MACConfigTypeDef MACConf = {0};
   int32_t PHYLinkState = 0;

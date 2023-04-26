@@ -129,4 +129,3 @@
 "./Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/wolfcrypt/src/port/st/stsafe.o"
 "./src/bootloader.o"
 "./src/flash_memory.o"
-"./src/secure_boot.o"
