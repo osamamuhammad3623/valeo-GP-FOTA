@@ -65,7 +65,7 @@ osThreadId_t UART_TaskHandle;
 const osThreadAttr_t UART_Task_attributes = {
   .name = "UART_Task",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityNormal-1,
 };
 /* USER CODE BEGIN PV */
 sys_sem_t ethernetSem;

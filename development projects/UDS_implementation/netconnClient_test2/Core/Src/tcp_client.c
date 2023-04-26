@@ -202,7 +202,6 @@ void init_uds_recv_resp_clbk(void (*p)(TargetECU targetECU, void *arg)) {
 
 static void tcpinit_thread(void *arg)
 {
-
 	// Cast the argument to the correct type
 	if(arg == NULL)
 		return;
