@@ -6,23 +6,31 @@ import requests
 import base64
 import firebase_connection
 
-
+'''
+A function to get the size of a file
+'''
 def get_file_size(file_path):
     return os.path.getsize(file_path)
 
 
+'''
+A function to calculate the digest of a file
+'''
 def get_file_digest(file_path):
     with open(file_path, 'rb', buffering=0) as f:
         return hashlib.file_digest(f, 'sha256').digest()
 
 
+'''
+A function to create the metadata of an image
+'''
 def write_metadata_file(image_info):
     pckg_version = package_info["package_version"]
     digest = image_info["digest"]
     root_index = image_info["root_index"]
     version = image_info["version"]
     size = str(image_info["size"])
-    # for metadata parsing [abdo's 7antafa]
+    # for metadata parsing [abdo's 7antafa]:
     if len(size) == 5:
         size += "  "
     elif len(size) == 6:
@@ -37,9 +45,10 @@ def write_metadata_file(image_info):
     metadata_file_byte.close()
 
 
+'''
+A function to get the package info [Version, Urgency & images] from GUI
+'''
 def read_package_info(window):
-    # read package info from UI (version, urgency & #images)
-
     global package_info # to reference the global variable, instead of creating a local one
     package_info["package_version"] = window.version.value()
     package_info["urgency"] = window.urgency.isChecked()
@@ -76,6 +85,12 @@ def read_package_info(window):
         image3_info["target"] = window.image_target_3.currentText()
 
 
+'''
+A function that connects to the signing server to sign the metadata,
+    then it writes the cert. & signatures
+
+    return: True for success, False for failure
+'''
 def sign_metadata():
     url = "https://signing-server.onrender.com"
     
@@ -108,7 +123,16 @@ def sign_metadata():
         return False
 
 
+'''
+The main function:
+when the user press Go button:
+1. read user input
+2. create metadata file for every image.
+3. sign the metadata file of each image.
+4. upload the required files to the Firebase Storage.
+'''
 def process_input(window):
+    successful_image_process=0
     # read inputs from GUI
     read_package_info(window)
 
@@ -116,23 +140,52 @@ def process_input(window):
     n_img = window.n_images.value()
     if n_img >= 1:
         write_metadata_file(image1_info)
-        if sign_metadata():
-            # Upload files
-            firebase_connection.firebase_upload_file("ROOT__cert.bin")
-            firebase_connection.firebase_upload_file("SB_cert.bin")
-            firebase_connection.firebase_upload_file("signature.bin")
+        if signed_n_uploaded():
             window.error_msg.setText("Application 1 signed & uploaded successfully.")
+            successful_image_process+=1
         else:
             window.error_msg.setText("Application 1 is NOT signed.")
 
     if n_img >= 2:
         write_metadata_file(image2_info)
-        sign_metadata()
+        if signed_n_uploaded():
+            window.error_msg.setText("Application 2 signed & uploaded successfully.")
+            successful_image_process+=1
+        else:
+            window.error_msg.setText("Application 2 is NOT signed.")
+    
     if n_img == 3:
         write_metadata_file(image3_info)
-        sign_metadata()
+        if signed_n_uploaded():
+            window.error_msg.setText("Application 3 signed & uploaded successfully.")
+            successful_image_process+=1
+        else:
+            window.error_msg.setText("Application 3 is NOT signed.")
+    
+    # check if all package images are processed successfully.
+    if successful_image_process == package_info["n_images"]:
+        window.error_msg.setText("All package images are signed & uploaded!")
+    else:
+        window.error_msg.setText("Something went wrong!")
 
 
+'''
+A function to check if metadata is signed & image files are uploaded successfully
+'''
+def signed_n_uploaded():
+    if sign_metadata():
+        # Upload files
+        firebase_connection.firebase_upload_file("ROOT__cert.bin")
+        firebase_connection.firebase_upload_file("SB_cert.bin")
+        firebase_connection.firebase_upload_file("signature.bin")
+        return True
+    else:
+        return False
+
+
+'''
+A function to load the binary image from a local device.
+'''
 def load_image_bin(window, image_number):
     # open a file dialog & set it to select only .bin files
     file_dialog = QFileDialog()
