@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from app_slots import *
+from app_slots import show_image_info, load_image_bin, process_input
 
 
 class Ui_MainWindow(object):
@@ -368,7 +368,7 @@ class Ui_MainWindow(object):
         self.go.setGeometry(QtCore.QRect(50, 750, 111, 41))
         self.go.setObjectName("go")
         self.error_msg = QtWidgets.QLabel(self.centralwidget)
-        self.error_msg.setGeometry(QtCore.QRect(170, 690, 1041, 21))
+        self.error_msg.setGeometry(QtCore.QRect(170, 740, 1041, 61))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.error_msg.setFont(font)

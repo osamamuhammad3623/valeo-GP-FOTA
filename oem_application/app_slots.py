@@ -1,15 +1,20 @@
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 import hashlib
 import os
 from definitions import *
+import requests
+import base64
+import firebase_connection
 
 
 def get_file_size(file_path):
     return os.path.getsize(file_path)
 
+
 def get_file_digest(file_path):
     with open(file_path, 'rb', buffering=0) as f:
         return hashlib.file_digest(f, 'sha256').digest()
+
 
 def write_metadata_file(image_info):
     pckg_version = package_info["package_version"]
@@ -17,15 +22,19 @@ def write_metadata_file(image_info):
     root_index = image_info["root_index"]
     version = image_info["version"]
     size = str(image_info["size"])
+    # for metadata parsing [abdo's 7antafa]
     if len(size) == 5:
         size += "  "
     elif len(size) == 6:
         size += " "
     
-    data = f"version:{pckg_version}.{version}.1 ,size:{size},rootIndex:{root_index} ,App_Hash:{digest}"
-    image_number = image_info["img"]
-    metadata_file = open(f'app{image_number}_md.bin', 'w')
+    data = f"version:{pckg_version}.{version}.1 ,size:{size},rootIndex:{root_index} ,App_Hash:"
+    metadata_file = open(f'metadata.txt', 'w') # write data in normal mode
     metadata_file.write(data)
+    metadata_file.close()
+    metadata_file_byte = open(f'metadata.txt', 'ab') # write digest in bytes mode
+    metadata_file_byte.write(digest)
+    metadata_file_byte.close()
 
 
 def read_package_info(window):
@@ -67,18 +76,61 @@ def read_package_info(window):
         image3_info["target"] = window.image_target_3.currentText()
 
 
+def sign_metadata():
+    url = "https://signing-server.onrender.com"
+    
+    #post request
+    binary_data = open("metadata.txt","rb").read()
+    base64_data = base64.b64encode(binary_data).decode('utf-8')
+    url2 = url+"/sign"
+    post_data ={"name": "metadata.txt", "content":base64_data, "password": "123456789"}
+    response = requests.post(url2, json=post_data)
+
+    data =response.json()
+    if(response.status_code ==200):
+        Root_der_cert_base64 = data["ROOT_DER_CERT"]
+        SB_der_cert_base64 = data["SB_DER_CERT"]
+        signature_base64 = data["SIGNATURE"]
+        Root_der_cert_bin = base64.b64decode(Root_der_cert_base64)
+        SB_der_cert_bin = base64.b64decode(SB_der_cert_base64)
+        signature_bin = base64.b64decode(signature_base64)
+
+        with open('ROOT__cert.bin', 'wb') as file:
+            file.write(Root_der_cert_bin)
+        with open('SB_cert.bin', 'wb') as file:
+            file.write(SB_der_cert_bin)
+        with open('signature.bin', 'wb') as file:
+            file.write(signature_bin)
+        
+        return True
+    else:
+        print(data["detail"])
+        return False
+
+
 def process_input(window):
-    # read inputs
+    # read inputs from GUI
     read_package_info(window)
 
-    # create metadata file for each image
+    # create metadata file for each image & sign it
     n_img = window.n_images.value()
     if n_img >= 1:
         write_metadata_file(image1_info)
+        if sign_metadata():
+            # Upload files
+            firebase_connection.firebase_upload_file("ROOT__cert.bin")
+            firebase_connection.firebase_upload_file("SB_cert.bin")
+            firebase_connection.firebase_upload_file("signature.bin")
+            window.error_msg.setText("Application 1 signed & uploaded successfully.")
+        else:
+            window.error_msg.setText("Application 1 is NOT signed.")
+
     if n_img >= 2:
         write_metadata_file(image2_info)
+        sign_metadata()
     if n_img == 3:
         write_metadata_file(image3_info)
+        sign_metadata()
 
 
 def load_image_bin(window, image_number):

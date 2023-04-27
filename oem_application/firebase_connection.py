@@ -16,4 +16,6 @@ firebaseConfig = {
 firebase = pyrebase.initialize_app(firebaseConfig)
 storage = firebase.storage()
 
-storage.child("Latest_Package/test_app.bin").put("test_app.bin")
+
+def firebase_upload_file(file_path):
+  storage.child(file_path).put(file_path)
