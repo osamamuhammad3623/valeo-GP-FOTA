@@ -14,7 +14,7 @@
 #include "tcp_client.h"
 
 /*--------------FOR TESTING INITIAL INTEGRATION-------------------*/
-#define app_size 50000 //30000 //6416 //2000 //500 //7200 // 6516
+#define app_size 20000 //6416 //2000 //500 //7200 // 6516
 extern uint8_t data_received[app_size]; /////////
 /*----------------------------------------------------------------*/
 
@@ -64,7 +64,7 @@ void UDS_SA_send_key(TargetECU targetECU, void *arg);			// uint32_t seed
 void UDS_RC_erase_memory(TargetECU targetECU, void *arg);
 void UDS_RC_check_memory(TargetECU targetECU, void *arg);
 void UDS_request_download(TargetECU targetECU, void *arg);		// uint32_t downloadSize
-void UDS_transfer_data(TargetECU targetECU, uint8_t *arg);			//uint16_t packetSize, uint8_t *data
+void UDS_transfer_data(TargetECU targetECU, void *arg);			//uint16_t packetSize, uint8_t *data
 void UDS_request_transfer_exit(TargetECU targetECU, void *arg);
 void UDS_ecu_reset(TargetECU targetECU, void *arg);
 
