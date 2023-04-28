@@ -14,12 +14,28 @@ file_paths ECUs_paths[3] = {master_paths, target1_paths, target2_paths};
 
 String file_to_be_send;
 
+//pckg_version
 uint8_t major;
 uint8_t minor;
 uint8_t patch;
 
-uint8_t urgency;
-uint8_t targeted_ecus_21m;
+//urgency and detection
+int is_urgent;
+int targeted_ecus_21m;
+
+//CRC_Att structs
+struct CRC_Att master_crc;
+struct CRC_Att target1_crc;
+struct CRC_Att target2_crc;
+
+int master_crc_image;
+int master_crc_update_data;
+int target1_crc_image;
+int target1_crc_update_data;
+int target2_crc_image;
+int target2_crc_update_data;
+//pck version
+int pckg_Version;
 
 
 void init_all();
@@ -31,6 +47,9 @@ size_t get_file_size(target_id id, file_type type);
 void FILESYSTEM_init();
 void fcsDownloadCallback(FCS_DownloadStatusInfo info);
 void listAllFilesInDir(String dir_path);
+
+void get_attributes();
+
 
 void setup() 
 {
@@ -46,7 +65,7 @@ void loop()
         uint8_t Frame_id = Serial.read();
         Serial.print(Frame_id);
         Serial.print(Serial.available());
-        char version[6] = {0x02, major, minor, patch, urgency, targeted_ecus_21m};
+        char version[6] = {0x02, major, minor, patch, is_urgent, targeted_ecus_21m};
         int current_major;
         int current_minor;
         int current_patch;
@@ -120,6 +139,40 @@ void loop()
      yield();
      delay(1000);
 }
+
+
+//function to get attributes needed from RTDB on firebase cloud
+void get_attributes()
+{
+  //getting targeted_ecus_21m from firebase
+  Firebase.RTDB.getInt(&fbdo, F("/targeted_ecus_21m") , &targeted_ecus_21m );
+
+  //getting is_urgent from firebase
+  Firebase.RTDB.getInt(&fbdo, F("/is_urgent") , &is_urgent );
+
+
+  //getting crc struct for master from firebase
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/master/image") , &master_crc_image );
+  master_crc.image=master_crc_image;
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/master/update_data") , &master_crc_update_data );
+  master_crc.update_data=master_crc_update_data;
+
+  //getting crc struct for target1 from firebase
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/target_1/image") , &target1_crc_image );
+  target1_crc.image=target1_crc_image;
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/target_1/update_data") , &target1_crc_update_data );
+  target1_crc.update_data=target1_crc_update_data;
+
+  //getting crc struct for target2 from firebase
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/target_2/image") , &target2_crc_image );
+  target2_crc.image=target2_crc_image;
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/target_2/update_data") , &target2_crc_update_data );
+  target2_crc.update_data=target2_crc_update_data;
+
+  //getting pckg_Version from firebase
+  Firebase.RTDB.getInt(&fbdo, F("/pckg_Version") , &pckg_Version );
+}
+
 
 //whole system initialization
 void init_all(){

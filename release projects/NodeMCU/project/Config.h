@@ -60,6 +60,11 @@ struct file_paths {
   String data;
 };
 
+struct CRC_Att
+{
+  int image;
+  int update_data;
+};
 
 const char rootCACert[] PROGMEM = "-----BEGIN CERTIFICATE-----\n"
                                   "MIIFVzCCAz+gAwIBAgINAgPlk28xsBNJiGuiFzANBgkqhkiG9w0BAQwFADBHMQsw\n"
