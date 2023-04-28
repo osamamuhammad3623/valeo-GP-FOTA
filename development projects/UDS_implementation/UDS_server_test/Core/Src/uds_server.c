@@ -7,6 +7,7 @@
  * 
  *******************************************************************************/
 #include "uds_server.h" 
+#include "main.h"
 #include "flash_memory.h"
 #include "bootloader.h"
 #include "tcp_server.h"
@@ -211,6 +212,12 @@ void UDS_erase_memory_routine(uint8_t *requestFrame)
 	}
 	//else, send positive response
 	else {
+
+		/* Blink LED to indicate memory is erased */
+		HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+		HAL_Delay(100);
+		HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+
 		uint8_t responseFrame[] = {ROUTINE_CONTROL + POSITIVE_RESPONSE_OFFSET, requestFrame[1], requestFrame[2], requestFrame[3]};
 		tcp_SendResponse(responseFrame, 4);
 	}
@@ -277,6 +284,11 @@ void UDS_process_data(uint8_t *requestFrame)
 	//erase_inactive_bank();
 	uint8_t errorState = flash_memory_write((uint32_t *)((uint8_t *)requestFrame+1), CHUNK_SIZE/4, APP); //1604 // always APP just for testing
 	//recvd_msg[msgSize] =
+
+	/* Blink LED to indicate memory is flashed */
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
 	// send response
 	uint8_t responseFrame[] = {TRANSFER_DATA + POSITIVE_RESPONSE_OFFSET};

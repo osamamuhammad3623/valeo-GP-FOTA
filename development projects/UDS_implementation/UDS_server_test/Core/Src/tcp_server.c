@@ -129,7 +129,7 @@ static void tcp_thread(void *arg)
 					while (netconn_recv(newconn, &buf) == ERR_OK)
 					{
 						if ((*(uint8_t*)buf->p->payload) == 0x36) {
-							tcp_receiveChunk(50000);
+							tcp_receiveChunk(20000);
 						} else {
 							/* If there is some data remaining to be sent, the following process will continue */
 							do
