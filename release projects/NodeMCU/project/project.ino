@@ -28,14 +28,16 @@ struct CRC_Att master_crc;
 struct CRC_Att target1_crc;
 struct CRC_Att target2_crc;
 
+//storage vairables for CRC_Att structs
 int master_crc_image;
 int master_crc_update_data;
 int target1_crc_image;
 int target1_crc_update_data;
 int target2_crc_image;
 int target2_crc_update_data;
+
 //pck version
-int pckg_Version;
+String pckg_Version;
 
 
 void init_all();
@@ -170,7 +172,23 @@ void get_attributes()
   target2_crc.update_data=target2_crc_update_data;
 
   //getting pckg_Version from firebase
-  Firebase.RTDB.getInt(&fbdo, F("/pckg_Version") , &pckg_Version );
+  Firebase.RTDB.getString(&fbdo, F("/pckg_Version") , &pckg_Version );
+
+  //convert string to array of chars
+	char pckg_Version_chars[pckg_Version.length() + 1];
+	strcpy(pckg_Version_chars, pckg_Version.c_str());
+
+  // Extract the major token
+  char * token = strtok(pckg_Version_chars, ".");
+  major=atoi(token);
+
+  // Extract the minor token
+  token = strtok(NULL, ".");
+  minor=atoi(token);
+
+  // Extract the path token
+  token = strtok(NULL, ".");
+  patch=atoi(token);
 }
 
 
