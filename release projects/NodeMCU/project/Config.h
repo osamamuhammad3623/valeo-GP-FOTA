@@ -10,6 +10,7 @@
 // #endif
 
 #include "FS.h"
+#include <LittleFS.h>
 #include <Firebase_ESP_Client.h>
 // Provide the token generation process info.
 #include <addons/TokenHelper.h>
@@ -17,8 +18,8 @@
 //#include <addons/SDHelper.h>
 
 /* 1. Define the WiFi credentials */
-#define WIFI_SSID "LAPLACE NETWORK 02"
-#define WIFI_PASSWORD "LAPLACE-3M"
+#define WIFI_SSID "A23"
+#define WIFI_PASSWORD "karf8618"
 
 
 /* 2. Define the API Key */
@@ -39,6 +40,25 @@
 #define Debug_Serial Serial
 /* UART */
 #define UART_BAUDRATE 115200
+
+#define PACKAGE_DOWNLOADED 0x04
+#define DOWNLOADING_ERROR 0x14
+
+enum target_id {
+  master,
+  target1,
+  target2
+};
+
+enum file_type {
+  bin,
+  data
+};
+
+struct file_paths {
+  String bin;
+  String data;
+};
 
 
 const char rootCACert[] PROGMEM = "-----BEGIN CERTIFICATE-----\n"
