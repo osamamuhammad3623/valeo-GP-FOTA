@@ -13,6 +13,9 @@
  *                      Global Variables				*
  *******************************************************************************/
 extern HASH_HandleTypeDef hhash;
+int count = 0;
+uint8_t requestFrame[app_size + 1]; // uint8_t *requestFrame; 6416+1  1024+1
+
 
 /*******************************************************************************
  *                      Functions Implementations		* 
@@ -67,13 +70,23 @@ void UDS_transfer_data(TargetECU targetECU, void *arg)
 	//use the array used by uart to save data and forward it
 	//frame: (TRANSFER_DATA, data)
 	uint8_t *data = (uint8_t *)arg;
-	uint8_t *requestFrame; // uint8_t requestFrame[PACKET_SIZE + 1]
-	*requestFrame = TRANSFER_DATA;
+	//uint8_t requestFrame[app_size + 1]; // uint8_t *requestFrame; 6416+1  1024+1
+	requestFrame[0] = TRANSFER_DATA;
 	uint16_t i;
-	for (i = 0; i < PACKET_SIZE; i++) {
-		requestFrame[i+1] = data[i];
+//	for (i = 0; i < app_size; i++) {  // PACKET_SIZE 6416
+//		requestFrame[i+1] = data[i];
+//	}
+	for (i = 0; i < app_size; i++) {  // PACKET_SIZE 6416
+		requestFrame[i+1] = data_received[i];
 	}
-	tcp_SendMessage(targetECU, requestFrame, PACKET_SIZE+1);
+//	tcp_SendMessage(targetECU, data_received, app_size);
+	tcp_SendMessage(targetECU, requestFrame, app_size+1); // PACKET_SIZE+1 6416+1
+
+	/* Blink LED to indicate chunk is sent */
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+
 }
 
 void UDS_request_transfer_exit(TargetECU targetECU, void *arg)
@@ -140,6 +153,11 @@ void UDS_SA_handle(TargetECU targetECU, uint8_t *responseFrame)
 
 void UDS_RC_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
+	UDS_transfer_data(targetECU, data_received);
+	//count++;
+//		for(int count = 0 ;count <= 3;count++ ) {
+//			UDS_transfer_data(targetECU, data_received);
+//		}
 
 }
 
@@ -150,7 +168,10 @@ void UDS_RD_handle(TargetECU targetECU, uint8_t *responseFrame)
 
 void UDS_TD_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-
+	count++;
+	if(count <= 5) {
+		UDS_transfer_data(targetECU, data_received);
+	}
 }
 
 void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame)
@@ -169,8 +190,11 @@ void UDS_negative_response_handle(TargetECU targetECU, uint8_t *responseFrame)
 }
 
 void UDS_start_request(TargetECU targetECU) {
-	uint8_t sessionType = (uint8_t)EXTENDED;
-	UDS_diagnostics_session_control(targetECU, (void*)&sessionType);
+//	UDS_transfer_data(targetECU, data_received);
+	void *arg;
+	UDS_RC_erase_memory(targetECU, arg);
+	/*uint8_t sessionType = (uint8_t)EXTENDED;
+	UDS_diagnostics_session_control(targetECU, (void*)&sessionType);*/
 }
 
 

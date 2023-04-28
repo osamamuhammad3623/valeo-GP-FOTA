@@ -78,8 +78,13 @@ static void tcpinit_thread(void *arg)
 			if (connect_error == ERR_OK)
 			{
 				//send a "hi" message at first
-				int messageLength = sprintf(ToSendMessage , "hi");
-				tcp_SendMessage(target_ECU,(uint8_t *)ToSendMessage, messageLength);
+				//int messageLength = sprintf(ToSendMessage , "hi");
+				//tcp_SendMessage(target_ECU,(uint8_t *)ToSendMessage, messageLength);
+
+				/* Blink LED to indicate successful connection */
+				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+				HAL_Delay(500);
+				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
 
 				// UDS_req callback
 				uds_req_clbk(target_ECU);
@@ -145,7 +150,7 @@ static void tcp_ReceiveMessage (TargetECU targetECU, struct netconn *conn ,struc
 void tcpclient_init (uint8_t targetToConnectWith)
 {
 	if (targetToConnectWith&0x02) {
-		target_1.ip_add = "169.254.84.57";
+		target_1.ip_add = "169.254.84.57"; // 169.254.84.58
 		target_1.portNum = 10;
 		target_1.targetECU = PS_TARGET;
 

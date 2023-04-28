@@ -27,11 +27,12 @@
 #include "tcp_client.h"
 #include "uds_client.h"
 #include "flash_memory.h"
+#include "bootloader.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+uint8_t data_received[app_size];
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -64,7 +65,7 @@ osThreadId_t UART_TaskHandle;
 const osThreadAttr_t UART_Task_attributes = {
   .name = "UART_Task",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityNormal-1,
 };
 /* USER CODE BEGIN PV */
 sys_sem_t ethernetSem;
@@ -80,15 +81,21 @@ void StartDefaultTask(void *argument);
 void UartTask(void *argument);
 
 /* USER CODE BEGIN PFP */
-#define app_size 6516
-
-uint8_t data_received[app_size]={0};
+//#define app_size 6516
+uint8_t flag = 0;
+//uint8_t data_received[app_size]={0};
+//uint8_t *data_received = (uint8_t *)0x1000000U;
+uint8_t aArray[100] = {0};
+uint8_t bArray[100] = {0};
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	sys_sem_signal(&uartSem);
+	flag = 100;
+	//HAL_UART_Receive_IT(&huart2, (uint8_t *)bArray, 100);
+	//sys_sem_signal(&uartSem);
+
 }
 /* USER CODE END 0 */
 
@@ -125,6 +132,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   init_uds_request_callback(UDS_start_request);
   init_uds_recv_resp_clbk(UDS_receive_response);
+//  erase_inactive_bank();
+  int k;
+  for (k = 0; k < app_size; k++) {
+	  data_received[k] = 'A';
+  }
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -376,8 +388,9 @@ void StartDefaultTask(void *argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
-  sys_arch_sem_wait(&ethernetSem, HAL_MAX_DELAY);
-  tcpclient_init(data_received[5]);
+  //sys_arch_sem_wait(&ethernetSem, HAL_MAX_DELAY);
+  //sys_arch_sem_wait(&ethernetSem, HAL_MAX_DELAY);
+  tcpclient_init(0x02); // data_received[5]
   /* Infinite loop */
   for(;;)
   {
@@ -396,7 +409,57 @@ void StartDefaultTask(void *argument)
 void UartTask(void *argument)
 {
   /* USER CODE BEGIN UartTask */
-	uint8_t versionNumber[4]={0x01, 0x02, 0x01, 0x00};
+	/*--------------TESTING UART WITH UDS--------------------------*/
+//	sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY); //////////////
+
+	uint8_t downloadByte[] = {0x03};
+	//uint8_t fileSizeInBytes[4];
+
+	//uint8_t data_received2[200];
+	//uint32_t dataWords[1602] = {0};
+	//uint32_t *dataWords = (uint32_t *)0x10000000U;
+
+//	HAL_UART_Transmit(&huart2, (uint8_t *)downloadByte, sizeof(downloadByte), HAL_MAX_DELAY);
+////	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6416);  // 3208  6416  1604
+//	HAL_UART_Receive(&huart2, data_received, 6416, HAL_MAX_DELAY); // 3208  6416  1604
+	//while(flag!=100);
+	flag = 0;
+
+	//uint8_t flashingStatus = flash_memory_write((uint32_t *)data_received, 1604, APP); // dataWords
+
+	//sys_sem_signal(&ethernetSem);
+
+	//uint32_t sizeInWords = bytesToWords(data_received, 160, (uint32_t *)data_received); // 3204  6408  200  dataWords
+	//erase_inactive_bank();
+
+
+	//bootloader_switch_to_inactive_bank();
+	//bootloader_reboot();
+	/*HAL_UART_Transmit(&huart2, (uint8_t *)downloadByte, sizeof(downloadByte), HAL_MAX_DELAY);
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 100);
+	//HAL_UART_Receive(&huart2, (uint8_t *)data_received, 100, HAL_MAX_DELAY); // 3204
+	//while(flag!=100);
+	//flag = 0;
+	int j;
+	for (j = 0; j < 801; j++) {
+		dataWords[j] = 0;
+	}
+	sizeInWords = bytesToWords(data_received, 100, dataWords);  // 3204
+	flashingStatus = flash_memory_write(dataWords, sizeInWords, APP);*/
+
+
+//	for(i = 0; i<2; i++) {
+//		HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6408);
+//		while(flag!=100);
+//		flag = 0;
+//		uint32_t sizeInWords = bytesToWords(data_received, 6408, dataWords);
+//		uint8_t flashingStatus = flash_memory_write(dataWords, sizeInWords, APP);
+//	}
+	//HAL_UART_Receive_IT(&huart2, (uint8_t *)fileSizeInBytes, 4);
+	//sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
+
+	//int j;
+	/*uint8_t versionNumber[4]={0x01, 0x02, 0x01, 0x00};
 	HAL_UART_Transmit(&huart2, (uint8_t *)versionNumber, sizeof(versionNumber), HAL_MAX_DELAY);
 
 	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6);
@@ -462,7 +525,7 @@ void UartTask(void *argument)
 			HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
 		}
 
-	}
+	}*/
 
 
   /* Infinite loop */
@@ -522,4 +585,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
