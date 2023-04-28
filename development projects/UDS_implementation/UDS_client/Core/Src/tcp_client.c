@@ -30,39 +30,6 @@ void init_uds_recv_resp_clbk(void (*p)(TargetECU targetECU, void *arg)) {
 	uds_recv_resp_clbk = p;
 }
 
-/*void UDS_receive_response(struct netconn *conn,char* message)
-{
-
-	memset (ToSendMessage, '\0', 100);
-
-	if(strcmp(message,"hi")==0)
-	{
-		int len = sprintf (ToSendMessage, "\n pleased to meet you ");
-		tcp_SendMessage(conn,ToSendMessage , len);
-	}
-	else if(strcmp(message,"delay")==0)
-	{
-		for(int i=0;i<1000;i++);
-
-		int len = sprintf (ToSendMessage, "\n Process done");
-		tcp_SendMessage(conn,ToSendMessage , len);
-	}
-	else if(strcmp(message,"send")==0)
-	{
-		int len = sprintf (ToSendMessage, "\n i will send first the program length");
-		tcp_SendMessage(conn,ToSendMessage , len);
-
-		len = sprintf (ToSendMessage, "\n 3000");
-		tcp_SendMessage(conn,ToSendMessage , len);
-
-		len = sprintf (ToSendMessage, "\n Be ready to receive the program /n/n");
-		tcp_SendMessage(conn,ToSendMessage , len);
-
-		tcp_SendMessage(conn,ProgramToSend , 3000);
-
-	}
-}*/
-
 static void tcpinit_thread(void *arg)
 {
 
@@ -79,14 +46,14 @@ static void tcpinit_thread(void *arg)
 	// Extract the IP address, port number and the target ECU
 	char* ip_address = malloc(strlen(config->ip_add) + 1); // allocate memory for the string
 	strcpy(ip_address, config->ip_add); // copy the string into the new buffer
-	ip_address[strlen(config->ip_add)] = '\0'; // add null terminat
+	ip_address[strlen(config->ip_add)] = '\0'; // add null terminate
 	unsigned short dest_port = config->portNum;
 
 	TargetECU target_ECU = config->targetECU;
 
 	/* Create a new connection identifier. */
 	if (target_ECU == PS_TARGET) {
-		conn1 = netconn_new(NETCONN_TCP); // conn
+		conn1 = netconn_new(NETCONN_TCP);
 		conn = conn1;
 	} else {
 		conn2 = netconn_new(NETCONN_TCP);
@@ -96,7 +63,7 @@ static void tcpinit_thread(void *arg)
 	if (conn!=NULL) // conn
 	{
 		/* Bind connection to the port number 10 (port of the Client). */
-		err = netconn_bind(conn, IP_ADDR_ANY, 10); // conn
+		err = netconn_bind(conn, IP_ADDR_ANY, dest_port);
 
 		if (err == ERR_OK)
 		{
@@ -105,32 +72,32 @@ static void tcpinit_thread(void *arg)
 			//dest_port = 10;  // server port
 
 			/* Connect to the TCP Server */
-			connect_error = netconn_connect(conn, &dest_addr, dest_port); // conn
+			connect_error = netconn_connect(conn, &dest_addr, dest_port);
 
 			// If the connection to the server is established, the following will continue, else delete the connection
 			if (connect_error == ERR_OK)
 			{
 				//send a "hi" message at first
-				int messageLength = sprintf(ToSendMessage , "hi");
-				tcp_SendMessage(target_ECU,(uint8_t *)ToSendMessage, messageLength);
+				//int messageLength = sprintf(ToSendMessage , "hi");
+				//tcp_SendMessage(target_ECU,(uint8_t *)ToSendMessage, messageLength);
 
 				// UDS_req callback
 				uds_req_clbk(target_ECU);
 
 				//start receiving
-				tcp_ReceiveMessage(target_ECU, conn, buf); // conn
+				tcp_ReceiveMessage(target_ECU, conn, buf);
 			}
 			else
 			{
 				/* Close connection and discard connection identifier. */
-				netconn_close(conn); // conn
-				netconn_delete(conn); // conn
+				netconn_close(conn);
+				netconn_delete(conn);
 			}
 		}
 		else
 		{
 			// if the binding wasn't successful, delete the netconn connection
-			netconn_delete(conn); // conn
+			netconn_delete(conn);
 		}
 	}
 }
@@ -163,7 +130,6 @@ static void tcp_ReceiveMessage (TargetECU targetECU, struct netconn *conn ,struc
 				uint8_t ReceivedMessage[100];
 				memset ((char *)ReceivedMessage, '\0', 100);
 				strncpy((char *)ReceivedMessage,buf->p->payload, buf->p->len);
-				//UDS_receive_response(conn,ReceivedMessage);
 
 				// uds receive response callback
 				uds_recv_resp_clbk(targetECU, ReceivedMessage);
@@ -176,21 +142,20 @@ static void tcp_ReceiveMessage (TargetECU targetECU, struct netconn *conn ,struc
 }
 
 
-void tcpclient_init (void)
+void tcpclient_init (uint8_t* targetToConnectWith)
 {
-	for(int i=0;i<3000;i++)
-	{
-		ProgramToSend[i] = 'a';
+	if (targetToConnectWith[1]) {
+		target_1.ip_add = "169.254.84.57";
+		target_1.portNum = 10;
+		target_1.targetECU = PS_TARGET;
+
+		sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
 	}
+	if (targetToConnectWith[2]) {
+		target_2.ip_add = "169.254.84.57";
+		target_2.portNum = 7;
+		target_2.targetECU = WIPERS_TARGET;
 
-	target_1.ip_add = "169.254.84.57";
-	target_1.portNum = 10;
-	target_1.targetECU = PS_TARGET;
-
-	target_2.ip_add = "169.254.84.56";
-	target_2.portNum = 10;
-	target_2.targetECU = WIPERS_TARGET;
-
-	sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
-	//sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_2, DEFAULT_THREAD_STACKSIZE,osPriorityNormal-1);
+		sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_2, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+	}
 }

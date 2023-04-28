@@ -7,91 +7,83 @@
  * 
  *******************************************************************************/ 
 #include "uds_client.h"
-#include "tcp_client.h"
 
-/******************************************************************************* 
- *                      Global Variables				*
- *******************************************************************************/
-extern HASH_HandleTypeDef hhash;
+uint8_t transferDataFrame[CHUNK_SIZE + 1];
 
 /*******************************************************************************
  *                      Functions Implementations		* 
  *******************************************************************************/ 
-void UDS_diagnostics_session_control(TargetECU targetECU, void *arg)
-{ 
-	uint8_t session = *(uint8_t *)arg;
+void UDS_diagnostics_session_control(TargetECU targetECU, uint8_t session)
+{
 	uint8_t requestFrame[] = {DIAGNOSTICS_SESSION_CONTROL, session};
-	tcp_SendMessage(targetECU, requestFrame, 2);
+	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
-void UDS_SA_request_seed(TargetECU targetECU, void *arg)
+void UDS_SA_request_seed(TargetECU targetECU)
 {
 	uint8_t requestFrame[] = {SECURITY_ACCESS, SA_REQUEST_SEED};
-	tcp_SendMessage(targetECU, requestFrame, 2);
+	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
-void UDS_SA_send_key(TargetECU targetECU, void *arg)
+void UDS_SA_send_key(TargetECU targetECU, uint8_t *seed)
 { 
 	uint8_t *generatedKey;
-	HAL_HMACEx_SHA256_Start(&hhash, (uint8_t *)arg, 4, generatedKey, TIMEOUT);
+	HAL_HMACEx_SHA256_Start(&hhash, seed, 4, generatedKey, TIMEOUT);
 	uint8_t requestFrame[34] = {SECURITY_ACCESS, SA_SEND_KEY};
 	for(int i=0; i<32; i++)
 	{
 		requestFrame[i+2] = generatedKey[i];
 	}
-	tcp_SendMessage(targetECU, requestFrame, 34);
+	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
-void UDS_RC_erase_memory(TargetECU targetECU, void *arg)
+void UDS_RC_erase_memory(TargetECU targetECU)
 {
 	uint8_t requestFrame[] = {ROUTINE_CONTROL, RC_START_ROUTINE, 0xFF, 0x00};
-	tcp_SendMessage(targetECU, requestFrame, 4);
+	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
-void UDS_RC_check_memory(TargetECU targetECU, void *arg)
+void UDS_RC_check_memory(TargetECU targetECU)
 {
 	uint8_t requestFrame[] = {ROUTINE_CONTROL, RC_START_ROUTINE, 0x02, 0x02};
-	tcp_SendMessage(targetECU, requestFrame, 4);
+	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
-void UDS_request_download(TargetECU targetECU, void *arg)
+void UDS_request_download(TargetECU targetECU, uint32_t fileSize)
 {
-	uint32_t size = *(uint32_t *)arg;
-	uint8_t downloadSize[] = {((uint32_t)size&0xFF000000)>>(24), ((uint32_t)size&0x00FF0000)>>(16),((uint32_t)size&0x0000FF00)>>(8), size&0x000000FF};
+	uint8_t downloadSize[] = {((uint32_t)fileSize&0xFF000000)>>(24), ((uint32_t)fileSize&0x00FF0000)>>(16),((uint32_t)fileSize&0x0000FF00)>>(8), fileSize&0x000000FF};
 	uint8_t requestFrame[] = {REQUEST_DOWNLOAD, downloadSize[0], downloadSize[1], downloadSize[2], downloadSize[3]};
-	tcp_SendMessage(targetECU, requestFrame, 5);
+	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
-void UDS_transfer_data(TargetECU targetECU, void *arg)
+void UDS_transfer_data(TargetECU targetECU)
 {
 	//use the array used by uart to save data and forward it
-	//frame: (TRANSFER_DATA, data)
-	uint8_t *data = (uint8_t*) arg;
-	uint8_t *requestFrame;
-	*requestFrame = TRANSFER_DATA;
-	for (uint16_t i = 0; i < PACKET_SIZE; i++) {
-		requestFrame[i + 1] = data[i];
+	transferDataFrame[0] = TRANSFER_DATA;
+
+	for (uint16_t i = 0; i < CHUNK_SIZE; i++) {
+		transferDataFrame[i+1] = data_received[i];
 	}
-	tcp_SendMessage(targetECU, requestFrame, PACKET_SIZE+1);
+	tcp_SendMessage(targetECU, transferDataFrame, sizeof(transferDataFrame));
 }
 
-void UDS_request_transfer_exit(TargetECU targetECU, void *arg)
+void UDS_request_transfer_exit(TargetECU targetECU)
 {
 	uint8_t requestFrame[] = {REQUEST_TRANSFER_EXIT};
-	tcp_SendMessage(targetECU, requestFrame, 1);
+	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
-void UDS_ecu_reset(TargetECU targetECU, void *arg)
+void UDS_ecu_reset(TargetECU targetECU, uint8_t resetType)
 {
-	uint8_t requestFrame[] = {ECU_RESET, ER_SOFT_RESET};
-	tcp_SendMessage(targetECU, requestFrame, 2);
+	uint8_t requestFrame[] = {ECU_RESET, resetType};
+	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
 void UDS_receive_response(TargetECU targetECU, void *arg)
 {
 	if(arg == NULL)
 	{
-		//delete task!
+		return;
 	}
 	uint8_t *responseFrame = (uint8_t *)arg;
 	switch(responseFrame[0]){
@@ -121,58 +113,79 @@ void UDS_receive_response(TargetECU targetECU, void *arg)
 		break;
 	default:		break;
 	}
-	//delete task!
 }
 
 void UDS_DSC_handle(TargetECU targetECU, uint8_t *responseFrame)
 { 
-	char msg[20];
-	int messageLength = sprintf(msg , "session success\n");
-	tcp_SendMessage(targetECU, msg, messageLength);
-} 
+	//char msg[20];
+	//int messageLength = sprintf(msg , "session success\n");
+	//tcp_SendMessage(targetECU, msg, messageLength);
 
+	//check session EXT and send next frame SA
+	if(responseFrame[1] == EXTENDED){
+		UDS_SA_request_seed(targetECU);
+	}
+	else{
+		// Do nothing
+	}
+} 
 
 void UDS_SA_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-
+	if(responseFrame[1] == SA_REQUEST_SEED){
+		UDS_SA_send_key(targetECU, &responseFrame[2]);
+	}
+	else if(responseFrame[1] == SA_SEND_KEY){
+		//access granted .. send erase mem or ecu reset request!
+		UDS_RC_erase_memory(targetECU);
+	}
+	else{
+		// Do nothing
+	}
 }
 
 void UDS_RC_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-
+	if(responseFrame[1] == RC_START_ROUTINE){
+		if(responseFrame[2] == 0xFF && responseFrame[3] == 0x00){
+			//tell uart task that target is ready!
+		}
+		else{
+			//can be used in case of check mem!
+		}
+	}
+	else{
+		// Do nothing
+	}
 }
 
 void UDS_RD_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-
+	//adjust var (chunk size) and start sending data after receiving it from uart
 }
 
 void UDS_TD_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-
+	//tell uart task that data is sent correctly and ready for next chunk!
 }
 
 void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-
+	//check crc
 }
 
 void UDS_ER_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-
 }
 
 void UDS_negative_response_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-
+	//to be handled
 }
 
 void UDS_start_request(TargetECU targetECU) {
-	uint8_t sessionType = (uint8_t)EXTENDED;
-	UDS_diagnostics_session_control(targetECU, (void*)&sessionType);
+	//uint8_t sessionType = (uint8_t)EXTENDED;
+	//UDS_diagnostics_session_control(targetECU, sessionType);
+
+	UDS_RC_erase_memory(targetECU);
 }
-
-
-
-
-
