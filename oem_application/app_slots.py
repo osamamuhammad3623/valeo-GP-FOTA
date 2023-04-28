@@ -1,34 +1,21 @@
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QFileDialog
 import hashlib
 import os
-from definitions import *
 import requests
 import base64
+import binascii
 import firebase_connection
-
-'''
-A function to get the size of a file
-'''
-def get_file_size(file_path):
-    return os.path.getsize(file_path)
-
-
-'''
-A function to calculate the digest of a file
-'''
-def get_file_digest(file_path):
-    with open(file_path, 'rb', buffering=0) as f:
-        return hashlib.file_digest(f, 'sha256').digest()
+from definitions import *
 
 
 '''
 A function to create the metadata of an image
 '''
 def write_metadata_file(image_info):
+    img_num = image_info["img"]
     pckg_version = package_info["package_version"]
     digest = image_info["digest"]
     root_index = image_info["root_index"]
-    version = image_info["version"]
     size = str(image_info["size"])
     # for metadata parsing [abdo's 7antafa]:
     if len(size) == 5:
@@ -36,21 +23,21 @@ def write_metadata_file(image_info):
     elif len(size) == 6:
         size += " "
     
-    data = f"version:{pckg_version}.{version}.1 ,size:{size},rootIndex:{root_index} ,App_Hash:"
-    metadata_file = open(f'metadata.txt', 'w') # write data in normal mode
+    data = f"version:{pckg_version} ,size:{size},rootIndex:{root_index} ,App_Hash:"
+    metadata_file = open(f'metadata_{img_num}.txt', 'w') # write data in normal mode
     metadata_file.write(data)
     metadata_file.close()
-    metadata_file_byte = open(f'metadata.txt', 'ab') # write digest in bytes mode
+    metadata_file_byte = open(f'metadata_{img_num}.txt', 'ab') # write digest in bytes mode
     metadata_file_byte.write(digest)
     metadata_file_byte.close()
 
 
 '''
-A function to get the package info [Version, Urgency & images] from GUI
+A function to get the package info [Package & application Versions, Urgency & images] from GUI
 '''
 def read_package_info(window):
     global package_info # to reference the global variable, instead of creating a local one
-    package_info["package_version"] = window.version.value()
+    package_info["package_version"] = window.version.text()
     package_info["urgency"] = window.urgency.isChecked()
 
     n_img = window.n_images.value()
@@ -58,30 +45,24 @@ def read_package_info(window):
 
     # read every image's info
     if n_img >= 1:
-        image1_info["img"] = 1
-        image1_info["version"] = window.image_version_1.value()
         image1_info["root_index"] = window.image_root_index_1.value()
         image1_info["size"] = get_file_size(window.image_path_1.text())
         image1_info["digest"] = get_file_digest(window.image_path_1.text())
-        image1_info["crc"] = int(window.image_crc_1.text())
+        image1_info["crc"] = get_file_crc(window.image_path_1.text())
         image1_info["target"] = window.image_target_1.currentText()
 
     if n_img >= 2:
-        image2_info["img"] = 2
-        image2_info["version"] = window.image_version_2.value()
         image2_info["root_index"] = window.image_root_index_2.value()
         image2_info["size"] = get_file_size(window.image_path_2.text())
         image2_info["digest"] = get_file_digest(window.image_path_2.text())
-        image2_info["crc"] = int(window.image_crc_2.text())
+        image2_info["crc"] = get_file_crc(window.image_path_2.text())
         image2_info["target"] = window.image_target_2.currentText()
 
     if n_img == 3:
-        image3_info["img"] = 3
-        image3_info["version"] = window.image_version_3.value()
         image3_info["root_index"] = window.image_root_index_3.value()
         image3_info["size"] = get_file_size(window.image_path_3.text())
         image3_info["digest"] = get_file_digest(window.image_path_3.text())
-        image3_info["crc"] = int(window.image_crc_3.text())
+        image3_info["crc"] = get_file_crc(window.image_path_3.text())
         image3_info["target"] = window.image_target_3.currentText()
 
 
@@ -91,14 +72,14 @@ A function that connects to the signing server to sign the metadata,
 
     return: True for success, False for failure
 '''
-def sign_metadata():
+def sign_metadata(img_num, server_password):
     url = "https://signing-server.onrender.com"
     
     #post request
-    binary_data = open("metadata.txt","rb").read()
+    binary_data = open(f"metadata_{img_num}.txt","rb").read()
     base64_data = base64.b64encode(binary_data).decode('utf-8')
     url2 = url+"/sign"
-    post_data ={"name": "metadata.txt", "content":base64_data, "password": "123456789"}
+    post_data ={"name": "metadata.txt", "content":base64_data, "password": server_password}
     response = requests.post(url2, json=post_data)
 
     data =response.json()
@@ -124,60 +105,81 @@ def sign_metadata():
 
 
 '''
-The main function:
-when the user press Go button:
+when the user presses Signing Request button:
 1. read user input
 2. create metadata file for every image.
 3. sign the metadata file of each image.
-4. upload the required files to the Firebase Storage.
 '''
-def process_input(window):
-    successful_image_process=0
+def sign_process(window):
+    images_signed=0
     # read inputs from GUI
     read_package_info(window)
+    server_pass = window.server_password.text()
+    if len(server_pass) < 5:
+        window.error_msg.setText("Type the server password, please.")
+        return
+
+    window.error_msg.setText("Signing is in process! Please wait.")
 
     # create metadata file for each image & sign it
     n_img = window.n_images.value()
     if n_img >= 1:
         write_metadata_file(image1_info)
-        if signed_n_uploaded():
-            window.error_msg.setText("Application 1 signed & uploaded successfully.")
-            successful_image_process+=1
+        # sign the metadata and check
+        if sign_metadata("1", server_pass):
+            images_signed += 1
+            window.error_msg.setText("Application 1 is signed successfully. Now you can upload it!")
         else:
-            window.error_msg.setText("Application 1 is NOT signed.")
+            window.error_msg.setText("Application 1 is NOT signed. Signing process stopped")
+            return
 
     if n_img >= 2:
         write_metadata_file(image2_info)
-        if signed_n_uploaded():
-            window.error_msg.setText("Application 2 signed & uploaded successfully.")
-            successful_image_process+=1
+        # sign the metadata and check
+        if sign_metadata("2",server_pass):
+            images_signed += 1
+            window.error_msg.setText("Application 2 is signed successfully. Now you can upload it!")
         else:
-            window.error_msg.setText("Application 2 is NOT signed.")
-    
+            window.error_msg.setText("Application 2 is NOT signed. Signing process stopped")
+            return
+
     if n_img == 3:
         write_metadata_file(image3_info)
-        if signed_n_uploaded():
-            window.error_msg.setText("Application 3 signed & uploaded successfully.")
-            successful_image_process+=1
+        # sign the metadata and check
+        if sign_metadata("3",server_pass):
+            images_signed += 1
+            window.error_msg.setText("Application 3 is signed successfully. Now you can upload it!")
         else:
-            window.error_msg.setText("Application 3 is NOT signed.")
-    
+            window.error_msg.setText("Application 3 is NOT signed. Signing process stopped")
+            return
+
     # check if all package images are processed successfully.
-    if successful_image_process == package_info["n_images"]:
-        window.error_msg.setText("All package images are signed & uploaded!")
-    else:
-        window.error_msg.setText("Something went wrong!")
+    if images_signed == package_info["n_images"]:
+        window.error_msg.setText("All package images are signed successfully")
 
 
+def upload_process():
+    pass
 '''
 A function to check if metadata is signed & image files are uploaded successfully
 '''
-def signed_n_uploaded():
+def signed_n_uploaded(image_info):
     if sign_metadata():
-        # Upload files
-        firebase_connection.firebase_upload_file("ROOT__cert.bin")
-        firebase_connection.firebase_upload_file("SB_cert.bin")
-        firebase_connection.firebase_upload_file("signature.bin")
+
+        current_pckg = package_info["package_version"]
+        # Upload files in the designated directory
+        target_ecu = image_info["target"]
+        security_dir = f"OEM/{current_pckg}/{target_ecu}/Security/"
+        binary_dir = f"OEM/{current_pckg}/{target_ecu}/Binary/"
+
+        # upload securoty binaries
+        firebase_connection.firebase_upload_file(f"{security_dir}ROOT__cert.bin", "ROOT__cert.bin")
+        firebase_connection.firebase_upload_file(f"{security_dir}SB_cert.bin", "SB_cert.bin")
+        firebase_connection.firebase_upload_file(f"{security_dir}signature.bin", "signature.bin")
+
+        # upload the image binary
+        firebase_connection.firebase_upload_file(f"{binary_dir}app.bin", image_info["path"])
+
         return True
     else:
         return False
@@ -199,40 +201,57 @@ def load_image_bin(window, image_number):
         #set the file path of the corresponding image number
         if image_number == 1:
             window.image_path_1.setText(file_path)
+            image1_info["path"] = file_path
         elif image_number == 2:
             window.image_path_2.setText(file_path)
+            image2_info["path"] = file_path
         elif image_number == 3:
             window.image_path_3.setText(file_path)
+            image3_info["path"] = file_path
 
 
 def show_image_info(window, image_count):
-
     window.image_file_2.setEnabled(False)
     window.image_path_2.setEnabled(False)
-    window.image_crc_2.setEnabled(False)
     window.image_root_index_2.setEnabled(False)
-    window.image_version_2.setEnabled(False)
     window.image_target_2.setEnabled(False)
 
     window.image_file_3.setEnabled(False)
     window.image_path_3.setEnabled(False)
-    window.image_crc_3.setEnabled(False)
     window.image_root_index_3.setEnabled(False)
-    window.image_version_3.setEnabled(False)
     window.image_target_3.setEnabled(False)
 
     if image_count == 2 or image_count == 3:
         window.image_file_2.setEnabled(True)
         window.image_path_2.setEnabled(True)
-        window.image_crc_2.setEnabled(True)
         window.image_root_index_2.setEnabled(True)
-        window.image_version_2.setEnabled(True)
         window.image_target_2.setEnabled(True)
 
         if image_count == 3:
             window.image_file_3.setEnabled(True)
             window.image_path_3.setEnabled(True)
-            window.image_crc_3.setEnabled(True)
             window.image_root_index_3.setEnabled(True)
-            window.image_version_3.setEnabled(True)
             window.image_target_3.setEnabled(True)
+
+'''
+A function to get the size of a file
+'''
+def get_file_size(file_path):
+    return os.path.getsize(file_path)
+
+
+'''
+A function to calculate the digest of a file
+'''
+def get_file_digest(file_path):
+    with open(file_path, 'rb', buffering=0) as f:
+        return hashlib.file_digest(f, 'sha256').digest()
+
+
+'''
+A function to calculate the CRC of a file
+'''
+def get_file_crc(file_path):
+    buf = open(file_path,'rb').read()
+    hash = binascii.crc32(buf) & 0xFFFFFFFF
+    return "%08X" % hash
