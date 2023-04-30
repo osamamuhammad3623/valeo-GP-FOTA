@@ -58,15 +58,15 @@ realtime_attributes = {
     "pckg_version" : "",
     "targeted_ecus_21m" : 0,
     "crc" : {
-        "master" : {
+        "Master ECU" : {
             "image" : 0,
             "update_data" : 0
         },
-        "target_1" : {
+        "Target 1" : {
             "image" : 0,
             "update_data" : 0
         },
-        "target_2" : {
+        "Target 2" : {
             "image" : 0,
             "update_data" : 0
         }
