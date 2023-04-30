@@ -12,7 +12,7 @@ file_paths target2_paths {"OEM/Target 2/Binary/app.txt", "OEM/Target 2/Security/
 
 file_paths ECUs_paths[3] = {master_paths, target1_paths, target2_paths};
 
-String file_to_be_send;
+String file_to_be_send = "OEM/Master ECU/Binary/app.txt";
 
 //pckg_version
 uint8_t major;
@@ -22,6 +22,8 @@ uint8_t patch;
 //urgency and detection
 int is_urgent;
 int targeted_ecus_21m;
+uint8_t no_of_files;
+size_t filesize;
 
 //CRC_Att structs
 struct CRC_Att master_crc;
@@ -39,6 +41,7 @@ int target2_crc_update_data;
 //pck version
 String pckg_Version;
 
+int count = 0;
 
 void init_all();
 void WIFI_Connect();
@@ -56,18 +59,20 @@ void get_attributes();
 void setup() 
 {
     init_all();
-    yield();
+    // yield();
 }
 
 
 void loop() 
 {
-     if (Serial.available() == 4) 
+  uint8_t no_of_bytes;
+     if (Serial.available() > 0) 
      {
         uint8_t Frame_id = Serial.read();
-        Serial.print(Frame_id);
-        Serial.print(Serial.available());
-        char version[6] = {0x02, major, minor, patch, is_urgent, targeted_ecus_21m};
+
+        char version[6] = {0x02, (uint8_t)is_urgent, major, minor, patch, };
+        char size[2];
+
         int current_major;
         int current_minor;
         int current_patch;
@@ -78,18 +83,18 @@ void loop()
         switch(Frame_id)
         {
           case 0x01: 
-            Serial.println("getting version...");
+
             current_major = Serial.read();
             current_minor = Serial.read();
             current_patch = Serial.read();
+
             if(current_major > major)
             {
               break;  
             }
             else if(current_major < major)
             {
-              Serial.print("update");
-              Serial.write(version, 6);
+              Serial.write(version, 4);
               break;  
             }
             
@@ -99,7 +104,7 @@ void loop()
             }
             else if(current_minor < minor)
             {
-              Serial.write(version, 6);
+              Serial.write(version, 4);
               break;  
             }
 
@@ -109,9 +114,10 @@ void loop()
             }
             else if(current_patch < patch)
             {
-              Serial.write(version, 6);
+              Serial.write(version, 4);
               break;  
             }
+            break;
           
           case 0x03: 
              if(!Download_Files())
@@ -126,18 +132,34 @@ void loop()
              targetID = Serial.read();
              Filetype = Serial.read();
              fileSize = (int)get_file_size((target_id)targetID, (file_type)Filetype);
-             Serial.write(0x06);
-             Serial.write(fileSize);
+             size[0] = 0x06;
+             size[1]= fileSize;
+             Serial.write(0xFF);
+             Serial.write(size, 2);
+             Serial.write(0xFF);
              break;
           
           case 0x07: 
+            no_of_bytes = Serial.available();
+            for(uint8_t iterator = 0; iterator < no_of_bytes; iterator++)
+            {
+              Serial.read();
+            }
              Send_update(file_to_be_send);  
-             break;       
+             break;   
+
+             case 0x08: 
+             get_attributes();
+             break;     
         }
 
      }
-     Serial.end();
-     Serial.begin(UART_BAUDRATE);
+     no_of_bytes = Serial.available();
+     for(uint8_t iterator = 0; iterator < no_of_bytes; iterator++)
+     {
+       Serial.read();
+     }
+
      yield();
      delay(1000);
 }
@@ -148,31 +170,41 @@ void get_attributes()
 {
   //getting targeted_ecus_21m from firebase
   Firebase.RTDB.getInt(&fbdo, F("/targeted_ecus_21m") , &targeted_ecus_21m );
+  Serial.println(targeted_ecus_21m);
 
   //getting is_urgent from firebase
   Firebase.RTDB.getInt(&fbdo, F("/is_urgent") , &is_urgent );
+  Serial.println(is_urgent);
 
 
   //getting crc struct for master from firebase
   Firebase.RTDB.getInt(&fbdo, F("/CRC/master/image") , &master_crc_image );
+  Serial.println(master_crc_image);
   master_crc.image=master_crc_image;
   Firebase.RTDB.getInt(&fbdo, F("/CRC/master/update_data") , &master_crc_update_data );
   master_crc.update_data=master_crc_update_data;
+  Serial.println(master_crc.update_data);
 
   //getting crc struct for target1 from firebase
   Firebase.RTDB.getInt(&fbdo, F("/CRC/target_1/image") , &target1_crc_image );
+  Serial.println(target1_crc_image);
+  
   target1_crc.image=target1_crc_image;
   Firebase.RTDB.getInt(&fbdo, F("/CRC/target_1/update_data") , &target1_crc_update_data );
+  Serial.println(target1_crc_update_data);
   target1_crc.update_data=target1_crc_update_data;
 
   //getting crc struct for target2 from firebase
   Firebase.RTDB.getInt(&fbdo, F("/CRC/target_2/image") , &target2_crc_image );
+  Serial.println(target2_crc_image);
   target2_crc.image=target2_crc_image;
   Firebase.RTDB.getInt(&fbdo, F("/CRC/target_2/update_data") , &target2_crc_update_data );
+  Serial.println(target2_crc_update_data);
   target2_crc.update_data=target2_crc_update_data;
 
   //getting pckg_Version from firebase
-  Firebase.RTDB.getString(&fbdo, F("/pckg_Version") , &pckg_Version );
+  Firebase.RTDB.getString(&fbdo, F("/pckg_version") , &pckg_Version );
+  Serial.println(pckg_Version);
 
   //convert string to array of chars
 	char pckg_Version_chars[pckg_Version.length() + 1];
@@ -189,6 +221,20 @@ void get_attributes()
   // Extract the path token
   token = strtok(NULL, ".");
   patch=atoi(token);
+
+  // Get number of files
+  for(uint8_t iterator; iterator < 3; iterator++)
+  {
+    if((targeted_ecus_21m >> iterator) & 1)
+    {
+      no_of_files++;
+    }
+  }
+  no_of_files = no_of_files * 2;
+
+  Serial.print(major);
+  Serial.print(minor);
+  Serial.print(patch);
 }
 
 
@@ -201,33 +247,36 @@ void init_all(){
   WIFI_Connect();
   FIREBASE_init();
   FILESYSTEM_init();
+  get_attributes();
 }
 
 size_t get_file_size(target_id id, file_type type)
 {
   Serial.println("calculating file size...");
 
-  size_t filesize;
-  File file;
+  SPIFFS.begin();
 
-  LittleFS.begin();
+  File file;
 
   if(type == bin)
   {
-    file = LittleFS.open( "/"+ECUs_paths[id].bin, "r");
+    file = SPIFFS.open( "/"+ECUs_paths[id].bin, "r");
     file_to_be_send = ECUs_paths[id].bin;
+    Serial.println("/"+ECUs_paths[id].bin);
   }
   else if(type == data)
   {
-    file = LittleFS.open( "/"+ECUs_paths[id].data, "r");
+    file = SPIFFS.open( "/"+ECUs_paths[id].data, "r");
     file_to_be_send = ECUs_paths[id].data;
   } 
   
   if(file.available()) 
   {
+    Serial.println("xx");
     filesize = file.size();
+    Serial.println(filesize);
   }
-
+  Serial.println("file size is calculated");
   return filesize;
 }
 
@@ -280,9 +329,9 @@ void Send_update(String path)
 {
     Serial.println("sending file...");
 
-    LittleFS.begin();
+    SPIFFS.begin();
 
-    File file = LittleFS.open( "/"+path , "r");
+    File file = SPIFFS.open( "/"+path , "r");
   
     while (file.available()) 
     {
@@ -290,32 +339,53 @@ void Send_update(String path)
     
       size_t bytesRead = file.readBytes(&buf, sizeof(buf));
       Serial.print(buf);
+
+      Serial.println("bytes =");
+      Serial.println(bytesRead);
+      count++;
+
+      if(count == CHUNK_SIZE)
+      {
+        while(1)
+        {
+          if(Serial.available() > 0)
+          {
+            if(Serial.read() == 0x00)
+            {
+              break;
+            }
+          }
+          yield;
+        }
+        count = 0;
+      }
+
       yield();
     }
-    
+    count = 0;
     file.close();
-    LittleFS.end();
+    SPIFFS.end();
 }
 
 void FILESYSTEM_init()
 {
-    LittleFS.begin();
+    SPIFFS.begin();
 
-    LittleFS.mkdir("/OEM");
+    SPIFFS.mkdir("/OEM");
 
-    LittleFS.mkdir("/OEM/Master ECU");
-    LittleFS.mkdir("/OEM/Master ECU/Security");
-    LittleFS.mkdir("/OEM/Master ECU/Binary");
+    SPIFFS.mkdir("/OEM/Master ECU");
+    SPIFFS.mkdir("/OEM/Master ECU/Security");
+    SPIFFS.mkdir("/OEM/Master ECU/Binary");
 
-    LittleFS.mkdir("/OEM/Target 1");
-    LittleFS.mkdir("/OEM/Target 1/Security");
-    LittleFS.mkdir("/OEM/Target 1/Binary");
+    SPIFFS.mkdir("/OEM/Target 1");
+    SPIFFS.mkdir("/OEM/Target 1/Security");
+    SPIFFS.mkdir("/OEM/Target 1/Binary");
 
-    LittleFS.mkdir("/OEM/Target 2");
-    LittleFS.mkdir("/OEM/Target 2/Security");
-    LittleFS.mkdir("/OEM/Target 2/Binary");
+    SPIFFS.mkdir("/OEM/Target 2");
+    SPIFFS.mkdir("/OEM/Target 2/Security");
+    SPIFFS.mkdir("/OEM/Target 2/Binary");
 
-    LittleFS.end();
+    SPIFFS.end();
 }
 
 //Wifi initialization Function
