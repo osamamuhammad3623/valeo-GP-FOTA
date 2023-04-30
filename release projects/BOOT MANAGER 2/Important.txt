@@ -1,0 +1,6 @@
+- STILL NEED REVESTED
+
+- Data need to put in specific locations in the FLASH to work Sucessfully
+** look at boot manger config to see the specific locations
+
+- I provide sample of data , if any one want to try
