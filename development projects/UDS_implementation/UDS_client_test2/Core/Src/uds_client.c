@@ -169,10 +169,10 @@ void UDS_RD_handle(TargetECU targetECU, uint8_t *responseFrame)
 
 void UDS_TD_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-	count++;
-	if(count <= 5) {
-		UDS_transfer_data(targetECU, data_received);
-	}
+//	count++;
+//	if(count <= 5) {
+//		UDS_transfer_data(targetECU, data_received);
+//	}
 
 }
 

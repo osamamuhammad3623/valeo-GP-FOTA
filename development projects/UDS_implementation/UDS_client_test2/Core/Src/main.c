@@ -65,7 +65,7 @@ osThreadId_t UART_TaskHandle;
 const osThreadAttr_t UART_Task_attributes = {
   .name = "UART_Task",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal-1,
+  .priority = (osPriority_t) osPriorityNormal+1,
 };
 /* USER CODE BEGIN PV */
 sys_sem_t ethernetSem;
@@ -133,10 +133,10 @@ int main(void)
   init_uds_request_callback(UDS_start_request);
   init_uds_recv_resp_clbk(UDS_receive_response);
 //  erase_inactive_bank();
-  int k;
-  for (k = 0; k < app_size; k++) {
-	  data_received[k] = 'A';
-  }
+//  int k;
+//  for (k = 0; k < app_size; k++) {
+//	  data_received[k] = 'A';
+//  }
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -418,9 +418,9 @@ void UartTask(void *argument)
 	//uint32_t dataWords[1602] = {0};
 	//uint32_t *dataWords = (uint32_t *)0x10000000U;
 
-//	HAL_UART_Transmit(&huart2, (uint8_t *)downloadByte, sizeof(downloadByte), HAL_MAX_DELAY);
-////	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6416);  // 3208  6416  1604
-//	HAL_UART_Receive(&huart2, data_received, 6416, HAL_MAX_DELAY); // 3208  6416  1604
+	HAL_UART_Transmit(&huart2, (uint8_t *)downloadByte, sizeof(downloadByte), HAL_MAX_DELAY);
+//	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6416);  // 3208  6416  1604
+	HAL_UART_Receive(&huart2, data_received, 7920, HAL_MAX_DELAY); // 3208  6416  1604
 	//while(flag!=100);
 	flag = 0;
 
