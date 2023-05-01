@@ -1,10 +1,9 @@
 from PyQt5.QtWidgets import QFileDialog
-import hashlib
-import os
 import requests
 import base64
-import binascii
+from support_functions import *
 import firebase_connection
+from combine_bins import combine_security_files
 from definitions import *
 
 
@@ -116,73 +115,102 @@ def sign_process(window):
     read_package_info(window)
     server_pass = window.server_password.text()
     if len(server_pass) < 5:
-        window.error_msg.setText("Type the server password, please.")
-        return
+        server_pass = "123456789"
 
-    window.error_msg.setText("Signing is in process! Please wait.")
-
-    # create metadata file for each image & sign it
+    # create metadata file for each image, then sign it,
+    #       then combine the security bins in one binary
     n_img = window.n_images.value()
-    if n_img >= 1:
-        write_metadata_file(image1_info)
-        # sign the metadata and check
-        if sign_metadata("1", server_pass):
+
+    for i in range(1, n_img+1):
+        image= image1_info
+        if i == 2:
+            image = image2_info
+        elif i == 3:
+            image = image3_info
+        
+        write_metadata_file(image)
+        if sign_metadata(i, server_pass):
+
+            # create certificates_metadata.bin for the image
+            root_cert_size_with_spaces = str(get_file_size("ROOT__cert.bin"))
+            # [abdo's 7antafa]:
+            if len(root_cert_size_with_spaces) == 3:
+                root_cert_size_with_spaces += "  "
+            elif len(root_cert_size_with_spaces) == 4:
+                root_cert_size_with_spaces += " "
+
+            sb_size_with_spaces = str(get_file_size("SB_cert.bin"))
+            # [abdo's 7antafa]:
+            if len(sb_size_with_spaces) == 3:
+                sb_size_with_spaces += " "
+
+            data = f"Root_Cert_Size:{root_cert_size_with_spaces},SB_Cert_Size:{sb_size_with_spaces}"
+            metadata_file = open("certificates_metadata.bin", 'w') # write data in normal mode
+            metadata_file.write(data)
+            metadata_file.close()
+
+            # combine security files
+            combine_security_files(i)
             images_signed += 1
-            window.error_msg.setText("Application 1 is signed successfully. Now you can upload it!")
         else:
-            window.error_msg.setText("Application 1 is NOT signed. Signing process stopped")
+            window.error_msg.setText(f"Application {i} is NOT signed. Signing process stopped")
             return
 
-    if n_img >= 2:
-        write_metadata_file(image2_info)
-        # sign the metadata and check
-        if sign_metadata("2",server_pass):
-            images_signed += 1
-            window.error_msg.setText("Application 2 is signed successfully. Now you can upload it!")
-        else:
-            window.error_msg.setText("Application 2 is NOT signed. Signing process stopped")
-            return
-
-    if n_img == 3:
-        write_metadata_file(image3_info)
-        # sign the metadata and check
-        if sign_metadata("3",server_pass):
-            images_signed += 1
-            window.error_msg.setText("Application 3 is signed successfully. Now you can upload it!")
-        else:
-            window.error_msg.setText("Application 3 is NOT signed. Signing process stopped")
-            return
-
-    # check if all package images are processed successfully.
+    # check if all package images are processed successfully
     if images_signed == package_info["n_images"]:
         window.error_msg.setText("All package images are signed successfully")
 
 
-def upload_process():
-    pass
 '''
-A function to check if metadata is signed & image files are uploaded successfully
+A function to:
+- upload package binaries
+- upload applications security bins
+- update the package attributes
+
+Inputs: number of images
 '''
-def signed_n_uploaded(image_info):
-    if sign_metadata():
+def upload_process(window):
+    current_pckg = package_info["package_version"]
+    targeted_ecus = 0
 
-        current_pckg = package_info["package_version"]
-        # Upload files in the designated directory
-        target_ecu = image_info["target"]
-        security_dir = f"OEM/{current_pckg}/{target_ecu}/Security/"
-        binary_dir = f"OEM/{current_pckg}/{target_ecu}/Binary/"
+    for i in range (1,window.n_images.value()+1):
+        image = image1_info
+        if i == 2:
+            image = image2_info
+        elif i == 3:
+            image = image3_info
+        
+        # get the targeted ECU
+        target = image["target"]
 
-        # upload securoty binaries
-        firebase_connection.firebase_upload_file(f"{security_dir}ROOT__cert.bin", "ROOT__cert.bin")
-        firebase_connection.firebase_upload_file(f"{security_dir}SB_cert.bin", "SB_cert.bin")
-        firebase_connection.firebase_upload_file(f"{security_dir}signature.bin", "signature.bin")
+        if target == "Master ECU":
+            targeted_ecus = targeted_ecus | (1<<0)
+        elif target == "Target 1":
+            targeted_ecus = targeted_ecus | (1<<1)
+        elif target == "Target 2":
+            targeted_ecus = targeted_ecus | (1<<2)
 
-        # upload the image binary
-        firebase_connection.firebase_upload_file(f"{binary_dir}app.bin", image_info["path"])
+        # determine directories
+        security_dir = f"OEM/{current_pckg}/{target}/Security/"
+        binary_dir = f"OEM/{current_pckg}/{target}/Binary/"
 
-        return True
-    else:
-        return False
+        # set the CRC of the image & combined file in realtime attributes
+        realtime_attributes["crc"][target]["image"] = image["crc"]
+        realtime_attributes["crc"][target]["update_data"] = get_file_crc(f"combined_{i}.bin")
+
+        # upload image files
+        firebase_connection.firebase_upload_file(f"{security_dir}combined.bin", f"combined_{i}.bin")
+        firebase_connection.firebase_upload_file(f"{binary_dir}app.bin", image["path"])
+
+    # read package attributes
+    realtime_attributes["is_urgent"] = package_info["urgency"]
+    realtime_attributes["pckg_version"] = current_pckg
+    realtime_attributes["targeted_ecus_21m"] = targeted_ecus
+    # update package attributes
+    firebase_connection.firebase_update_attributes(realtime_attributes)
+
+    window.error_msg.setText("Uploading process & updating Realtime attributes is done!")
+
 
 
 '''
@@ -221,7 +249,7 @@ def show_image_info(window, image_count):
     window.image_root_index_3.setEnabled(False)
     window.image_target_3.setEnabled(False)
 
-    if image_count == 2 or image_count == 3:
+    if image_count >= 2:
         window.image_file_2.setEnabled(True)
         window.image_path_2.setEnabled(True)
         window.image_root_index_2.setEnabled(True)
@@ -232,26 +260,3 @@ def show_image_info(window, image_count):
             window.image_path_3.setEnabled(True)
             window.image_root_index_3.setEnabled(True)
             window.image_target_3.setEnabled(True)
-
-'''
-A function to get the size of a file
-'''
-def get_file_size(file_path):
-    return os.path.getsize(file_path)
-
-
-'''
-A function to calculate the digest of a file
-'''
-def get_file_digest(file_path):
-    with open(file_path, 'rb', buffering=0) as f:
-        return hashlib.file_digest(f, 'sha256').digest()
-
-
-'''
-A function to calculate the CRC of a file
-'''
-def get_file_crc(file_path):
-    buf = open(file_path,'rb').read()
-    hash = binascii.crc32(buf) & 0xFFFFFFFF
-    return "%08X" % hash
