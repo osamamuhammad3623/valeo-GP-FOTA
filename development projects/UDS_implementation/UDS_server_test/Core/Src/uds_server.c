@@ -23,10 +23,11 @@ UDS_Session currentSession = DEFAULT;
 uint8_t generatedKey[32];
 uint8_t seedRequestedFlag = 0;
 extern CRC_HandleTypeDef hcrc; // (to be declared in main.c)
-uint32_t downloadSize;
+//uint32_t downloadSize;
 uint32_t CRC_result; 
 extern RNG_HandleTypeDef hrng;
 extern HASH_HandleTypeDef hhash;
+extern uint32_t downloadSize;
 
 uint8_t recvd_msg[3000]; ///////////////
 int msgSize = 0;
@@ -231,12 +232,12 @@ void UDS_check_memory_routine(uint8_t *requestFrame)
 void UDS_start_download(uint8_t *requestFrame) 
 {
 	// check access
-	if (currentAccessState != ACCESS_GRANTED)
-	{
-		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, REQUEST_DOWNLOAD, SECURITY_ACCESS_DENIED};
-		tcp_SendResponse(responseFrame, 3);
-		return;
-	}
+//	if (currentAccessState != ACCESS_GRANTED)
+//	{
+//		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, REQUEST_DOWNLOAD, SECURITY_ACCESS_DENIED};
+//		tcp_SendResponse(responseFrame, 3);
+//		return;
+//	}
 	// save image size from frame
 	downloadSize = (requestFrame[2]<<(8*2)) | (requestFrame[1]<<8) | requestFrame[0];
 
@@ -279,10 +280,50 @@ void UDS_process_data(uint8_t *requestFrame)
 	// calculate CRC, to check: reset at the start of each file ?
 	CRC_result = HAL_CRC_Accumulate(&hcrc, dataWords, (uint32_t) dataSizeInWords);
 */
-//	tcp_receiveChunk(CHUNK_SIZE);
+	/*--------------------------------- FOR TESTING ------------------------------------------*/
+	uint8_t errorState;
+	int dataSizeInWords;
+	uint8_t *dataBytes = &requestFrame[1];
+	uint32_t *dataWords;
+	// decrement frame size from image size, and converting data array from bytes to words
+//	if (downloadSize >= CHUNK_SIZE) {
+//		downloadSize -= CHUNK_SIZE;
+//		//dataSizeInWords = bytesToWords(dataBytes, CHUNK_SIZE, dataWords);
+//		errorState = flash_memory_write(dataBytes, CHUNK_SIZE/4, APP); // always APP just for testing
+//
+//	} else {
+//		dataSizeInWords = bytesToWords(dataBytes, downloadSize, dataWords);
+//		errorState = flash_memory_write(dataWords, dataSizeInWords, APP); // always APP just for testing
+//
+//		//To DO
+//		//last chunk flag
+//	}
+	/*--------------- FOR TESTING -------------------*/
+	if (downloadSize >= CHUNK_SIZE) {
+		errorState = flash_memory_write(dataBytes, CHUNK_SIZE/4, APP); // always APP just for testing
+	} else {
+//		dataSizeInWords = bytesToWords(dataBytes, downloadSize, dataWords);
+//		errorState = flash_memory_write(dataWords, dataSizeInWords, APP); // always APP just for testing
+		errorState = flash_memory_write(dataBytes, downloadSize/4, APP); // always APP just for testing
+	}
+	/*-----------------------------------------------*/
+
+
+	// flash
+	//errorState = flash_memory_write(dataWords, dataSizeInWords, APP); // always APP just for testing
+	if (errorState == FAILED)
+	{
+		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, TRANSFER_DATA, CONDITIONS_NOT_CORRECT};
+		tcp_SendResponse(responseFrame, 3);
+		return;
+	}
+	// calculate CRC, to check: reset at the start of each file ?
+//	CRC_result = HAL_CRC_Accumulate(&hcrc, dataWords, (uint32_t) dataSizeInWords);
+
+	//	tcp_receiveChunk(CHUNK_SIZE);
 	// flash
 	//erase_inactive_bank();
-	uint8_t errorState = flash_memory_write((uint32_t *)((uint8_t *)requestFrame+1), CHUNK_SIZE/4, APP); //1604 // always APP just for testing
+	//uint8_t errorState = flash_memory_write((uint32_t *)((uint8_t *)requestFrame+1), CHUNK_SIZE/4, APP); //1604 // always APP just for testing
 	//recvd_msg[msgSize] =
 
 	/* Blink LED to indicate memory is flashed */
@@ -293,6 +334,22 @@ void UDS_process_data(uint8_t *requestFrame)
 	// send response
 	uint8_t responseFrame[] = {TRANSFER_DATA + POSITIVE_RESPONSE_OFFSET};
 	tcp_SendResponse(responseFrame, 1);
+	/*-----------------------------------------------------------------------------------------*/
+
+////	tcp_receiveChunk(CHUNK_SIZE);
+//	// flash
+//	//erase_inactive_bank();
+//	uint8_t errorState = flash_memory_write((uint32_t *)((uint8_t *)requestFrame+1), CHUNK_SIZE/4, APP); //1604 // always APP just for testing
+//	//recvd_msg[msgSize] =
+//
+//	/* Blink LED to indicate memory is flashed */
+//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+//	HAL_Delay(100);
+//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+//
+//	// send response
+//	uint8_t responseFrame[] = {TRANSFER_DATA + POSITIVE_RESPONSE_OFFSET};
+//	tcp_SendResponse(responseFrame, 1);
 } 
 
 

@@ -7,6 +7,10 @@
 
 #ifndef INC_TCP_SERVER_H_
 #define INC_TCP_SERVER_H_
+//uint32_t image_size;
+#define CHUNK_SIZE						20000U
+
+//uint32_t downloadSize;
 
 void tcpserver_init (void);
 void tcp_RecievePrograme(programLength);

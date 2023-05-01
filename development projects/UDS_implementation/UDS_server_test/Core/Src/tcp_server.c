@@ -29,6 +29,9 @@ char * data = (char*)0x10000000;
 uint8_t smsg[200];
 int recv_len = 0;
 int isDataFrame = 1;
+//downloadSize = 12528;
+uint32_t downloadSize = 7920; //106096 // 12528
+//extern uint32_t downloadSize;
 //==============================================================================
 
 void init_execute_request_callback(void (*p)(void *argument)) {
@@ -128,8 +131,18 @@ static void tcp_thread(void *arg)
 					/* receive the data from the client */
 					while (netconn_recv(newconn, &buf) == ERR_OK)
 					{
+
 						if ((*(uint8_t*)buf->p->payload) == 0x36) {
-							tcp_receiveChunk(20000);
+//							tcp_receiveChunk(20000);
+							/*------------- FOR TESTING ---------------------*/
+							if (downloadSize >= CHUNK_SIZE) {
+								tcp_receiveChunk(CHUNK_SIZE);
+								downloadSize -= CHUNK_SIZE;
+							} else {
+								tcp_receiveChunk(downloadSize);
+							}
+
+							/*--------------------------------------------------*/
 						} else {
 							/* If there is some data remaining to be sent, the following process will continue */
 							do
