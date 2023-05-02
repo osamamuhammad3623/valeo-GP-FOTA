@@ -113,7 +113,6 @@ int main(void)
   MX_RNG_Init();
   MX_CRC_Init();
   /* USER CODE BEGIN 2 */
-  init_execute_request_callback(UDS_execute_request);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -381,7 +380,7 @@ void StartDefaultTask(void *argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
-  tcpserver_init();
+  UDS_init();
   /* Infinite loop */
   for(;;)
   {

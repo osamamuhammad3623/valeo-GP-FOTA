@@ -48,25 +48,21 @@
 *******************************************************************************/
 typedef enum 
 { 
-ACCESS_DENIED, ACCESS_GRANTED 
+	ACCESS_DENIED, ACCESS_GRANTED
 }UDS_Security_Access; 
 
 typedef enum 
 { 
-DEFAULT = 1, PROGRAMMING, EXTENDED, SAFETY, MAX_SESSIONS 
+	DEFAULT = 1, PROGRAMMING, EXTENDED, SAFETY, MAX_SESSIONS
 }UDS_Session; 
-
-typedef struct 
-{
-//sth related to the conn 
-UDS_Session currentSession; 
-UDS_Security_Access currentAccessState; 
-}; 
 
 /*******************************************************************************
 *                      Functions Prototypes                                   *
 *******************************************************************************/
+void UDS_init(void);
+void UDS_init_conn_state(void);
 void UDS_execute_request(void *arg); 
+
 void UDS_change_session(uint8_t *requestFrame); 
 void UDS_security_access(uint8_t *requestFrame); 
 void UDS_generate_seed(uint8_t *requestFrame); 
@@ -78,7 +74,8 @@ void UDS_start_download(uint8_t *requestFrame);
 void UDS_process_data(uint8_t *requestFrame); 
 void UDS_exit_download(uint8_t *requestFrame); 
 void UDS_reboot(uint8_t *requestFrame); 
-int bytesToWords(uint8_t* dataBytes, uint32_t dataSizeInBytes, uint32_t * dataWords);
-void padWithOnes(uint32_t dataSizeInBytes, uint32_t * dataWords, uint32_t dataSizeInWords);
+
+//int bytesToWords(uint8_t* dataBytes, uint32_t dataSizeInBytes, uint32_t * dataWords);
+//void padWithOnes(uint32_t dataSizeInBytes, uint32_t * dataWords, uint32_t dataSizeInWords);
 
 #endif /* UDS_SERVER_H_ */

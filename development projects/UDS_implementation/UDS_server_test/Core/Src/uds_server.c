@@ -13,27 +13,36 @@
 #include "tcp_server.h"
 #include "cmsis_os.h"
 
-//initialize struct… init fn! And deinit if needed 
-UDS_Security_Access currentAccessState = ACCESS_DENIED;
-UDS_Session currentSession = DEFAULT; 
-
 /******************************************************************************* 
  *                      Global Variables				* 
  *******************************************************************************/
 uint8_t generatedKey[32];
 uint8_t seedRequestedFlag = 0;
-extern CRC_HandleTypeDef hcrc; // (to be declared in main.c)
-//uint32_t downloadSize;
+uint8_t isDataFrame = 0;
 uint32_t CRC_result; 
+uint32_t downloadSize;
+
+UDS_Session currentSession;
+UDS_Security_Access currentAccessState;
+
+extern CRC_HandleTypeDef hcrc;
 extern RNG_HandleTypeDef hrng;
 extern HASH_HandleTypeDef hhash;
-extern uint32_t downloadSize;
 
-uint8_t recvd_msg[3000]; ///////////////
-int msgSize = 0;
 /******************************************************************************* 
  *                      Functions Implementations		*
  *******************************************************************************/
+void UDS_init(void){
+	init_uds_callback(UDS_init_conn_state);
+	init_execute_request_callback(UDS_execute_request);
+	tcpserver_init();
+}
+
+void UDS_init_conn_state(void){
+	currentSession = DEFAULT;
+	currentAccessState = ACCESS_DENIED;
+}
+
 void UDS_execute_request(void *arg) 
 {
 	if(arg == NULL)
@@ -69,7 +78,7 @@ void UDS_execute_request(void *arg)
 	default:
 		;
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, requestFrame[0], SERVICE_NOT_SUPPORTED};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		break;
 	}
 } 
@@ -80,12 +89,12 @@ void UDS_change_session(uint8_t *requestFrame)
 	{
 		currentSession = requestFrame[1];
 		uint8_t responseFrame[] = {DIAGNOSTICS_SESSION_CONTROL + POSITIVE_RESPONSE_OFFSET, requestFrame[1]};
-		tcp_SendResponse(responseFrame, 2);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
 	else
 	{
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, DIAGNOSTICS_SESSION_CONTROL, SUBFUNCTION_NOT_SUPPORTED};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
 } 
 
@@ -94,7 +103,7 @@ void UDS_security_access(uint8_t *requestFrame)
 	if(currentSession != EXTENDED)
 	{
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, SECURITY_ACCESS, CONDITIONS_NOT_CORRECT};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		return;
 	}
 
@@ -109,25 +118,21 @@ void UDS_security_access(uint8_t *requestFrame)
 	default:
 		;
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, SECURITY_ACCESS, SUBFUNCTION_NOT_SUPPORTED};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		break;
 	}
 } 
 
 void UDS_generate_seed(uint8_t *requestFrame) 
 {
-	//use RNG for seed (truly random while rand lib is pseudo random) and HMAC for key and save it in global var! … adjust configurations of the project correctly first.
 	seedRequestedFlag = 1;
 	uint32_t seed;
-	HAL_RNG_GenerateRandomNumber(&hrng, &seed);	//pooling takes 40 clk cycles
-	// interrupt fn: HAL_RNG_GenerateRandomNumber_IT(&hrng);  à RTOS use Queue!
-	//needs imp for ISR: HAL_RNG_ReadyDataCallback() to set a flag for example and then read the value by calling HAL_RNG_ReadLastRandomNumber()
+	HAL_RNG_GenerateRandomNumber(&hrng, &seed);
 
 	uint8_t seedArr[] = {((uint32_t)seed&(0xFF000000))>>(8*3), ((uint32_t)seed&(0x00FF0000))>>(8*2), ((uint32_t)seed&(0x0000FF00))>>8, seed&(0x000000FF)};
 	HAL_StatusTypeDef errorState = HAL_HMACEx_SHA256_Start(&hhash, seedArr, 4, generatedKey, TIMEOUT);
-	//HAL_HASH_DeInit(&hhash);
 	uint8_t responseFrame[] = {SECURITY_ACCESS + POSITIVE_RESPONSE_OFFSET, requestFrame[1], seedArr[0], seedArr[1], seedArr[2], seedArr[3]};
-	tcp_SendResponse(responseFrame, 6);
+	tcp_SendResponse(responseFrame, sizeof(responseFrame));
 }
 
 void UDS_verify_key(uint8_t *requestFrame) 
@@ -142,14 +147,15 @@ void UDS_verify_key(uint8_t *requestFrame)
 	if(seedRequestedFlag == 0)
 	{
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, SECURITY_ACCESS, REQUEST_SEQUENCE_ERROR};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
 	else if(memcmp(generatedKey, receivedKey, 32) == 0)
 	{
 		attemptsCount = 0;
 		seedRequestedFlag = 0;
+		currentAccessState = ACCESS_GRANTED;
 		uint8_t responseFrame[] = {SECURITY_ACCESS + POSITIVE_RESPONSE_OFFSET, requestFrame[1]};
-		tcp_SendResponse(responseFrame, 2);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
 	else
 	{
@@ -157,25 +163,24 @@ void UDS_verify_key(uint8_t *requestFrame)
 		if(attemptsCount >= MAX_NUMBER_OF_ATTEMPTS)
 		{
 			uint8_t responseFrame[] = {NEGATIVE_RESPONSE, SECURITY_ACCESS, EXCEEDED_NUMBER_OF_ATTEMPTS};
-			tcp_SendResponse(responseFrame, 3);
+			tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		}
 		else
 		{
 			uint8_t responseFrame[] = {NEGATIVE_RESPONSE, SECURITY_ACCESS, INVALID_KEY};
-			tcp_SendResponse(responseFrame, 3);
+			tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		}
 	}
 }
 
-
 void UDS_call_routine(uint8_t *requestFrame) 
 { 
-	/*if(currentAccessState != ACCESS_GRANTED)
+	if(currentAccessState != ACCESS_GRANTED)
 	{
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, ROUTINE_CONTROL, SECURITY_ACCESS_DENIED};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		return;
-	}*/
+	}
 
 	//parse payload and jump to the appropriate function
 	if(requestFrame[1] == RC_START_ROUTINE)
@@ -191,13 +196,13 @@ void UDS_call_routine(uint8_t *requestFrame)
 		else
 		{
 			uint8_t responseFrame[] = {NEGATIVE_RESPONSE, ROUTINE_CONTROL, REQUEST_OUT_OF_RANGE};
-			tcp_SendResponse(responseFrame, 3);
+			tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		}
 	}
 	else
 	{
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, ROUTINE_CONTROL, SUBFUNCTION_NOT_SUPPORTED};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
 } 
 
@@ -209,7 +214,7 @@ void UDS_erase_memory_routine(uint8_t *requestFrame)
 	// if error, send neg response
 	if (errorState != SUCCEED) {
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, ROUTINE_CONTROL, CONDITIONS_NOT_CORRECT};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
 	//else, send positive response
 	else {
@@ -220,7 +225,7 @@ void UDS_erase_memory_routine(uint8_t *requestFrame)
 		HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
 
 		uint8_t responseFrame[] = {ROUTINE_CONTROL + POSITIVE_RESPONSE_OFFSET, requestFrame[1], requestFrame[2], requestFrame[3]};
-		tcp_SendResponse(responseFrame, 4);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
 } 
 
@@ -232,140 +237,82 @@ void UDS_check_memory_routine(uint8_t *requestFrame)
 void UDS_start_download(uint8_t *requestFrame) 
 {
 	// check access
-//	if (currentAccessState != ACCESS_GRANTED)
-//	{
-//		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, REQUEST_DOWNLOAD, SECURITY_ACCESS_DENIED};
-//		tcp_SendResponse(responseFrame, 3);
-//		return;
-//	}
+	if (currentAccessState != ACCESS_GRANTED)
+	{
+		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, REQUEST_DOWNLOAD, SECURITY_ACCESS_DENIED};
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
+		return;
+	}
+
+	// flag for tcp to receive data chunk
+	isDataFrame = 1;
+
 	// save image size from frame
-	downloadSize = (requestFrame[2]<<(8*2)) | (requestFrame[1]<<8) | requestFrame[0];
+	downloadSize = (requestFrame[1]<<(8*2)) | (requestFrame[2]<<8) | requestFrame[3];
 
 	// send response
 	uint16_t packetSize = CHUNK_SIZE;
 	uint8_t packetSizeBytes[] = {((uint16_t)packetSize&(0xFF00))>>8, packetSize&(0x00FF)};
 
 	uint8_t responseFrame[] = {REQUEST_DOWNLOAD + POSITIVE_RESPONSE_OFFSET, packetSizeBytes[0], packetSizeBytes[1]};
-	tcp_SendResponse(responseFrame, 3);
+	tcp_SendResponse(responseFrame, sizeof(responseFrame));
 } 
 
 void UDS_process_data(uint8_t *requestFrame) 
 {
-	/*
 	if (currentAccessState != ACCESS_GRANTED) {
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, TRANSFER_DATA, SECURITY_ACCESS_DENIED};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		return;
 	}
+
 	uint8_t errorState;
-	int dataSizeInWords;
+	uint32_t dataSizeInWords;
 	uint8_t *dataBytes = &requestFrame[1];
-	uint32_t *dataWords;
+
 	// decrement frame size from image size, and converting data array from bytes to words
 	if (downloadSize >= CHUNK_SIZE) {
-		downloadSize -= CHUNK_SIZE;
-		dataSizeInWords = bytesToWords(dataBytes, CHUNK_SIZE, dataWords);
+		dataSizeInWords = CHUNK_SIZE/4;
 	} else {
-		dataSizeInWords = bytesToWords(dataBytes, downloadSize, dataWords);
+		dataSizeInWords = downloadSize/4;
+		isDataFrame = 0;
 	}
 
-	// flash
-	errorState = flash_memory_write(dataWords, dataSizeInWords, APP); // always APP just for testing
+	errorState = flash_memory_write((uint32_t *)dataBytes, dataSizeInWords, APP); // always APP just for testing
+
 	if (errorState == FAILED)
 	{
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, TRANSFER_DATA, CONDITIONS_NOT_CORRECT};
-		tcp_SendResponse(responseFrame, 3);
-		return;
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
-	// calculate CRC, to check: reset at the start of each file ?
-	CRC_result = HAL_CRC_Accumulate(&hcrc, dataWords, (uint32_t) dataSizeInWords);
-*/
-	/*--------------------------------- FOR TESTING ------------------------------------------*/
-	uint8_t errorState;
-	int dataSizeInWords;
-	uint8_t *dataBytes = &requestFrame[1];
-	uint32_t *dataWords;
-	// decrement frame size from image size, and converting data array from bytes to words
-//	if (downloadSize >= CHUNK_SIZE) {
-//		downloadSize -= CHUNK_SIZE;
-//		//dataSizeInWords = bytesToWords(dataBytes, CHUNK_SIZE, dataWords);
-//		errorState = flash_memory_write(dataBytes, CHUNK_SIZE/4, APP); // always APP just for testing
-//
-//	} else {
-//		dataSizeInWords = bytesToWords(dataBytes, downloadSize, dataWords);
-//		errorState = flash_memory_write(dataWords, dataSizeInWords, APP); // always APP just for testing
-//
-//		//To DO
-//		//last chunk flag
-//	}
-	/*--------------- FOR TESTING -------------------*/
-	if (downloadSize >= CHUNK_SIZE) {
-		errorState = flash_memory_write(dataBytes, CHUNK_SIZE/4, APP); // always APP just for testing
-	} else {
-//		dataSizeInWords = bytesToWords(dataBytes, downloadSize, dataWords);
-//		errorState = flash_memory_write(dataWords, dataSizeInWords, APP); // always APP just for testing
-		errorState = flash_memory_write(dataBytes, downloadSize/4, APP); // always APP just for testing
+	else{
+		// calculate CRC, to check: reset at the start of each file ?
+		CRC_result = HAL_CRC_Accumulate(&hcrc, (uint32_t *)dataBytes, dataSizeInWords);
+
+		/* Blink LED to indicate memory is flashed */
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+		HAL_Delay(100);
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+
+		// send response
+		uint8_t responseFrame[] = {TRANSFER_DATA + POSITIVE_RESPONSE_OFFSET};
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
-	/*-----------------------------------------------*/
-
-
-	// flash
-	//errorState = flash_memory_write(dataWords, dataSizeInWords, APP); // always APP just for testing
-	if (errorState == FAILED)
-	{
-		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, TRANSFER_DATA, CONDITIONS_NOT_CORRECT};
-		tcp_SendResponse(responseFrame, 3);
-		return;
-	}
-	// calculate CRC, to check: reset at the start of each file ?
-//	CRC_result = HAL_CRC_Accumulate(&hcrc, dataWords, (uint32_t) dataSizeInWords);
-
-	//	tcp_receiveChunk(CHUNK_SIZE);
-	// flash
-	//erase_inactive_bank();
-	//uint8_t errorState = flash_memory_write((uint32_t *)((uint8_t *)requestFrame+1), CHUNK_SIZE/4, APP); //1604 // always APP just for testing
-	//recvd_msg[msgSize] =
-
-	/* Blink LED to indicate memory is flashed */
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-
-	// send response
-	uint8_t responseFrame[] = {TRANSFER_DATA + POSITIVE_RESPONSE_OFFSET};
-	tcp_SendResponse(responseFrame, 1);
-	/*-----------------------------------------------------------------------------------------*/
-
-////	tcp_receiveChunk(CHUNK_SIZE);
-//	// flash
-//	//erase_inactive_bank();
-//	uint8_t errorState = flash_memory_write((uint32_t *)((uint8_t *)requestFrame+1), CHUNK_SIZE/4, APP); //1604 // always APP just for testing
-//	//recvd_msg[msgSize] =
-//
-//	/* Blink LED to indicate memory is flashed */
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-//	HAL_Delay(100);
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-//
-//	// send response
-//	uint8_t responseFrame[] = {TRANSFER_DATA + POSITIVE_RESPONSE_OFFSET};
-//	tcp_SendResponse(responseFrame, 1);
 } 
-
 
 void UDS_exit_download(uint8_t *requestFrame) 
 { 
 	// check access
 	if (currentAccessState != ACCESS_GRANTED) {
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, REQUEST_TRANSFER_EXIT, SECURITY_ACCESS_DENIED};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		return;
 	}
 
 	// send response with final CRC
 	uint8_t crcResult[] = {((uint32_t)CRC_result&(0xFF000000))>>(8*3), ((uint32_t)CRC_result&(0x00FF0000))>>(8*2), ((uint32_t)CRC_result&(0x0000FF00))>>8, CRC_result&(0x000000FF)};
 	uint8_t responseFrame[] = {REQUEST_TRANSFER_EXIT + POSITIVE_RESPONSE_OFFSET, crcResult[0], crcResult[1], crcResult[2], crcResult[3]};
-	tcp_SendResponse(responseFrame, 5);
+	tcp_SendResponse(responseFrame, sizeof(responseFrame));
 }
 
 void UDS_reboot(uint8_t *requestFrame) 
@@ -374,26 +321,26 @@ void UDS_reboot(uint8_t *requestFrame)
 	if (currentAccessState != ACCESS_GRANTED)
 	{
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, ECU_RESET, SECURITY_ACCESS_DENIED};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		return;
 	}
 
 	// check type of reset, if not soft reset, send neg resp. (sub function not supported)
 	if (requestFrame[1] != ER_SOFT_RESET) {
 		uint8_t responseFrame[] = {NEGATIVE_RESPONSE, ECU_RESET, SUBFUNCTION_NOT_SUPPORTED};
-		tcp_SendResponse(responseFrame, 3);
+		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 		return;
 	}
 
 	uint8_t responseFrame[] = {ECU_RESET + POSITIVE_RESPONSE_OFFSET, ER_SOFT_RESET};
-	tcp_SendResponse(responseFrame, 2);
+	tcp_SendResponse(responseFrame, sizeof(responseFrame));
 
 	// reboot
 	bootloader_switch_to_inactive_bank();
 	bootloader_reboot();
 }
 
-int bytesToWords(uint8_t* dataBytes, uint32_t dataSizeInBytes, uint32_t * dataWords) {
+/*int bytesToWords(uint8_t* dataBytes, uint32_t dataSizeInBytes, uint32_t * dataWords) {
 	int i;
 	int j;
 	int dataSizeInWords;
@@ -423,6 +370,4 @@ void padWithOnes(uint32_t dataSizeInBytes, uint32_t * dataWords, uint32_t dataSi
 	for (i = 0; i < paddedBytesNum; i++) {
 		dataWords[dataSizeInWords-1] |= 0xFF<<(8*i);
 	}
-}
-
-
+}*/
