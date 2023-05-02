@@ -11,13 +11,17 @@
 #include "flash_memory.h" //needed for FLASH_DataType enum
 #include "sys_arch.h"
 
-#define CHUNK_SIZE 					20000
+#define ARRAY_SIZE 					20000U
 
 //semaphores
-extern sys_sem_t ethernetSem;
 extern sys_sem_t uartSem;
+extern sys_sem_t udsSem1;
+extern sys_sem_t udsSem2;
 
-//data received
-extern uint8_t data_received[CHUNK_SIZE];
+//data related variables
+extern uint8_t dataFlag;
+extern uint16_t chunkSize;
+extern uint32_t downloadSize;
+extern uint8_t data_received[ARRAY_SIZE];	//cannot be variable size!
 
 #endif /* INC_SHARED_H_ */

@@ -8,11 +8,22 @@
  *******************************************************************************/ 
 #include "uds_client.h"
 
-uint8_t transferDataFrame[CHUNK_SIZE + 1];
+uint8_t transferDataFrame[ARRAY_SIZE + 1];
 
 /*******************************************************************************
  *                      Functions Implementations		* 
  *******************************************************************************/ 
+void UDS_init(uint8_t *targetToConnectWith){
+	init_uds_request_callback(UDS_start_request);
+	init_uds_recv_resp_clbk(UDS_receive_response);
+	tcpclient_init(targetToConnectWith);
+}
+
+void UDS_start_request(TargetECU targetECU) {
+	uint8_t sessionType = (uint8_t) EXTENDED;
+	UDS_diagnostics_session_control(targetECU, sessionType);
+}
+
 void UDS_diagnostics_session_control(TargetECU targetECU, uint8_t session)
 {
 	uint8_t requestFrame[] = {DIAGNOSTICS_SESSION_CONTROL, session};
@@ -27,7 +38,7 @@ void UDS_SA_request_seed(TargetECU targetECU)
 
 void UDS_SA_send_key(TargetECU targetECU, uint8_t *seed)
 { 
-	uint8_t *generatedKey;
+	uint8_t generatedKey[32];
 	HAL_HMACEx_SHA256_Start(&hhash, seed, 4, generatedKey, TIMEOUT);
 	uint8_t requestFrame[34] = {SECURITY_ACCESS, SA_SEND_KEY};
 	for(int i=0; i<32; i++)
@@ -51,8 +62,8 @@ void UDS_RC_check_memory(TargetECU targetECU)
 
 void UDS_request_download(TargetECU targetECU, uint32_t fileSize)
 {
-	uint8_t downloadSize[] = {((uint32_t)fileSize&0xFF000000)>>(24), ((uint32_t)fileSize&0x00FF0000)>>(16),((uint32_t)fileSize&0x0000FF00)>>(8), fileSize&0x000000FF};
-	uint8_t requestFrame[] = {REQUEST_DOWNLOAD, downloadSize[0], downloadSize[1], downloadSize[2], downloadSize[3]};
+	uint8_t downloadSize[] = {((uint32_t)fileSize&0x00FF0000)>>(16),((uint32_t)fileSize&0x0000FF00)>>(8), fileSize&0x000000FF};
+	uint8_t requestFrame[] = {REQUEST_DOWNLOAD, downloadSize[0], downloadSize[1], downloadSize[2]};
 	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
@@ -60,11 +71,16 @@ void UDS_transfer_data(TargetECU targetECU)
 {
 	//use the array used by uart to save data and forward it
 	transferDataFrame[0] = TRANSFER_DATA;
-
-	for (uint16_t i = 0; i < CHUNK_SIZE; i++) {
+	uint16_t size = (downloadSize > chunkSize) ? chunkSize : downloadSize;
+	for (uint16_t i = 0; i < size; i++) {
 		transferDataFrame[i+1] = data_received[i];
 	}
-	tcp_SendMessage(targetECU, transferDataFrame, sizeof(transferDataFrame));
+	tcp_SendMessage(targetECU, transferDataFrame, size+1);
+
+	/* Blink LED to indicate chunk is sent */
+//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+//	HAL_Delay(100);
+//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 }
 
 void UDS_request_transfer_exit(TargetECU targetECU)
@@ -79,13 +95,12 @@ void UDS_ecu_reset(TargetECU targetECU, uint8_t resetType)
 	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
-void UDS_receive_response(TargetECU targetECU, void *arg)
+void UDS_receive_response(TargetECU targetECU, uint8_t *responseFrame)
 {
-	if(arg == NULL)
+	if(responseFrame == NULL)
 	{
 		return;
 	}
-	uint8_t *responseFrame = (uint8_t *)arg;
 	switch(responseFrame[0]){
 	case DIAGNOSTICS_SESSION_CONTROL + POSITIVE_RESPONSE_OFFSET:
 		UDS_DSC_handle(targetECU, responseFrame);
@@ -117,18 +132,14 @@ void UDS_receive_response(TargetECU targetECU, void *arg)
 
 void UDS_DSC_handle(TargetECU targetECU, uint8_t *responseFrame)
 { 
-	//char msg[20];
-	//int messageLength = sprintf(msg , "session success\n");
-	//tcp_SendMessage(targetECU, msg, messageLength);
-
-	//check session EXT and send next frame SA
+	//check session EXT and send next frame SA_request_seed
 	if(responseFrame[1] == EXTENDED){
 		UDS_SA_request_seed(targetECU);
 	}
 	else{
 		// Do nothing
 	}
-} 
+}
 
 void UDS_SA_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
@@ -148,7 +159,10 @@ void UDS_RC_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
 	if(responseFrame[1] == RC_START_ROUTINE){
 		if(responseFrame[2] == 0xFF && responseFrame[3] == 0x00){
-			//tell uart task that target is ready!
+			//tell uart task that target is ready ... wait for semaphore
+			sys_sem_t *semaphore = (targetECU == PS_TARGET)? &udsSem1 : &udsSem2;
+			sys_arch_sem_wait(semaphore, HAL_MAX_DELAY);
+			UDS_request_download(targetECU, downloadSize);
 		}
 		else{
 			//can be used in case of check mem!
@@ -161,12 +175,33 @@ void UDS_RC_handle(TargetECU targetECU, uint8_t *responseFrame)
 
 void UDS_RD_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-	//adjust var (chunk size) and start sending data after receiving it from uart
+	//adjust global var (chunkSize) and start sending data after receiving it from uart
+	chunkSize = (((uint32_t)responseFrame[1])<<8 |((uint32_t)responseFrame[2]));
+
+	//give semaphore for uart task to get file with appropriate chunk size
+	sys_sem_signal(&uartSem);
+
+	//wait for semaphore
+	sys_sem_t *semaphore = (targetECU == PS_TARGET)? &udsSem1 : &udsSem2;
+	sys_arch_sem_wait(semaphore, HAL_MAX_DELAY);
+	UDS_transfer_data(targetECU);
 }
 
 void UDS_TD_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-	//tell uart task that data is sent correctly and ready for next chunk!
+	//give semaphore for uart task to ack that data is sent correctly and ready for next chunk
+	sys_sem_signal(&uartSem);
+
+	//wait for semaphore
+	sys_sem_t *semaphore;
+	semaphore = (targetECU == PS_TARGET)? &udsSem1 : &udsSem2;
+	sys_arch_sem_wait(semaphore, HAL_MAX_DELAY);
+
+	if(dataFlag){
+		UDS_transfer_data(targetECU);
+	}else{
+		UDS_request_transfer_exit(targetECU);
+	}
 }
 
 void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame)
@@ -176,16 +211,10 @@ void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame)
 
 void UDS_ER_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
+
 }
 
 void UDS_negative_response_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
 	//to be handled
-}
-
-void UDS_start_request(TargetECU targetECU) {
-	//uint8_t sessionType = (uint8_t)EXTENDED;
-	//UDS_diagnostics_session_control(targetECU, sessionType);
-
-	UDS_RC_erase_memory(targetECU);
 }

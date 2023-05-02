@@ -14,9 +14,10 @@
 uint8_t dataFlag = 0;
 uint8_t downloadFinishedFlag = 0;
 uint8_t targetToUpdate;
+uint16_t chunkSize;
 uint32_t downloadSize;
 
-uint8_t data_received[CHUNK_SIZE] = {0};
+uint8_t data_received[ARRAY_SIZE] = {0};
 uint8_t target_update[NUM_OF_TARGETS] = {0};
 uint8_t version_number[3] = {1, 1, 1};
 uint8_t new_version_number[3];
@@ -24,7 +25,8 @@ uint8_t new_version_number[3];
 /*******************************************************************************
  *                      Functions Implementations		*
  *******************************************************************************/
-void UART_stateHandler(void){
+void UART_stateHandler(void)
+{
 	if(!dataFlag){
 		switch(data_received[0]){
 		case NEW_PACKAGE:
@@ -52,7 +54,8 @@ void UART_stateHandler(void){
 	}
 }
 
-void UART_packageDetection(void){
+void UART_packageDetection(void)
+{
 	if(data_received[1] == Non_Urgent){
 		//notify user about detection of new package
 		//wait for response
@@ -71,8 +74,8 @@ void UART_packageDetection(void){
 	target_update[1] = data_received[5] && (1 << 1);
 	target_update[2] = data_received[5] && (1 << 2);
 
-	//signal semaphore to start connection -> tcp_init
-	sys_sem_signal(&ethernetSem);
+	//signal semaphore to start connection
+	sys_sem_signal(&udsSem1);
 
 	if(target_update[0]){
 		//erase mem
@@ -84,7 +87,8 @@ void UART_packageDetection(void){
 	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 1, HAL_MAX_DELAY);
 }
 
-void UART_getTargetUpdate(void){
+void UART_getTargetUpdate(void)
+{
 	static uint8_t fileType = META_DATA;
 	static uint8_t counter = -1;
 
@@ -111,27 +115,43 @@ void UART_getTargetUpdate(void){
 	fileType = (fileType == META_DATA) ? APP : META_DATA;
 }
 
-void UART_downloadFailed(void){
+void UART_downloadFailed(void)
+{
 	//Download again or wait!
 	uint8_t downloadPackageFrame[4] = {DOWNLOAD_PACKAGE, new_version_number[0], new_version_number[1], new_version_number[2]};
 	HAL_UART_Transmit(&huart2, (uint8_t *)downloadPackageFrame, sizeof(downloadPackageFrame), HAL_MAX_DELAY);
 	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 1, HAL_MAX_DELAY);
 }
 
-void UART_getDownloadSize(void){
+void UART_getDownloadSize(void)
+{
 	downloadSize = (((uint32_t)data_received[1])<<2*8 |((uint32_t)data_received[2])<<8 |((uint32_t)data_received[3]));
 
-	//uds request download
+	if(targetToUpdate != 0){
+		//signal semaphore to send uds request download
+		sys_sem_t *semaphore = (targetToUpdate == 1)? &udsSem1 : &udsSem2;
+		sys_sem_signal(semaphore);
 
-	uint8_t startSendingFrame[4] = {START_SENDING, PADDING, PADDING, PADDING};
+		//wait for semaphore to get chunk size
+		sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
+	}
+	else{
+		chunkSize = ARRAY_SIZE;	//can be changed
+	}
+
+	uint8_t chunk[] = {((uint32_t)chunkSize&0x0000FF00)>>(8), chunkSize&0x000000FF};
+	uint8_t startSendingFrame[4] = {START_SENDING, chunk[0], chunk[1], PADDING};
 	HAL_UART_Transmit(&huart2, (uint8_t *)startSendingFrame, sizeof(startSendingFrame), HAL_MAX_DELAY);
 
-	uint16_t chunkSize = (downloadSize > CHUNK_SIZE) ? CHUNK_SIZE : downloadSize;
-	HAL_UART_Receive(&huart2, (uint8_t *)data_received, chunkSize, HAL_MAX_DELAY);
+	uint16_t size = (downloadSize > chunkSize) ? chunkSize : downloadSize;
+	HAL_UART_Receive(&huart2, (uint8_t *)data_received, size, HAL_MAX_DELAY);
 	dataFlag = 1;
 }
 
-void UART_handleData(void){
+void UART_handleData(void)
+{
+	sys_sem_t *semaphore;
+
 	//forward data to target or flash here
 	switch(targetToUpdate){
 	case 0:
@@ -140,7 +160,12 @@ void UART_handleData(void){
 
 	case 1:
 	case 2:
-		//uds transfer data
+		//signal semaphore to send uds transfer data
+		semaphore = (targetToUpdate == 1)? &udsSem1 : &udsSem2;
+		sys_sem_signal(semaphore);
+
+		//wait for semaphore
+		sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
 		break;
 
 	default:
@@ -151,13 +176,18 @@ void UART_handleData(void){
 	uint8_t okFrame[4] = {OK, OK, OK, OK};
 	HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
 
-	if(downloadSize > CHUNK_SIZE){
-		downloadSize -= CHUNK_SIZE;
-		uint16_t chunkSize = (downloadSize > CHUNK_SIZE) ? CHUNK_SIZE : downloadSize;
-		HAL_UART_Receive(&huart2, (uint8_t *)data_received, chunkSize, HAL_MAX_DELAY);
+	if(downloadSize > chunkSize){
+		downloadSize -= chunkSize;
+		uint16_t size = (downloadSize > chunkSize) ? chunkSize : downloadSize;
+		HAL_UART_Receive(&huart2, (uint8_t *)data_received, size, HAL_MAX_DELAY);
 	}
 	else{
 		dataFlag = 0;
+
+		//signal semaphore to send uds request transfer exit
+		sys_sem_t *semaphore = (targetToUpdate == 1)? &udsSem1 : (targetToUpdate == 2)? &udsSem2 : NULL;
+		sys_sem_signal(semaphore);
+
 		UART_getTargetUpdate();
 	}
 }

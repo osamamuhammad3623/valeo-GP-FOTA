@@ -51,7 +51,9 @@ typedef enum
 /******************************************************************************* 
  *                      Functions Prototypes                                   *
  *******************************************************************************/
-//how to keep track of the requested target!
+void UDS_init(uint8_t *targetToConnectWith);
+void UDS_start_request(TargetECU targetECU);
+
 void UDS_diagnostics_session_control(TargetECU targetECU, uint8_t session);
 void UDS_SA_request_seed(TargetECU targetECU);
 void UDS_SA_send_key(TargetECU targetECU, uint8_t *seed);
@@ -62,7 +64,7 @@ void UDS_transfer_data(TargetECU targetECU);
 void UDS_request_transfer_exit(TargetECU targetECU);
 void UDS_ecu_reset(TargetECU targetECU, uint8_t resetType);
 
-void UDS_receive_response(TargetECU targetECU, void *arg);
+void UDS_receive_response(TargetECU targetECU, uint8_t *responseFrame);
 
 void UDS_DSC_handle(TargetECU targetECU, uint8_t *responseFrame);
 void UDS_SA_handle(TargetECU targetECU, uint8_t *responseFrame);
@@ -72,9 +74,5 @@ void UDS_TD_handle(TargetECU targetECU, uint8_t *responseFrame);
 void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame);
 void UDS_ER_handle(TargetECU targetECU, uint8_t *responseFrame);
 void UDS_negative_response_handle(TargetECU targetECU, uint8_t *responseFrame);
-
-void UDS_start_request(TargetECU targetECU);
-//if there is an update for gateway, imp. fns for it in uart part 
-//erase, flash (+ CRC!) and reboot  
 
 #endif /* UDS_CLIENT_H_ */ 

@@ -8,25 +8,23 @@
 #include "tcp_client.h"
 #include "string.h"
 
-//==================ARRAYS to Hold DATA===================================
-char ToSendMessage[100];
-char* ProgramToSend = (char*)0x10000000;
-
+//====================================================================
 void (*uds_req_clbk) (TargetECU targetECU);
-void (*uds_recv_resp_clbk) (TargetECU targetECU, void * arg);
+void (*uds_recv_resp_clbk) (TargetECU targetECU, uint8_t *responseFrame);
+
 //====================================================================
 static struct netconn *conn1;
 static struct netconn *conn2;
 
 struct target_confg target_1;
 struct target_confg target_2;
-//==========================================================
 
+//====================================================================
 void init_uds_request_callback(void (*p) (TargetECU targetECU)) {
 	uds_req_clbk = p;
 }
 
-void init_uds_recv_resp_clbk(void (*p)(TargetECU targetECU, void *arg)) {
+void init_uds_recv_resp_clbk(void (*p)(TargetECU targetECU, uint8_t *responseFrame)) {
 	uds_recv_resp_clbk = p;
 }
 
@@ -77,10 +75,6 @@ static void tcpinit_thread(void *arg)
 			// If the connection to the server is established, the following will continue, else delete the connection
 			if (connect_error == ERR_OK)
 			{
-				//send a "hi" message at first
-				//int messageLength = sprintf(ToSendMessage , "hi");
-				//tcp_SendMessage(target_ECU,(uint8_t *)ToSendMessage, messageLength);
-
 				// UDS_req callback
 				uds_req_clbk(target_ECU);
 
@@ -141,11 +135,10 @@ static void tcp_ReceiveMessage (TargetECU targetECU, struct netconn *conn ,struc
 	}
 }
 
-
 void tcpclient_init (uint8_t* targetToConnectWith)
 {
 	if (targetToConnectWith[1]) {
-		target_1.ip_add = "169.254.84.57";
+		target_1.ip_add = "169.254.84.57";	//58
 		target_1.portNum = 10;
 		target_1.targetECU = PS_TARGET;
 

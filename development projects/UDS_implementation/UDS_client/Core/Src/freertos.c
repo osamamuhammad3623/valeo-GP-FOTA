@@ -27,7 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "NodeMCU_COM.h"
 #include "usart.h"
-#include "tcp_client.h"
+#include "uds_client.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,13 +47,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-sys_sem_t ethernetSem;
 sys_sem_t uartSem;
+sys_sem_t udsSem1;
+sys_sem_t udsSem2;
 /* USER CODE END Variables */
-/* Definitions for UDSTask */
-osThreadId_t UDSTaskHandle;
-const osThreadAttr_t UDSTask_attributes = {
-  .name = "UDSTask",
+/* Definitions for UdsTask */
+osThreadId_t UdsTaskHandle;
+const osThreadAttr_t UdsTask_attributes = {
+  .name = "UdsTask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
@@ -69,7 +70,7 @@ const osThreadAttr_t UartTask_attributes = {
 /* USER CODE BEGIN FunctionPrototypes */
 /* USER CODE END FunctionPrototypes */
 
-void StartUDSTask(void *argument);
+void StartUdsTask(void *argument);
 void StartUartTask(void *argument);
 
 extern void MX_LWIP_Init(void);
@@ -102,8 +103,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of UDSTask */
-  UDSTaskHandle = osThreadNew(StartUDSTask, NULL, &UDSTask_attributes);
+  /* creation of UdsTask */
+  UdsTaskHandle = osThreadNew(StartUdsTask, NULL, &UdsTask_attributes);
 
   /* creation of UartTask */
   UartTaskHandle = osThreadNew(StartUartTask, NULL, &UartTask_attributes);
@@ -118,26 +119,24 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_StartUDSTask */
+/* USER CODE BEGIN Header_StartUdsTask */
 /**
-  * @brief  Function implementing the UDSTask thread.
+  * @brief  Function implementing the UdsTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartUDSTask */
-void StartUDSTask(void *argument)
+/* USER CODE END Header_StartUdsTask */
+void StartUdsTask(void *argument)
 {
   /* init code for LWIP */
   MX_LWIP_Init();
-  /* USER CODE BEGIN StartUDSTask */
-  sys_arch_sem_wait(&ethernetSem, HAL_MAX_DELAY);
-  tcpclient_init(target_update);
+  /* USER CODE BEGIN StartUdsTask */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END StartUDSTask */
+  /* USER CODE END StartUdsTask */
 }
 
 /* USER CODE BEGIN Header_StartUartTask */
