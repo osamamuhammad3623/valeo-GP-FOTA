@@ -8,31 +8,28 @@
 #include "tcp_client.h"
 #include "string.h"
 
-//==================ARRAYS to Hold DATA===================================
-char ToSendMessage[100];
-char* ProgramToSend = (char*)0x10000000;
-
+//====================================================================
 void (*uds_req_clbk) (TargetECU targetECU);
-void (*uds_recv_resp_clbk) (TargetECU targetECU, void * arg);
+void (*uds_recv_resp_clbk) (TargetECU targetECU, uint8_t *responseFrame);
+
 //====================================================================
 static struct netconn *conn1;
 static struct netconn *conn2;
 
 struct target_confg target_1;
 struct target_confg target_2;
-//==========================================================
 
+//====================================================================
 void init_uds_request_callback(void (*p) (TargetECU targetECU)) {
 	uds_req_clbk = p;
 }
 
-void init_uds_recv_resp_clbk(void (*p)(TargetECU targetECU, void *arg)) {
+void init_uds_recv_resp_clbk(void (*p)(TargetECU targetECU, uint8_t *responseFrame)) {
 	uds_recv_resp_clbk = p;
 }
 
 static void tcpinit_thread(void *arg)
 {
-
 	// Cast the argument to the correct type
 	if(arg == NULL)
 		return;
@@ -41,7 +38,6 @@ static void tcpinit_thread(void *arg)
 	struct netbuf *buf;
 	err_t err, connect_error;
 	ip_addr_t dest_addr;
-
 
 	// Extract the IP address, port number and the target ECU
 	char* ip_address = malloc(strlen(config->ip_add) + 1); // allocate memory for the string
@@ -77,10 +73,6 @@ static void tcpinit_thread(void *arg)
 			// If the connection to the server is established, the following will continue, else delete the connection
 			if (connect_error == ERR_OK)
 			{
-				//send a "hi" message at first
-				//int messageLength = sprintf(ToSendMessage , "hi");
-				//tcp_SendMessage(target_ECU,(uint8_t *)ToSendMessage, messageLength);
-
 				/* Blink LED to indicate successful connection */
 				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
 				HAL_Delay(500);
@@ -119,7 +111,6 @@ void tcp_SendMessage (TargetECU targetECU, uint8_t *Message , int messageLength)
 	default: break;
 	}
 }
-
 
 static void tcp_ReceiveMessage (TargetECU targetECU, struct netconn *conn ,struct netbuf *buf )
 {

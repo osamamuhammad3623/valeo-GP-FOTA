@@ -26,8 +26,6 @@
 /* USER CODE BEGIN Includes */
 #include "tcp_client.h"
 #include "uds_client.h"
-#include "flash_memory.h"
-#include "bootloader.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,7 +35,6 @@ uint8_t data_received[app_size];
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-uint32_t masterDataSize;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -65,10 +62,10 @@ osThreadId_t UART_TaskHandle;
 const osThreadAttr_t UART_Task_attributes = {
   .name = "UART_Task",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal+1,
+  .priority = (osPriority_t) osPriorityNormal-1,
 };
 /* USER CODE BEGIN PV */
-sys_sem_t ethernetSem;
+sys_sem_t udsSem;
 sys_sem_t uartSem;
 /* USER CODE END PV */
 
@@ -81,22 +78,10 @@ void StartDefaultTask(void *argument);
 void UartTask(void *argument);
 
 /* USER CODE BEGIN PFP */
-//#define app_size 6516
-uint8_t flag = 0;
-//uint8_t data_received[app_size]={0};
-//uint8_t *data_received = (uint8_t *)0x1000000U;
-uint8_t aArray[100] = {0};
-uint8_t bArray[100] = {0};
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	flag = 100;
-	//HAL_UART_Receive_IT(&huart2, (uint8_t *)bArray, 100);
-	//sys_sem_signal(&uartSem);
-
-}
 /* USER CODE END 0 */
 
 /**
@@ -132,7 +117,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   init_uds_request_callback(UDS_start_request);
   init_uds_recv_resp_clbk(UDS_receive_response);
-//  erase_inactive_bank();
+
 //  int k;
 //  for (k = 0; k < app_size; k++) {
 //	  data_received[k] = 'A';
@@ -412,120 +397,9 @@ void UartTask(void *argument)
 //	sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY); //////////////
 
 	uint8_t downloadByte[] = {0x03};
-	//uint8_t fileSizeInBytes[4];
 
-	//uint8_t data_received2[200];
-	//uint32_t dataWords[1602] = {0};
-	//uint32_t *dataWords = (uint32_t *)0x10000000U;
-
-	HAL_UART_Transmit(&huart2, (uint8_t *)downloadByte, sizeof(downloadByte), HAL_MAX_DELAY);
-//	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6416);  // 3208  6416  1604
-	HAL_UART_Receive(&huart2, data_received, 7920, HAL_MAX_DELAY); // 3208  6416  1604
-	//while(flag!=100);
-	flag = 0;
-
-	//uint8_t flashingStatus = flash_memory_write((uint32_t *)data_received, 1604, APP); // dataWords
-
-	//sys_sem_signal(&ethernetSem);
-
-	//uint32_t sizeInWords = bytesToWords(data_received, 160, (uint32_t *)data_received); // 3204  6408  200  dataWords
-	//erase_inactive_bank();
-
-
-	//bootloader_switch_to_inactive_bank();
-	//bootloader_reboot();
-	/*HAL_UART_Transmit(&huart2, (uint8_t *)downloadByte, sizeof(downloadByte), HAL_MAX_DELAY);
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 100);
-	//HAL_UART_Receive(&huart2, (uint8_t *)data_received, 100, HAL_MAX_DELAY); // 3204
-	//while(flag!=100);
-	//flag = 0;
-	int j;
-	for (j = 0; j < 801; j++) {
-		dataWords[j] = 0;
-	}
-	sizeInWords = bytesToWords(data_received, 100, dataWords);  // 3204
-	flashingStatus = flash_memory_write(dataWords, sizeInWords, APP);*/
-
-
-//	for(i = 0; i<2; i++) {
-//		HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6408);
-//		while(flag!=100);
-//		flag = 0;
-//		uint32_t sizeInWords = bytesToWords(data_received, 6408, dataWords);
-//		uint8_t flashingStatus = flash_memory_write(dataWords, sizeInWords, APP);
-//	}
-	//HAL_UART_Receive_IT(&huart2, (uint8_t *)fileSizeInBytes, 4);
-	//sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
-
-	//int j;
-	/*uint8_t versionNumber[4]={0x01, 0x02, 0x01, 0x00};
-	HAL_UART_Transmit(&huart2, (uint8_t *)versionNumber, sizeof(versionNumber), HAL_MAX_DELAY);
-
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 6);
-	// print version number on HMI
-	// wait on uart semaphore for NEW PACKAGE frame
-	// ... uart ISR gives uart semaphore
-	data_received[5] = 0x07; // for testing
-
-
-	// parse received frame, notify user, check connect with a target or not
-
-	//sys_sem_signal(&ethernetSem);
-	// if update is for fota master: erase memory and flash the received frame
-	uint8_t downloadPackageFrame[4] = {0x03, 0x02, 0x01, 0x03};
-	HAL_UART_Transmit(&huart2, (uint8_t *)downloadPackageFrame, sizeof(downloadPackageFrame), HAL_MAX_DELAY);
-
-	// erase memory at fota master if it has an update (in a separate task)
-
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 1);
-	// wait on uart semaphore for PACKAGE DOWNLOADED frame
-	// ... uart ISR gives uart semaphore
-	data_received[0] = 0x04; // for testing
-
-	if (data_received[0] == 0x04) {
-		uint8_t targetUpdateFrame[4] = {0x05, 0x00, 0x01, 0xFF}; // fota master image file
-		HAL_UART_Transmit(&huart2, (uint8_t *)targetUpdateFrame, sizeof(targetUpdateFrame), HAL_MAX_DELAY);
-	}
-
-	// receive file size
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 4);
-	// wait on uart semaphore for SECUREBOOT/IMAGE SIZE frame
-	// ... uart ISR gives uart semaphore
-	data_received[0] = 0x07; // for testing
-	data_received[1] = 0x00; // for testing
-	data_received[2] = 0x00; // for testing
-	data_received[3] = 0x0A; // for testing
-
-	if (data_received[0] == 0x07) {
-		masterDataSize = (((uint32_t)data_received[1])<<2*8|((uint32_t)data_received[2])<<8|((uint32_t)data_received[3]));
-	}
-
-	// start sending frame
-	uint8_t startSendingFrame[4] = {0x08, 0xFF, 0xFF, 0xFF};
-	HAL_UART_Transmit(&huart2, (uint8_t *)startSendingFrame, sizeof(startSendingFrame), HAL_MAX_DELAY);
-
-	int i = masterDataSize;
-	for (; i > 0; i-=1024) {
-		if (i >= 1024) {
-			HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, 1024);
-		} else {
-			HAL_UART_Receive_IT(&huart2, (uint8_t *)data_received, i);
-		}
-		// wait on uart semaphore for data frame
-		// ... uart ISR gives uart semaphore
-		//sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
-
-		uint32_t dummyData[] = {0x22441133, 0x88775566, 0xAAEEAAEE};
-		// forward to target, or flash at master
-		uint8_t flashStatus = flash_memory_write(dummyData, 3, APP);
-		// if ok, send ok frame
-		if (flashStatus == SUCCEED) {
-			uint8_t okFrame[4] = {0x00, 0x00, 0x00, 0x00};
-			HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
-		}
-
-	}*/
-
+	//HAL_UART_Transmit(&huart2, (uint8_t *)downloadByte, sizeof(downloadByte), HAL_MAX_DELAY);
+	//HAL_UART_Receive(&huart2, data_received, 7920, HAL_MAX_DELAY);
 
   /* Infinite loop */
   for(;;)
