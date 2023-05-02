@@ -1,7 +1,9 @@
 import requests
 import base64
+from Crypto.Hash import SHA256
 
-url = "https://signing-server.onrender.com"
+#url = "https://signing-server.onrender.com"
+url ="http://127.0.0.1:8000"
 
 #get request
 # res = requests.get(url)
@@ -11,7 +13,7 @@ url = "https://signing-server.onrender.com"
 binary_data = open("metadata.txt","rb").read()
 base64_data = base64.b64encode(binary_data).decode('utf-8')
 url2 = url+"/sign"
-post_data ={"name": "metadata.txt", "content":base64_data, "password": "123456789"}
+post_data ={"name": "metadata.txt", "content":base64_data,"username":"Alaa","password": "987654321"}
 response = requests.post(url2, json=post_data)
 
 print(response.status_code)
@@ -23,7 +25,6 @@ if(response.status_code ==200):
     Root_der_cert_bin = base64.b64decode(Root_der_cert_base64)
     SB_der_cert_bin = base64.b64decode(SB_der_cert_base64)
     signature_bin = base64.b64decode(signature_base64)
-
     with open('ROOT__cert.bin', 'wb') as file:
         file.write(Root_der_cert_bin)
     with open('SB_cert.bin', 'wb') as file:
@@ -32,4 +33,7 @@ if(response.status_code ==200):
         file.write(signature_bin)
 else:
     print(data["detail"])
+
+
+
 
