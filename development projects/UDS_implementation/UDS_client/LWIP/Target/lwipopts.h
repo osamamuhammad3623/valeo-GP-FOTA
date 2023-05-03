@@ -53,8 +53,6 @@
 #define MEM_SIZE 21*1024
 /*----- Default Value for MEMP_NUM_TCP_SEG: 16 ---*/
 #define MEMP_NUM_TCP_SEG 100
-/*----- Default Value for MEMP_NUM_ALTCP_PCB: 5 ---*/
-#define MEMP_NUM_ALTCP_PCB 0
 /*----- Default Value for PBUF_POOL_SIZE: 16 ---*/
 #define PBUF_POOL_SIZE 20
 /*----- Default Value for PBUF_POOL_BUFSIZE: 592 ---*/

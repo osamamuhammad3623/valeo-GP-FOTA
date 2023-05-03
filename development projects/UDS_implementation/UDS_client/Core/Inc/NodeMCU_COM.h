@@ -33,7 +33,6 @@ typedef enum {
 #define START_SENDING				0x07U
 #define OK							0x00U
 #define NOT_OK						0xFFU
-#define PADDING						0xFFU
 
 #define NUM_OF_TARGETS				 3
 
@@ -43,7 +42,7 @@ typedef enum {
 extern uint8_t dataFlag;
 extern uint8_t downloadFinishedFlag;
 extern uint8_t target_update[NUM_OF_TARGETS];
-extern uint8_t version_number[3];
+extern uint8_t current_version_number[3];
 
 /*******************************************************************************
  *                      Functions Prototypes                                   *
