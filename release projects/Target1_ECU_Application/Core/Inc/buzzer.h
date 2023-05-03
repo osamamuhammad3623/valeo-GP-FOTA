@@ -14,7 +14,7 @@
  * Definitions
  * **********************************************************/
 #define BUZZER_PIN		GPIOA
-#define BUZZER_PORT		GPIO_PIN_0
+#define BUZZER_PORT		GPIO_PIN_5
 
 /************************************************************
  * Function Prototypes

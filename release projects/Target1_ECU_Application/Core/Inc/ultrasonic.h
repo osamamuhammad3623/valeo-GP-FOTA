@@ -14,9 +14,10 @@
  * Definitions & Global variables
  * **********************************************************/
 #define ULTRASONIC_PORT					GPIOA
-#define ULTRASONIC_TRIGGER_PIN			GPIO_PIN_0
+#define ULTRASONIC_TRIGGER_PIN			GPIO_PIN_4
 #define ULTRASONIC_ECHO_PIN				GPIO_PIN_0
 #define ULTRASONIC_CLOCK_Mhz			180
+extern TIM_HandleTypeDef htim5;
 
 extern uint32_t g_ultrasonic_last_measured_distance;
 

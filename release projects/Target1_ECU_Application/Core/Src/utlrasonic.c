@@ -11,7 +11,7 @@ uint32_t g_ultrasonic_last_measured_distance=0;
 TIM_HandleTypeDef htim5;
 
 
-__STATIC_INLINE void DWT_Delay_us(volatile uint32_t microseconds)
+ void DWT_Delay_us(volatile uint32_t microseconds)
 {
 	uint32_t clk_cycle_start = DWT->CYCCNT;
 
@@ -99,7 +99,7 @@ void ultrasonic_init(void){
 	}
 
 	// start the timer
-	HAL_TIM_IC_Start_IT(&htim5, TIM_CHANNEL_1);
+
 }
 
 
