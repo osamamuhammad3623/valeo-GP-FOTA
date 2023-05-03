@@ -45,6 +45,8 @@ int count = 0;
 
 uint16_t chunk_size = 0;
 
+uint8_t no_of_bytes;
+
 void init_all();
 void WIFI_Connect();
 void FIREBASE_init();
@@ -68,7 +70,6 @@ void setup()
 
 void loop() 
 {
-  uint8_t no_of_bytes;
      if (Serial.available() > 0) 
      {
         uint8_t Frame_id = Serial.read();
@@ -140,9 +141,7 @@ void loop()
              fileSize = (int)get_file_size((target_id)targetID, (file_type)Filetype);
              size[0] = 0x06;
              size[1]= fileSize;
-             Serial.write(0xFF);
              Serial.write(size, 2);
-             Serial.write(0xFF);
              break;
           
           case 0x07: 
@@ -277,7 +276,6 @@ size_t get_file_size(target_id id, file_type type)
   
   if(file.available()) 
   {
-    Serial.println("xx");
     filesize = file.size();
     Serial.println(filesize);
   }
@@ -304,31 +302,34 @@ boolean Download_Files() {
       if(targeted_ecus_21m & 1)
       {
         if (!((Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,master_paths.bin  /* path of remote file stored in the bucket */,master_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))
-          || (Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,master_paths.bin  /* path of remote file stored in the bucket */,master_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
+          || (Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,master_paths.data  /* path of remote file stored in the bucket */,master_paths.data /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
         {
           Serial.println(fbdo.errorReason());
           return false;
         }
+        Serial.println("master");
       }
 
       if(((targeted_ecus_21m >> 1) & 1))
       {
         if (!((Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target1_paths.bin  /* path of remote file stored in the bucket */,target1_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))
-          || (Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target1_paths.bin  /* path of remote file stored in the bucket */,target1_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
+          || (Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target1_paths.data  /* path of remote file stored in the bucket */,target1_paths.data /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
         {
           Serial.println(fbdo.errorReason());
           return false;
         }
+        Serial.println("target 1");
       }
 
       if(((targeted_ecus_21m >> 2) & 1))
       {
         if (!((Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target2_paths.bin  /* path of remote file stored in the bucket */,target2_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))
-          || (Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target2_paths.bin  /* path of remote file stored in the bucket */,target2_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
+          || (Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target2_paths.data  /* path of remote file stored in the bucket */,target2_paths.data /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
         {
           Serial.println(fbdo.errorReason());
           return false;
         }
+        Serial.println("target 2");
       }
       break;
     }
@@ -352,8 +353,6 @@ void Send_update(String path)
       size_t bytesRead = file.readBytes(&buf, sizeof(buf));
       Serial.print(buf);
 
-      Serial.println("bytes =");
-      Serial.println(bytesRead);
       count++;
 
       if(count == chunk_size)
