@@ -73,7 +73,7 @@ void loop()
      {
         uint8_t Frame_id = Serial.read();
 
-        char version[6] = {0x02, (uint8_t)is_urgent, major, minor, patch, };
+        char version[6] = {0x02, (uint8_t)is_urgent, major, minor, patch, no_of_files};
         char size[2];
 
         int current_major;
@@ -100,7 +100,7 @@ void loop()
             }
             else if(current_major < major)
             {
-              Serial.write(version, 4);
+              Serial.write(version, 6);
               break;  
             }
             
@@ -110,7 +110,7 @@ void loop()
             }
             else if(current_minor < minor)
             {
-              Serial.write(version, 4);
+              Serial.write(version, 6);
               break;  
             }
 
@@ -120,7 +120,7 @@ void loop()
             }
             else if(current_patch < patch)
             {
-              Serial.write(version, 4);
+              Serial.write(version, 6);
               break;  
             }
             break;
