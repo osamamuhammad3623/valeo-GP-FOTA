@@ -12,7 +12,7 @@ file_paths target2_paths {"OEM/Target 2/Binary/app.txt", "OEM/Target 2/Security/
 
 file_paths ECUs_paths[3] = {master_paths, target1_paths, target2_paths};
 
-String file_to_be_send = "OEM/Master ECU/Binary/app.txt";
+String file_to_be_send;
 
 //pckg_version
 uint8_t major;
@@ -43,12 +43,15 @@ String pckg_Version;
 
 int count = 0;
 
+uint16_t chunk_size = 0;
+
 void init_all();
 void WIFI_Connect();
 void FIREBASE_init();
 boolean Download_Files();
 void Send_update(String path);
 size_t get_file_size(target_id id, file_type type);
+void set_chunk_size(uint16_t first_byte, uint8_t second_byte);
 void FILESYSTEM_init();
 void fcsDownloadCallback(FCS_DownloadStatusInfo info);
 void listAllFilesInDir(String dir_path);
@@ -79,6 +82,9 @@ void loop()
         int targetID;
         int Filetype;
         int fileSize;
+
+        uint16_t first_byte;
+        uint8_t second_byte;
 
         switch(Frame_id)
         {
@@ -140,6 +146,9 @@ void loop()
              break;
           
           case 0x07: 
+            first_byte = Serial.read();
+            second_byte = Serial.read();
+            set_chunk_size(first_byte, second_byte);
             no_of_bytes = Serial.available();
             for(uint8_t iterator = 0; iterator < no_of_bytes; iterator++)
             {
@@ -147,10 +156,7 @@ void loop()
             }
              Send_update(file_to_be_send);  
              break;   
-
-             case 0x08: 
-             get_attributes();
-             break;     
+   
         }
 
      }
@@ -262,7 +268,6 @@ size_t get_file_size(target_id id, file_type type)
   {
     file = SPIFFS.open( "/"+ECUs_paths[id].bin, "r");
     file_to_be_send = ECUs_paths[id].bin;
-    Serial.println("/"+ECUs_paths[id].bin);
   }
   else if(type == data)
   {
@@ -279,6 +284,13 @@ size_t get_file_size(target_id id, file_type type)
   Serial.println("file size is calculated");
   return filesize;
 }
+
+void set_chunk_size(uint16_t first_byte, uint8_t second_byte)
+{
+  chunk_size = chunk_size | (first_byte<<8);
+  chunk_size = chunk_size | second_byte;
+}
+  
 
 boolean Download_Files() {
   while(1)
@@ -344,7 +356,7 @@ void Send_update(String path)
       Serial.println(bytesRead);
       count++;
 
-      if(count == CHUNK_SIZE)
+      if(count == chunk_size)
       {
         while(1)
         {
