@@ -7,7 +7,6 @@
 "./Core/Src/syscalls.o"
 "./Core/Src/sysmem.o"
 "./Core/Src/system_stm32f4xx.o"
-"./Core/Src/target_application_tasks.o"
 "./Core/Src/utlrasonic.o"
 "./Core/Startup/startup_stm32f439zitx.o"
 "./Drivers/BSP/Components/dp83848/dp83848.o"
