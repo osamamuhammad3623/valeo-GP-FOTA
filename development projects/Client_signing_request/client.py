@@ -1,6 +1,5 @@
 import requests
 import base64
-from Crypto.Hash import SHA256
 
 #url = "https://signing-server.onrender.com"
 url ="http://127.0.0.1:8000"
