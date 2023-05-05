@@ -15,7 +15,7 @@
 #define FAILED               0
 
 #define APP_START_ADDRESS_BANK1        0x08002100
-#define APP_START_ADDRESS_BANK2        0x08102100
+#define APP_START_ADDRESS_BANK2        0x08140000 //0x08102100 // 0x08100000
 #define META_DATA_START_ADDRESS_BANK1  0x08002000
 #define META_DATA_START_ADDRESS_BANK2  0x08102000
 
@@ -59,5 +59,10 @@ uint8_t Flash_Memory_Write(uint32_t StartSectorAddress ,uint32_t *data, uint32_t
  * starting from a specific address and store the data into array.
  * */
 void Flash_Memory_Read (uint32_t StartSectorAddress, uint32_t *buffer, uint16_t numofWords);
+
+int bytesToWords(uint8_t* dataBytes, uint32_t dataSizeInBytes, uint32_t * dataWords);
+
+void padWithOnes(uint32_t dataSizeInBytes, uint32_t * dataWords, uint32_t dataSizeInWords);
+
 
 #endif /* INC_FLASH_MEMORY_H_ */

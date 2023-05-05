@@ -10,6 +10,7 @@
 
 #include "flash_memory.h" //needed for FLASH_DataType enum
 #include "sys_arch.h"
+#include "lwip/sys.h"
 
 #define ARRAY_SIZE 					20000U
 

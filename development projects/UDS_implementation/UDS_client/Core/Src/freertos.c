@@ -131,6 +131,8 @@ void StartUdsTask(void *argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN StartUdsTask */
+  sys_arch_sem_wait(&udsSem1, HAL_MAX_DELAY);
+  UDS_init(target_update);
   /* Infinite loop */
   for(;;)
   {
@@ -149,7 +151,7 @@ void StartUdsTask(void *argument)
 void StartUartTask(void *argument)
 {
   /* USER CODE BEGIN StartUartTask */
-	uint8_t versionNumberFrame[4] = {VERSION_NUMBER, version_number[0], version_number[1], version_number[2]};
+	uint8_t versionNumberFrame[4] = {VERSION_NUMBER, current_version_number[0], current_version_number[1], current_version_number[2]};
 	HAL_UART_Transmit(&huart2, (uint8_t *)versionNumberFrame, sizeof(versionNumberFrame), HAL_MAX_DELAY);
 	while(HAL_UART_Receive(&huart2, (uint8_t *)data_received, 6, HAL_MAX_DELAY) != HAL_OK);
 
