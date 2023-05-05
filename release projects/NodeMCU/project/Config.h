@@ -18,8 +18,8 @@
 //#include <addons/SDHelper.h>
 
 /* 1. Define the WiFi credentials */
-#define WIFI_SSID "A23"
-#define WIFI_PASSWORD "karf8618"
+#define WIFI_SSID "Orange-D8AD"
+#define WIFI_PASSWORD "T1JQFMF0RDA"
 
 
 /* 2. Define the API Key */
@@ -51,8 +51,8 @@ enum target_id {
 };
 
 enum file_type {
-  bin,
-  data
+  data,
+  bin
 };
 
 struct file_paths {
