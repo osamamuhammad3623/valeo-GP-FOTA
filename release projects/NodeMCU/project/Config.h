@@ -18,8 +18,8 @@
 //#include <addons/SDHelper.h>
 
 /* 1. Define the WiFi credentials */
-#define WIFI_SSID "Orange-D8AD"
-#define WIFI_PASSWORD "T1JQFMF0RDA"
+#define WIFI_SSID "A23"
+#define WIFI_PASSWORD "karf8618"
 
 
 /* 2. Define the API Key */

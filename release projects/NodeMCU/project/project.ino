@@ -6,9 +6,9 @@ FirebaseAuth auth;
 FirebaseConfig config;
 bool taskCompleted = false;
 
-file_paths master_paths {"OEM/Master ECU/Binary/app.txt", "OEM/Master ECU/Security/meta.txt"};
-file_paths target1_paths {"OEM/Target 1/Binary/app.txt", "OEM/Target 1/Security/meta.txt"};
-file_paths target2_paths {"OEM/Target 2/Binary/app.txt", "OEM/Target 2/Security/meta.txt"};
+file_paths master_paths {"OEM/MasterECU/Binary/app.txt", "OEM/MasterECU/Secure/meta.txt"};
+file_paths target1_paths {"OEM/Target 1/Binary/app.txt", "OEM/Target 1/Secure/meta.txt"};
+file_paths target2_paths {"OEM/Target 2/Binary/app.txt", "OEM/Target 2/Secure/meta.txt"};
 
 file_paths ECUs_paths[3] = {master_paths, target1_paths, target2_paths};
 
@@ -300,7 +300,8 @@ boolean Download_Files() {
       
       if(targeted_ecus_21m & 1)
       {
-        if (!(Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,master_paths.bin  /* path of remote file stored in the bucket */,master_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */)))
+        if ((!(Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,master_paths.data  /* path of remote file stored in the bucket */,master_paths.data /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))) 
+            || (!(Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,master_paths.bin  /* path of remote file stored in the bucket */,master_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
         {
           Serial1.println(fbdo.errorReason());
           return false;
@@ -381,16 +382,16 @@ void FILESYSTEM_init()
 
     SPIFFS.mkdir("/OEM");
 
-    SPIFFS.mkdir("/OEM/Master ECU");
-    SPIFFS.mkdir("/OEM/Master ECU/Security");
-    SPIFFS.mkdir("/OEM/Master ECU/Binary");
+    SPIFFS.mkdir("/OEM/MasterECU");
+    SPIFFS.mkdir("/OEM/MasterECU/Secure");
+    SPIFFS.mkdir("/OEM/MasterECU/Binary");
 
     SPIFFS.mkdir("/OEM/Target 1");
-    SPIFFS.mkdir("/OEM/Target 1/Security");
+    SPIFFS.mkdir("/OEM/Target 1/Secure");
     SPIFFS.mkdir("/OEM/Target 1/Binary");
 
     SPIFFS.mkdir("/OEM/Target 2");
-    SPIFFS.mkdir("/OEM/Target 2/Security");
+    SPIFFS.mkdir("/OEM/Target 2/Secure");
     SPIFFS.mkdir("/OEM/Target 2/Binary");
 
     SPIFFS.end();
@@ -445,7 +446,7 @@ void WIFI_Connect()
 //firebase initialization function
 void FIREBASE_init() {
   #if _DEBUG_
-    Serial.printf("Firebase Client v%s\n", FIREBASE_CLIENT_VERSION);
+    Serial1.printf("Firebase Client v%s\n", FIREBASE_CLIENT_VERSION);
   #endif
   
   /* Assign the api key (required) */
@@ -491,13 +492,13 @@ void FIREBASE_init() {
 void fcsDownloadCallback(FCS_DownloadStatusInfo info) {
   #if _DEBUG_
     if (info.status == fb_esp_fcs_download_status_init) {
-      Serial.printf("Downloading file %s (%d) to %s\n", info.remoteFileName.c_str(), info.fileSize, info.localFileName.c_str());
+      Serial1.printf("Downloading file %s (%d) to %s\n", info.remoteFileName.c_str(), info.fileSize, info.localFileName.c_str());
     } else if (info.status == fb_esp_fcs_download_status_download) {
-      Serial.printf("Downloaded %d%s, Elapsed time %d ms\n", (int)info.progress, "%", info.elapsedTime);
+      Serial1.printf("Downloaded %d%s, Elapsed time %d ms\n", (int)info.progress, "%", info.elapsedTime);
     } else if (info.status == fb_esp_fcs_download_status_complete) {
-      Serial.println("Download completed\n");
+      Serial1.println("Download completed\n");
     } else if (info.status == fb_esp_fcs_download_status_error) {
-      Serial.printf("Download failed, %s\n", info.errorMsg.c_str());
+      Serial1.printf("Download failed, %s\n", info.errorMsg.c_str());
     }
   #endif  
 }
