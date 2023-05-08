@@ -4,7 +4,7 @@ py_binary(
   name = "main",
 
   srcs = ["main.py",
-          "app_slots.py", 
+          "function_implementation.py", 
           "combine_bins.py", 
           "package_config.py", 
           "firebase_connection.py",
