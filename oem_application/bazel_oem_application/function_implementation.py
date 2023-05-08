@@ -67,7 +67,7 @@ def sign_metadata(img_num):
     binary_data = open(f"metadata_{img_num}.txt","rb").read()
     base64_data = base64.b64encode(binary_data).decode('utf-8')
     url2 = url+"/sign"
-    post_data ={"name": "metadata.txt", "content":base64_data, "password": SIGNING_SERVER_PASSWORD}
+    post_data ={"name": "metadata.txt", "content":base64_data,"username": SIGNING_SERVER_USERNAME,"password": SIGNING_SERVER_PASSWORD}
     response = requests.post(url2, json=post_data)
 
     data =response.json()
@@ -179,7 +179,7 @@ def upload_process():
             targeted_ecus = targeted_ecus | (1<<2)
 
         # determine directories
-        security_dir = f"OEM/{current_pckg}/{target}/Security/"
+        security_dir = f"OEM/{current_pckg}/{target}/Secure/"
         binary_dir = f"OEM/{current_pckg}/{target}/Binary/"
 
         # set the CRC of the image & combined file in realtime attributes

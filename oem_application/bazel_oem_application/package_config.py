@@ -1,4 +1,5 @@
-SIGNING_SERVER_PASSWORD = "123456789"
+SIGNING_SERVER_PASSWORD = "987654321"
+SIGNING_SERVER_USERNAME = "Alaa"
 
 image1_info = {
     "img" : 1,          # READ-ONLY
@@ -6,7 +7,7 @@ image1_info = {
     "digest" : "",      # READ-ONLY
     "crc": 0,           # READ-ONLY
     "target" : "Target 2",
-    "path" : "D:\\CSE\\GraduationProject\\valeo-GP-FOTA\\oem_application\\bazel_oem_application\\blue_app.bin",
+    "path" : "D:\\CSE\\GraduationProject\\valeo-GP-FOTA\\oem_application\\bazel_oem_application\\LED2.bin",
     "root_index" : 2
 }
 
@@ -31,7 +32,7 @@ image3_info = {
 }
 
 package_info = {
-    "package_version": "7.7.7",
+    "package_version": "5.5.5",
     "urgency" : 0,
     "n_images" : 1,
     "image1_info": image1_info,     # READ-ONLY
