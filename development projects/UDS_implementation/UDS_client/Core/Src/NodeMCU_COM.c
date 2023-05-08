@@ -19,7 +19,7 @@ uint32_t downloadSize;
 
 uint8_t data_received[ARRAY_SIZE] = {0};
 uint8_t target_update[NUM_OF_TARGETS] = {0};
-uint8_t version_number[3] = {1, 1, 1};
+uint8_t current_version_number[3] = {1, 1, 1};
 uint8_t new_version_number[3];
 
 /*******************************************************************************
@@ -82,7 +82,7 @@ void UART_packageDetection(void)
 		//erase_inactive_bank();
 	}
 
-	uint8_t downloadPackageFrame[4] = {DOWNLOAD_PACKAGE, new_version_number[0], new_version_number[1], new_version_number[2]};
+	uint8_t downloadPackageFrame[] = {DOWNLOAD_PACKAGE, new_version_number[0], new_version_number[1], new_version_number[2]};
 	HAL_UART_Transmit(&huart2, (uint8_t *)downloadPackageFrame, sizeof(downloadPackageFrame), HAL_MAX_DELAY);
 	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 1, HAL_MAX_DELAY);
 }
@@ -108,7 +108,7 @@ void UART_getTargetUpdate(void)
 		}
 	}
 
-	uint8_t getTargetUpdateFrame[4] = {GET_TARGET_UPDATE, targetToUpdate, fileType, PADDING};
+	uint8_t getTargetUpdateFrame[] = {GET_TARGET_UPDATE, targetToUpdate, fileType};
 	HAL_UART_Transmit(&huart2, (uint8_t *)getTargetUpdateFrame, sizeof(getTargetUpdateFrame), HAL_MAX_DELAY);
 	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 4, HAL_MAX_DELAY);
 
@@ -118,7 +118,7 @@ void UART_getTargetUpdate(void)
 void UART_downloadFailed(void)
 {
 	//Download again or wait!
-	uint8_t downloadPackageFrame[4] = {DOWNLOAD_PACKAGE, new_version_number[0], new_version_number[1], new_version_number[2]};
+	uint8_t downloadPackageFrame[] = {DOWNLOAD_PACKAGE, new_version_number[0], new_version_number[1], new_version_number[2]};
 	HAL_UART_Transmit(&huart2, (uint8_t *)downloadPackageFrame, sizeof(downloadPackageFrame), HAL_MAX_DELAY);
 	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 1, HAL_MAX_DELAY);
 }
@@ -140,7 +140,7 @@ void UART_getDownloadSize(void)
 	}
 
 	uint8_t chunk[] = {((uint32_t)chunkSize&0x0000FF00)>>(8), chunkSize&0x000000FF};
-	uint8_t startSendingFrame[4] = {START_SENDING, chunk[0], chunk[1], PADDING};
+	uint8_t startSendingFrame[] = {START_SENDING, chunk[0], chunk[1]};
 	HAL_UART_Transmit(&huart2, (uint8_t *)startSendingFrame, sizeof(startSendingFrame), HAL_MAX_DELAY);
 
 	uint16_t size = (downloadSize > chunkSize) ? chunkSize : downloadSize;
@@ -173,7 +173,7 @@ void UART_handleData(void)
 	}
 
 	//ok or not ok!
-	uint8_t okFrame[4] = {OK, OK, OK, OK};
+	uint8_t okFrame[] = {OK};
 	HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
 
 	if(downloadSize > chunkSize){

@@ -259,7 +259,7 @@ uint8_t erase_inactive_bank(void){
 
 	}
 
-	EraseInitStruct.NbSectors       = 5;
+	EraseInitStruct.NbSectors       = 5; // 5
 
 	/* Unlocking the Flash control register */
 	HAL_FLASH_Unlock();
@@ -283,11 +283,13 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 	/* begin from the start
 	 * initialized only once, then increased at each call
 	 * depending on the data size that will be written */
-	static uint32_t StartAddress;
+	static uint32_t StartAddress=0;
 	uint32_t numofWords=dataSizeInWords;     /*getting number of words to write*/
 	uint32_t numofWordsWritten=0;
+	uint8_t result;
 
 	/*depending on the type of data to be written, the start address will be determined*/
+	if (StartAddress==0){
 	switch (dataType){
 	case META_DATA:
 		/*check the inactive bank to write in*/
@@ -323,11 +325,14 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 
 		break;
 	default:
-		return FAILED;
+		result= FAILED;
 
 	}
 
+	}
+	else{
 
+	}
 	/* Unlocking the Flash control register */
 	HAL_FLASH_Unlock();
 
@@ -342,7 +347,7 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 		else
 		{
 			/* Error occurred while writing data in Flash memory*/
-			return FAILED;
+			result= FAILED;
 		}
 
 	}
@@ -350,5 +355,39 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 	/* Locking the Flash control register */
 	HAL_FLASH_Lock();
 
-	return SUCCEED;
+	result= SUCCEED;
+	return result;
 }
+
+int bytesToWords(uint8_t* dataBytes, uint32_t dataSizeInBytes, uint32_t * dataWords) {
+	int i;
+	int j;
+	int dataSizeInWords;
+	if (dataSizeInBytes%4 != 0) {
+		dataSizeInWords = (int)((double)dataSizeInBytes/4 + 1);
+	} else {
+		dataSizeInWords = dataSizeInBytes/4;
+	}
+
+	int byteNum = 0;
+	for (i = 0; i < dataSizeInWords; i++) {
+		for (j = 0; j < 4 && byteNum < dataSizeInBytes; j++) {
+			dataWords[i] |= (uint32_t)dataBytes[byteNum] << 8*(3-j);
+			byteNum++;
+		}
+	}
+	// check if size in bytes is not divisible by 4, then pad with ones
+	if (dataSizeInBytes%4 != 0) {
+		padWithOnes(dataSizeInBytes, dataWords, dataSizeInWords);
+	}
+	return dataSizeInWords;
+}
+
+void padWithOnes(uint32_t dataSizeInBytes, uint32_t * dataWords, uint32_t dataSizeInWords) {
+	int paddedBytesNum = 4 - (dataSizeInBytes%4);
+	int i;
+	for (i = 0; i < paddedBytesNum; i++) {
+		dataWords[dataSizeInWords-1] |= 0xFF<<(8*i);
+	}
+}
+

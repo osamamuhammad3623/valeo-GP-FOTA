@@ -44,8 +44,6 @@
 #define PACKAGE_DOWNLOADED 0x04
 #define DOWNLOADING_ERROR 0x14
 
-#define CHUNK_SIZE 20000
-
 enum target_id {
   master,
   target1,
@@ -53,8 +51,8 @@ enum target_id {
 };
 
 enum file_type {
-  bin,
-  data
+  data,
+  bin
 };
 
 struct file_paths {

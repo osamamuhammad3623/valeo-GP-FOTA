@@ -78,9 +78,9 @@ void UDS_transfer_data(TargetECU targetECU)
 	tcp_SendMessage(targetECU, transferDataFrame, size+1);
 
 	/* Blink LED to indicate chunk is sent */
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-//	HAL_Delay(100);
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 }
 
 void UDS_request_transfer_exit(TargetECU targetECU)
@@ -207,11 +207,18 @@ void UDS_TD_handle(TargetECU targetECU, uint8_t *responseFrame)
 void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
 	//check crc
+
+	//ecu reset for testing
+	uint8_t resetType = (uint8_t) ER_SOFT_RESET;
+	UDS_ecu_reset(targetECU, resetType);
 }
 
 void UDS_ER_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-
+	/* Blink LED to indicate chunk is sent */
+	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
 }
 
 void UDS_negative_response_handle(TargetECU targetECU, uint8_t *responseFrame)

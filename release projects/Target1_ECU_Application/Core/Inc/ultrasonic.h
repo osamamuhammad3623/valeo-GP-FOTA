@@ -14,24 +14,24 @@
  * Definitions & Global variables
  * **********************************************************/
 #define ULTRASONIC_PORT					GPIOA
-#define ULTRASONIC_TRIGGER_PIN			GPIO_PIN_0
+#define ULTRASONIC_TRIGGER_PIN			GPIO_PIN_4
 #define ULTRASONIC_ECHO_PIN				GPIO_PIN_0
-#define ULTRASONIC_CLOCK_Mhz			180
+#define ULTRASONIC_MINIMUM_DISTANCE		20
 
 extern uint32_t g_ultrasonic_last_measured_distance;
 
 /************************************************************
  * Function Prototypes
  * **********************************************************/
-uint32_t ultrasonic_get_distance(void);
-uint32_t DWT_Delay_Init(void);
 
 /*
- * Description: A function to initialize GPT 5:
- * 		Input-Capture mode, detecting both edges
- * 		Using interrupts
- * 		and start the timer
+ * initialize DWT
+ * Trigger & Echo pins are configured using CubeMX GUI
  * */
 void ultrasonic_init(void);
+
+void ultrasonic_get_distance(void);
+
+uint32_t DWT_Delay_Init(void);
 
 #endif /* INC_ULTRASONIC_H_ */
