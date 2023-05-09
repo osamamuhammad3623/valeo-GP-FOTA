@@ -22,6 +22,9 @@ uint8_t target_update[NUM_OF_TARGETS] = {0};
 uint8_t current_version_number[3] = {1, 1, 1};
 uint8_t new_version_number[3];
 
+extern osThreadId_t UdsTaskHandle; //////////////
+extern osThreadId_t target1ThreadID;
+extern osThreadId_t UartTaskHandle; //////////////
 /*******************************************************************************
  *                      Functions Implementations		*
  *******************************************************************************/
@@ -70,12 +73,15 @@ void UART_packageDetection(void)
 	new_version_number[1] = data_received[3];
 	new_version_number[2] = data_received[4];
 
-	target_update[0] = data_received[5] && (1 << 0);
-	target_update[1] = data_received[5] && (1 << 1);
-	target_update[2] = data_received[5] && (1 << 2);
+	target_update[0] = (data_received[5] & (1 << 0))>>0; /////
+	target_update[1] = (data_received[5] & (1 << 1))>>1; /////
+	target_update[2] = (data_received[5] & (1 << 2))>>2; /////
 
 	//signal semaphore to start connection
-	sys_sem_signal(&udsSem1);
+//	sys_sem_signal(&udsSem1);
+	/*-------------------FOR TESTING----------------*/
+	osThreadSetPriority(UdsTaskHandle, osPriorityNormal2);
+	/*----------------------------------------------*/
 
 	if(target_update[0]){
 		//erase mem
@@ -90,7 +96,7 @@ void UART_packageDetection(void)
 void UART_getTargetUpdate(void)
 {
 	static uint8_t fileType = META_DATA;
-	static uint8_t counter = -1;
+	static int counter = -1; ////////////
 
 	if(fileType == META_DATA){
 		counter = (counter==-1) ? 1 : (counter==1) ? 2 : (counter==2) ? 0 : 4;
@@ -107,6 +113,15 @@ void UART_getTargetUpdate(void)
 			counter = (counter==2) ? 0 : counter+1;
 		}
 	}
+
+//	if(fileType == META_DATA) {
+//		osThreadSuspend(UartTaskHandle);
+//	}
+
+	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+//	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+//	HAL_Delay(100);
+//	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
 
 	uint8_t getTargetUpdateFrame[] = {GET_TARGET_UPDATE, targetToUpdate, fileType};
 	HAL_UART_Transmit(&huart2, (uint8_t *)getTargetUpdateFrame, sizeof(getTargetUpdateFrame), HAL_MAX_DELAY);
@@ -128,12 +143,20 @@ void UART_getDownloadSize(void)
 	downloadSize = (((uint32_t)data_received[1])<<2*8 |((uint32_t)data_received[2])<<8 |((uint32_t)data_received[3]));
 
 	if(targetToUpdate != 0){
+//		sys_arch_sem_wait(&uartSem, 0);
 		//signal semaphore to send uds request download
-		sys_sem_t *semaphore = (targetToUpdate == 1)? &udsSem1 : &udsSem2;
-		sys_sem_signal(semaphore);
-
+//		sys_sem_t *semaphore = (targetToUpdate == 1)? &udsSem1 : &udsSem2;
+//		sys_sem_signal(semaphore);
+		osThreadResume(target1ThreadID);
 		//wait for semaphore to get chunk size
-		sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
+//		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+		if (osThreadGetState(target1ThreadID) == osThreadBlocked) {
+			osThreadResume(target1ThreadID);
+		}
+		osThreadSuspend(UartTaskHandle);
+//		HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+//		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
+//		sys_arch_sem_wait(&uartSem, 0); //////////////////
 	}
 	else{
 		chunkSize = ARRAY_SIZE;	//can be changed
@@ -150,7 +173,7 @@ void UART_getDownloadSize(void)
 
 void UART_handleData(void)
 {
-	sys_sem_t *semaphore;
+//	sys_sem_t *semaphore;
 
 	//forward data to target or flash here
 	switch(targetToUpdate){
@@ -161,11 +184,17 @@ void UART_handleData(void)
 	case 1:
 	case 2:
 		//signal semaphore to send uds transfer data
-		semaphore = (targetToUpdate == 1)? &udsSem1 : &udsSem2;
-		sys_sem_signal(semaphore);
+//		semaphore = (targetToUpdate == 1)? &udsSem1 : &udsSem2;
+//		sys_sem_signal(semaphore);
+//		while (osThreadge)
+		osThreadResume(target1ThreadID);
 
 		//wait for semaphore
-		sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
+//		sys_arch_sem_wait(&uartSem, 0);
+		if (osThreadGetState(target1ThreadID) == osThreadBlocked) {
+			osThreadResume(target1ThreadID);
+		}
+		osThreadSuspend(UartTaskHandle);
 		break;
 
 	default:
@@ -185,8 +214,15 @@ void UART_handleData(void)
 		dataFlag = 0;
 
 		//signal semaphore to send uds request transfer exit
-		sys_sem_t *semaphore = (targetToUpdate == 1)? &udsSem1 : (targetToUpdate == 2)? &udsSem2 : NULL;
-		sys_sem_signal(semaphore);
+//		sys_sem_t *semaphore = (targetToUpdate == 1)? &udsSem1 : (targetToUpdate == 2)? &udsSem2 : NULL;
+//		sys_sem_signal(semaphore);
+		osThreadResume(target1ThreadID);
+
+		// suspend uart heeeeeeeeeeere !!!!!!!!!!!!!!!!!!
+		if (osThreadGetState(target1ThreadID) == osThreadBlocked) {
+			osThreadResume(target1ThreadID);
+		}
+		osThreadSuspend(UartTaskHandle);
 
 		UART_getTargetUpdate();
 	}
