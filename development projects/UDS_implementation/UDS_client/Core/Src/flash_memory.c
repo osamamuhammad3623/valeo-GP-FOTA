@@ -259,7 +259,7 @@ uint8_t erase_inactive_bank(void){
 
 	}
 
-	EraseInitStruct.NbSectors       = 5; // 5
+	EraseInitStruct.NbSectors       = 6; // 5
 
 	/* Unlocking the Flash control register */
 	HAL_FLASH_Unlock();

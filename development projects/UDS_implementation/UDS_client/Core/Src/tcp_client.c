@@ -75,9 +75,8 @@ static void tcpinit_thread(void *arg)
 			err = ipaddr_aton(ip_address, &dest_addr);
 			//dest_port = 10;  // server port
 
-			/*----------------------------------------------------*/
+			//suspend UART task to start connection
 			osThreadSuspend(UartTaskHandle);
-			/*----------------------------------------------------*/
 
 			/* Connect to the TCP Server */
 			connect_error = netconn_connect(conn, &dest_addr, dest_port);
@@ -90,11 +89,8 @@ static void tcpinit_thread(void *arg)
 				HAL_Delay(500);
 				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
 
-				/*----------------------------------------------------*/
-//				osThreadResume(UartTaskHandle);
-				/*----------------------------------------------------*/
-
-				osThreadSetPriority(targetThreadID, osPriorityNormal1); ////////////
+				//make target task priority the same as that of UART task
+				osThreadSetPriority(targetThreadID, osPriorityNormal1);
 
 				// UDS_req callback
 				uds_req_clbk(target_ECU);
@@ -163,13 +159,13 @@ void tcpclient_init (uint8_t* targetToConnectWith)
 		target_1.portNum = 10;
 		target_1.targetECU = PS_TARGET;
 
-		target1ThreadID = sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal2); //////////////
+		target1ThreadID = sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal2);
 	}
 	if (targetToConnectWith[2]) {
 		target_2.ip_add = "169.254.84.57";
 		target_2.portNum = 7;
 		target_2.targetECU = WIPERS_TARGET;
 
-		target2ThreadID = sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_2, DEFAULT_THREAD_STACKSIZE,osPriorityNormal2); //////////////
+		target2ThreadID = sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_2, DEFAULT_THREAD_STACKSIZE,osPriorityNormal2);
 	}
 }

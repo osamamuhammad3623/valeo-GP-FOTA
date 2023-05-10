@@ -134,15 +134,15 @@ void StartUdsTask(void *argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN StartUdsTask */
-//  sys_arch_sem_wait(&udsSem1, HAL_MAX_DELAY); ///////////////
 /*----------------------------------------------------------------*/
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
   HAL_Delay(500);
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 /*----------------------------------------------------------------*/
-  target_update[1] = 1; /////////////
   UDS_init(target_update);
-  osThreadSetPriority(UdsTaskHandle, osPriorityNormal); /////////
+  osThreadSetPriority(UdsTaskHandle, osPriorityNormal);
+  // Terminate task !!!!!
+
   /* Infinite loop */
   for(;;)
   {
@@ -170,10 +170,9 @@ void StartUartTask(void *argument)
 	{
 		if(!downloadFinishedFlag){
 			UART_stateHandler();
-			osDelay(1);
 		}
 		else{
-			//sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
+			// Do Nothing
 		}
 	}
   /* USER CODE END StartUartTask */
