@@ -53,5 +53,6 @@ void UART_getTargetUpdate(void);
 void UART_downloadFailed(void);
 void UART_getDownloadSize(void);
 void UART_handleData(void);
+static void masterEraseMemory_thread(void *arg);
 
 #endif /* INC_NODEMCU_COM_H_ */

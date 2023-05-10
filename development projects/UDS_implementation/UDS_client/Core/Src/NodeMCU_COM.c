@@ -25,6 +25,8 @@ uint8_t new_version_number[3];
 extern osThreadId_t UdsTaskHandle; //////////////
 extern osThreadId_t target1ThreadID;
 extern osThreadId_t UartTaskHandle; //////////////
+osThreadId_t masterEraseMemory;
+
 /*******************************************************************************
  *                      Functions Implementations		*
  *******************************************************************************/
@@ -85,7 +87,7 @@ void UART_packageDetection(void)
 
 	if(target_update[0]){
 		//erase mem
-		//erase_inactive_bank();
+		masterEraseMemory = sys_thread_new("masterEraseMemory_thread", masterEraseMemory_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal1);
 	}
 
 	uint8_t downloadPackageFrame[] = {DOWNLOAD_PACKAGE, new_version_number[0], new_version_number[1], new_version_number[2]};
@@ -110,18 +112,16 @@ void UART_getTargetUpdate(void)
 				targetToUpdate = counter;
 				break;
 			}
-			counter = (counter==2) ? 0 : counter+1;
+			counter = (counter==1) ? 2 : (counter==2) ? 0 : 4;
+			if(counter == 4){
+				//seq finished
+				downloadFinishedFlag = 1;
+				return;
+			}
 		}
 	}
 
-//	if(fileType == META_DATA) {
-//		osThreadSuspend(UartTaskHandle);
-//	}
-
 	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-//	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-//	HAL_Delay(100);
-//	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
 
 	uint8_t getTargetUpdateFrame[] = {GET_TARGET_UPDATE, targetToUpdate, fileType};
 	HAL_UART_Transmit(&huart2, (uint8_t *)getTargetUpdateFrame, sizeof(getTargetUpdateFrame), HAL_MAX_DELAY);
@@ -149,13 +149,7 @@ void UART_getDownloadSize(void)
 //		sys_sem_signal(semaphore);
 		osThreadResume(target1ThreadID);
 		//wait for semaphore to get chunk size
-//		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
-		if (osThreadGetState(target1ThreadID) == osThreadBlocked) {
-			osThreadResume(target1ThreadID);
-		}
 		osThreadSuspend(UartTaskHandle);
-//		HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-//		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
 //		sys_arch_sem_wait(&uartSem, 0); //////////////////
 	}
 	else{
@@ -175,10 +169,13 @@ void UART_handleData(void)
 {
 //	sys_sem_t *semaphore;
 
+	uint8_t errorState;
+	uint16_t size = (downloadSize > chunkSize) ? chunkSize : downloadSize;
 	//forward data to target or flash here
 	switch(targetToUpdate){
 	case 0:
 		//flash
+		errorState = flash_memory_write((uint32_t *)data_received, (uint32_t)size, APP);
 		break;
 
 	case 1:
@@ -186,14 +183,9 @@ void UART_handleData(void)
 		//signal semaphore to send uds transfer data
 //		semaphore = (targetToUpdate == 1)? &udsSem1 : &udsSem2;
 //		sys_sem_signal(semaphore);
-//		while (osThreadge)
 		osThreadResume(target1ThreadID);
-
 		//wait for semaphore
 //		sys_arch_sem_wait(&uartSem, 0);
-		if (osThreadGetState(target1ThreadID) == osThreadBlocked) {
-			osThreadResume(target1ThreadID);
-		}
 		osThreadSuspend(UartTaskHandle);
 		break;
 
@@ -201,11 +193,10 @@ void UART_handleData(void)
 		break;
 	}
 
-	//ok or not ok!
-	uint8_t okFrame[] = {OK};
-	HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
-
 	if(downloadSize > chunkSize){
+		//ok or not ok!
+		uint8_t okFrame[] = {OK};
+		HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
 		downloadSize -= chunkSize;
 		uint16_t size = (downloadSize > chunkSize) ? chunkSize : downloadSize;
 		HAL_UART_Receive(&huart2, (uint8_t *)data_received, size, HAL_MAX_DELAY);
@@ -216,14 +207,15 @@ void UART_handleData(void)
 		//signal semaphore to send uds request transfer exit
 //		sys_sem_t *semaphore = (targetToUpdate == 1)? &udsSem1 : (targetToUpdate == 2)? &udsSem2 : NULL;
 //		sys_sem_signal(semaphore);
+		osDelay(1);
 		osThreadResume(target1ThreadID);
-
-		// suspend uart heeeeeeeeeeere !!!!!!!!!!!!!!!!!!
-		if (osThreadGetState(target1ThreadID) == osThreadBlocked) {
-			osThreadResume(target1ThreadID);
-		}
 		osThreadSuspend(UartTaskHandle);
 
 		UART_getTargetUpdate();
 	}
+}
+
+static void masterEraseMemory_thread(void *arg) {
+	erase_inactive_bank();
+	osThreadTerminate(masterEraseMemory);
 }

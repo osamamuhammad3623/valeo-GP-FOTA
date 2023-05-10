@@ -166,9 +166,7 @@ void UDS_RC_handle(TargetECU targetECU, uint8_t *responseFrame)
 //			sys_sem_t *semaphore = (targetECU == PS_TARGET)? &udsSem1 : &udsSem2;
 //			sys_arch_sem_wait(semaphore, 0);
 			osThreadResume(UartTaskHandle);
-			if (osThreadGetState(UartTaskHandle) == osThreadBlocked) {
-				osThreadResume(UartTaskHandle);
-			}
+
 			osThreadSuspend(target1ThreadID);
 			UDS_request_download(targetECU, downloadSize);
 		}
@@ -193,9 +191,7 @@ void UDS_RD_handle(TargetECU targetECU, uint8_t *responseFrame)
 	//wait for semaphore
 //	sys_sem_t *semaphore = (targetECU == PS_TARGET)? &udsSem1 : &udsSem2;
 //	sys_arch_sem_wait(semaphore, 0);
-	if (osThreadGetState(UartTaskHandle) == osThreadBlocked) {
-		osThreadResume(UartTaskHandle);
-	}
+
 	osThreadSuspend(target1ThreadID);
 
 	UDS_transfer_data(targetECU);
@@ -212,10 +208,7 @@ void UDS_TD_handle(TargetECU targetECU, uint8_t *responseFrame)
 //	semaphore = (targetECU == PS_TARGET)? &udsSem1 : &udsSem2;
 //	sys_arch_sem_wait(semaphore, 0);
 	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-//	HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-	if (osThreadGetState(UartTaskHandle) == osThreadBlocked) {
-		osThreadResume(UartTaskHandle);
-	}
+
 	osThreadSuspend(target1ThreadID);
 
 	if(dataFlag){
@@ -230,19 +223,9 @@ void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
 	//check crc
 
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-//	if(osThreadGetState(UartTaskHandle) != osThreadBlocked) {
-//		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
-//		HAL_Delay(100);
-//		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
-//	} else {
-//	}
 	HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
 	osThreadResume(UartTaskHandle);
 
-	if (osThreadGetState(UartTaskHandle) == osThreadBlocked) {
-		osThreadResume(UartTaskHandle);
-	}
 	osThreadSuspend(target1ThreadID);
 	UDS_request_download(targetECU, downloadSize);
 	HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
