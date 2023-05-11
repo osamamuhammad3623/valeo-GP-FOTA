@@ -161,7 +161,7 @@ uint8_t Flash_Memory_Erase(uint32_t StartSectorAddress , uint32_t dataSizeInByte
 	/* check if the erasing process is done correctly */
 	if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK)
 	{
-		/*Error occurred while erasing*/
+		/*Error occurred while page erase*/
 		return FAILED;
 	}
 
@@ -203,21 +203,6 @@ uint8_t Flash_Memory_Write(uint32_t StartSectorAddress ,uint32_t *data, uint32_t
 }
 
 
-void Flash_Memory_Read (uint32_t StartSectorAddress, uint32_t *buffer, uint16_t numofWords){
-
-	while (1)
-	{
-		/* store the data in the 32 bit array */
-		*buffer = *(uint32_t *)StartSectorAddress;
-		StartSectorAddress += 4;
-		buffer++;
-		if (!(numofWords--)) break;
-	}
-
-}
-
-
-
 
 uint8_t erase_inactive_bank(void){
 
@@ -244,13 +229,13 @@ uint8_t erase_inactive_bank(void){
 	EraseInitStruct.TypeErase     = FLASH_TYPEERASE_SECTORS;
 	EraseInitStruct.VoltageRange  = FLASH_VOLTAGE_RANGE_3;
 
-    /* Determine the start sector based on which Bank that will be erased */
+	/* Determine the start sector based on which Bank that will be erased */
 	switch (InactiveBank){
 	/*erase from sector 7 in case of bank 1*/
 	case FLASH_BANK_1:
 		EraseInitStruct.Sector        = MAIN_APP_SECTOR_BANK1;
 		break;
-	/*erase from sector 18 in case of bank 2*/
+		/*erase from sector 18 in case of bank 2*/
 	case FLASH_BANK_2:
 		EraseInitStruct.Sector        = MAIN_APP_SECTOR_BANK2;
 		break;
@@ -279,15 +264,76 @@ uint8_t erase_inactive_bank(void){
 }
 
 
+
+void Flash_Memory_Read (uint32_t StartSectorAddress, uint32_t *buffer, uint16_t numofWords){
+
+	while (1)
+	{
+		/* store the data in the 32 bit array */
+		*buffer = *(uint32_t *)StartSectorAddress;
+		StartSectorAddress += 4;
+		buffer++;
+		if (!(numofWords--)) break;
+	}
+
+}
+
+
+//
+//uint8_t erase_inactive_bank(void){
+//	static FLASH_EraseInitTypeDef EraseInitStruct;   /* Structure to erase the flash area */
+//	uint32_t SECTORError;
+//	uint32_t InactiveBank;
+//
+//	/*check the inactive bank to erase*/
+//	if(READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk)){
+//		/* active bank -> bank2
+//		 * inactive bank -> bank1
+//		 */
+//		InactiveBank=FLASH_BANK_1;
+//	}
+//	else{
+//		/* active bank -> bank1
+//		 * inactive bank -> bank2
+//		 */
+//		InactiveBank=FLASH_BANK_2;
+//	}
+//
+//	/* Filling the erasing structure */
+//	EraseInitStruct.TypeErase     = FLASH_TYPEERASE_MASSERASE;
+//	EraseInitStruct.VoltageRange  = FLASH_VOLTAGE_RANGE_3;
+//	EraseInitStruct.Banks=InactiveBank;
+//
+//
+//	/* Unlocking the Flash control register */
+//	HAL_FLASH_Unlock();
+//
+//	/* check if the erasing process is done correctly */
+//	if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK)
+//	{
+//		/*Error occurred while page erase*/
+//		return FAILED;
+//	}
+//
+//	/* Locking the Flash control register */
+//	HAL_FLASH_Lock();
+//
+//	return SUCCEED;
+//
+//
+//}
+
 uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataType dataType){
 	/* begin from the start
 	 * initialized only once, then increased at each call
 	 * depending on the data size that will be written */
-	static uint32_t StartAddress;
+	static uint32_t StartAddress=0;
 	uint32_t numofWords=dataSizeInWords;     /*getting number of words to write*/
 	uint32_t numofWordsWritten=0;
+	uint8_t result;
 
 	/*depending on the type of data to be written, the start address will be determined*/
+
 	switch (dataType){
 	case META_DATA:
 		/*check the inactive bank to write in*/
@@ -307,25 +353,31 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 		break;
 
 	case APP:
-		/*check the inactive bank to write in*/
-		if(READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk)){
-			/* active bank -> bank2
-			 * inactive bank -> bank1
-			 */
-			StartAddress=APP_START_ADDRESS_BANK1;
+		if (StartAddress==0){
+			/*check the inactive bank to write in*/
+			if(READ_BIT(FLASH->OPTCR, FLASH_OPTCR_BFB2_Msk)){
+				/* active bank -> bank2
+				 * inactive bank -> bank1
+				 */
+				StartAddress=APP_START_ADDRESS_BANK1;
+			}
+			else{
+				/* active bank -> bank1
+				 * inactive bank -> bank2
+				 */
+				StartAddress=APP_START_ADDRESS_BANK2;
+			}
 		}
 		else{
-			/* active bank -> bank1
-			 * inactive bank -> bank2
-			 */
-			StartAddress=APP_START_ADDRESS_BANK2;
+
 		}
 
 		break;
 	default:
-		return FAILED;
+		result= FAILED;
 
 	}
+
 
 
 	/* Unlocking the Flash control register */
@@ -342,7 +394,7 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 		else
 		{
 			/* Error occurred while writing data in Flash memory*/
-			return FAILED;
+			result= FAILED;
 		}
 
 	}
@@ -350,5 +402,9 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 	/* Locking the Flash control register */
 	HAL_FLASH_Lock();
 
-	return SUCCEED;
+	result= SUCCEED;
+	if (dataType == META_DATA){
+		StartAddress=0;
+	}
+	return result;
 }
