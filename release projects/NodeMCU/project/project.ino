@@ -215,27 +215,27 @@ void get_attributes()
 
 
   //getting crc struct for master from firebase
-  Firebase.RTDB.getInt(&fbdo, F("/CRC/master/image") , &master_crc_image );
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/Master ECU/image") , &master_crc_image );
   Serial1.println(master_crc_image);
   master_crc.image=master_crc_image;
-  Firebase.RTDB.getInt(&fbdo, F("/CRC/master/update_data") , &master_crc_update_data );
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/Master ECU/update_data") , &master_crc_update_data );
   master_crc.update_data=master_crc_update_data;
   Serial1.println(master_crc.update_data);
 
   //getting crc struct for target1 from firebase
-  Firebase.RTDB.getInt(&fbdo, F("/CRC/target_1/image") , &target1_crc_image );
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/Target 1/image") , &target1_crc_image );
   Serial1.println(target1_crc_image);
   
   target1_crc.image=target1_crc_image;
-  Firebase.RTDB.getInt(&fbdo, F("/CRC/target_1/update_data") , &target1_crc_update_data );
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/Target 1/update_data") , &target1_crc_update_data );
   Serial1.println(target1_crc_update_data);
   target1_crc.update_data=target1_crc_update_data;
 
   //getting crc struct for target2 from firebase
-  Firebase.RTDB.getInt(&fbdo, F("/CRC/target_2/image") , &target2_crc_image );
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/Target 2/image") , &target2_crc_image );
   Serial1.println(target2_crc_image);
   target2_crc.image=target2_crc_image;
-  Firebase.RTDB.getInt(&fbdo, F("/CRC/target_2/update_data") , &target2_crc_update_data );
+  Firebase.RTDB.getInt(&fbdo, F("/CRC/Target 2/update_data") , &target2_crc_update_data );
   Serial1.println(target2_crc_update_data);
   target2_crc.update_data=target2_crc_update_data;
 }
