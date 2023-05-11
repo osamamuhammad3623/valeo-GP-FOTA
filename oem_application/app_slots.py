@@ -17,7 +17,9 @@ def write_metadata_file(image_info):
     root_index = image_info["root_index"]
     size = str(image_info["size"])
     # for metadata parsing [abdo's 7antafa]:
-    if len(size) == 5:
+    if len(size) == 4:
+        size += "   "
+    elif len(size) == 5:
         size += "  "
     elif len(size) == 6:
         size += " "
@@ -78,7 +80,7 @@ def sign_metadata(img_num, server_password):
     binary_data = open(f"metadata_{img_num}.txt","rb").read()
     base64_data = base64.b64encode(binary_data).decode('utf-8')
     url2 = url+"/sign"
-    post_data ={"name": "metadata.txt", "content":base64_data, "password": server_password}
+    post_data ={"name": "metadata.txt", "content":base64_data,"username":"Alaa","password": server_password}
     response = requests.post(url2, json=post_data)
 
     data =response.json()
@@ -115,7 +117,7 @@ def sign_process(window):
     read_package_info(window)
     server_pass = window.server_password.text()
     if len(server_pass) < 5:
-        server_pass = "123456789"
+        server_pass = "987654321"
 
     # create metadata file for each image, then sign it,
     #       then combine the security bins in one binary

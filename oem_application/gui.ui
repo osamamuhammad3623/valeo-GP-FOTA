@@ -594,7 +594,7 @@
     </property>
     <item>
      <property name="text">
-      <string>Master ECU</string>
+      <string>MasterECU</string>
      </property>
     </item>
     <item>
@@ -655,7 +655,7 @@
     </property>
     <item>
      <property name="text">
-      <string>Master ECU</string>
+      <string>MasterECU</string>
      </property>
     </item>
     <item>
@@ -797,7 +797,7 @@
     </property>
     <item>
      <property name="text">
-      <string>Master ECU</string>
+      <string>MasterECU</string>
      </property>
     </item>
     <item>

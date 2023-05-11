@@ -1,7 +1,7 @@
 '''
 NOTES:
 target has the following values:
-    Master ECU
+    MasterECU
     Target 1
     Target 2
 
