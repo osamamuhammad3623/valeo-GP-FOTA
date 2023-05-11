@@ -2,7 +2,7 @@
  * NodeMCU_COM.c
  *
  *  Created on: Apr 24, 2023
- *      Author: Maria, Nada
+ *      Author: Maria, Nada, Maram
  */
 
 #include "NodeMCU_COM.h"
@@ -22,6 +22,7 @@ uint8_t target_update[NUM_OF_TARGETS] = {0};
 uint8_t current_version_number[3] = {1, 1, 1};
 uint8_t new_version_number[3];
 
+osThreadId_t masterEraseMemory;
 /*******************************************************************************
  *                      Functions Implementations		*
  *******************************************************************************/
@@ -70,27 +71,30 @@ void UART_packageDetection(void)
 	new_version_number[1] = data_received[3];
 	new_version_number[2] = data_received[4];
 
-	target_update[0] = data_received[5] && (1 << 0);
-	target_update[1] = data_received[5] && (1 << 1);
-	target_update[2] = data_received[5] && (1 << 2);
-
-	//signal semaphore to start connection
-	sys_sem_signal(&udsSem1);
-
-	if(target_update[0]){
-		//erase mem
-		//erase_inactive_bank();
-	}
+	target_update[0] = (data_received[5] & (1 << 0))>>0;
+	target_update[1] = (data_received[5] & (1 << 1))>>1;
+	target_update[2] = (data_received[5] & (1 << 2))>>2;
 
 	uint8_t downloadPackageFrame[] = {DOWNLOAD_PACKAGE, new_version_number[0], new_version_number[1], new_version_number[2]};
 	HAL_UART_Transmit(&huart2, (uint8_t *)downloadPackageFrame, sizeof(downloadPackageFrame), HAL_MAX_DELAY);
+
+	if(target_update[0]){
+		// create task for erasing master inactive bank
+		masterEraseMemory = sys_thread_new("masterEraseMemory_thread", masterEraseMemory_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal1);
+	}
+
+	if (target_update[1] || target_update[2]) {
+		// Increase priority of uds task to start connection
+		osThreadSetPriority(UdsTaskHandle, osPriorityNormal2);
+	}
+
 	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 1, HAL_MAX_DELAY);
 }
 
 void UART_getTargetUpdate(void)
 {
 	static uint8_t fileType = META_DATA;
-	static uint8_t counter = -1;
+	static int8_t counter = -1;
 
 	if(fileType == META_DATA){
 		counter = (counter==-1) ? 1 : (counter==1) ? 2 : (counter==2) ? 0 : 4;
@@ -104,9 +108,16 @@ void UART_getTargetUpdate(void)
 				targetToUpdate = counter;
 				break;
 			}
-			counter = (counter==2) ? 0 : counter+1;
+			counter = (counter==1) ? 2 : (counter==2) ? 0 : 4;
+			if(counter == 4){
+				//seq finished
+				downloadFinishedFlag = 1;
+				return;
+			}
 		}
 	}
+
+	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 
 	uint8_t getTargetUpdateFrame[] = {GET_TARGET_UPDATE, targetToUpdate, fileType};
 	HAL_UART_Transmit(&huart2, (uint8_t *)getTargetUpdateFrame, sizeof(getTargetUpdateFrame), HAL_MAX_DELAY);
@@ -128,12 +139,10 @@ void UART_getDownloadSize(void)
 	downloadSize = (((uint32_t)data_received[1])<<2*8 |((uint32_t)data_received[2])<<8 |((uint32_t)data_received[3]));
 
 	if(targetToUpdate != 0){
-		//signal semaphore to send uds request download
-		sys_sem_t *semaphore = (targetToUpdate == 1)? &udsSem1 : &udsSem2;
-		sys_sem_signal(semaphore);
-
-		//wait for semaphore to get chunk size
-		sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
+		// Resume target task to send uds request download
+		osThreadResume(target1ThreadID);
+		// Suspend UART task to get chunk size
+		osThreadSuspend(UartTaskHandle);
 	}
 	else{
 		chunkSize = ARRAY_SIZE;	//can be changed
@@ -150,33 +159,30 @@ void UART_getDownloadSize(void)
 
 void UART_handleData(void)
 {
-	sys_sem_t *semaphore;
-
+	uint8_t errorState;
+	uint16_t size = (downloadSize > chunkSize) ? chunkSize : downloadSize;
 	//forward data to target or flash here
 	switch(targetToUpdate){
 	case 0:
 		//flash
+		errorState = flash_memory_write((uint32_t *)data_received, (uint32_t)size/4, APP);
 		break;
 
 	case 1:
 	case 2:
-		//signal semaphore to send uds transfer data
-		semaphore = (targetToUpdate == 1)? &udsSem1 : &udsSem2;
-		sys_sem_signal(semaphore);
-
-		//wait for semaphore
-		sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
+		// Resume target task to send uds transfer data
+		osThreadResume(target1ThreadID);
+		osThreadSuspend(UartTaskHandle);
 		break;
 
 	default:
 		break;
 	}
 
-	//ok or not ok!
-	uint8_t okFrame[] = {OK};
-	HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
-
 	if(downloadSize > chunkSize){
+		//ok or not ok!
+		uint8_t okFrame[] = {OK};
+		HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
 		downloadSize -= chunkSize;
 		uint16_t size = (downloadSize > chunkSize) ? chunkSize : downloadSize;
 		HAL_UART_Receive(&huart2, (uint8_t *)data_received, size, HAL_MAX_DELAY);
@@ -184,10 +190,18 @@ void UART_handleData(void)
 	else{
 		dataFlag = 0;
 
-		//signal semaphore to send uds request transfer exit
-		sys_sem_t *semaphore = (targetToUpdate == 1)? &udsSem1 : (targetToUpdate == 2)? &udsSem2 : NULL;
-		sys_sem_signal(semaphore);
+		osDelay(1);
+		if (targetToUpdate != 0) {
+		// Resume target task to send uds request transfer exit
+			osThreadResume(target1ThreadID);
+			osThreadSuspend(UartTaskHandle);
+		}
 
 		UART_getTargetUpdate();
 	}
+}
+
+static void masterEraseMemory_thread(void *arg) {
+	erase_inactive_bank();
+	osThreadTerminate(masterEraseMemory);
 }

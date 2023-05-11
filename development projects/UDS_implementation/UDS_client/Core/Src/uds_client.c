@@ -8,8 +8,8 @@
  *******************************************************************************/ 
 #include "uds_client.h"
 
+uint8_t target1InstalledFlag = 0;
 uint8_t transferDataFrame[ARRAY_SIZE + 1];
-
 /*******************************************************************************
  *                      Functions Implementations		* 
  *******************************************************************************/ 
@@ -76,11 +76,6 @@ void UDS_transfer_data(TargetECU targetECU)
 		transferDataFrame[i+1] = data_received[i];
 	}
 	tcp_SendMessage(targetECU, transferDataFrame, size+1);
-
-	/* Blink LED to indicate chunk is sent */
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 }
 
 void UDS_request_transfer_exit(TargetECU targetECU)
@@ -159,9 +154,9 @@ void UDS_RC_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
 	if(responseFrame[1] == RC_START_ROUTINE){
 		if(responseFrame[2] == 0xFF && responseFrame[3] == 0x00){
-			//tell uart task that target is ready ... wait for semaphore
-			sys_sem_t *semaphore = (targetECU == PS_TARGET)? &udsSem1 : &udsSem2;
-			sys_arch_sem_wait(semaphore, HAL_MAX_DELAY);
+			//tell uart task that target is ready to receive data
+			osThreadResume(UartTaskHandle);
+			osThreadSuspend(target1ThreadID);
 			UDS_request_download(targetECU, downloadSize);
 		}
 		else{
@@ -178,26 +173,22 @@ void UDS_RD_handle(TargetECU targetECU, uint8_t *responseFrame)
 	//adjust global var (chunkSize) and start sending data after receiving it from uart
 	chunkSize = (((uint32_t)responseFrame[1])<<8 |((uint32_t)responseFrame[2]));
 
-	//give semaphore for uart task to get file with appropriate chunk size
-	sys_sem_signal(&uartSem);
+	//resume uart task to get file with appropriate chunk size
+	osThreadResume(UartTaskHandle);
+	osThreadSuspend(target1ThreadID);
 
-	//wait for semaphore
-	sys_sem_t *semaphore = (targetECU == PS_TARGET)? &udsSem1 : &udsSem2;
-	sys_arch_sem_wait(semaphore, HAL_MAX_DELAY);
 	UDS_transfer_data(targetECU);
 }
 
 void UDS_TD_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
-	//give semaphore for uart task to ack that data is sent correctly and ready for next chunk
-	sys_sem_signal(&uartSem);
-
-	//wait for semaphore
-	sys_sem_t *semaphore;
-	semaphore = (targetECU == PS_TARGET)? &udsSem1 : &udsSem2;
-	sys_arch_sem_wait(semaphore, HAL_MAX_DELAY);
+	//resume uart task to ack that data is sent correctly and ready for next chunk
+	osThreadResume(UartTaskHandle);
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	osThreadSuspend(target1ThreadID);
 
 	if(dataFlag){
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 		UDS_transfer_data(targetECU);
 	}else{
 		UDS_request_transfer_exit(targetECU);
@@ -208,9 +199,16 @@ void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
 	//check crc
 
-	//ecu reset for testing
-	uint8_t resetType = (uint8_t) ER_SOFT_RESET;
-	UDS_ecu_reset(targetECU, resetType);
+	osThreadResume(UartTaskHandle);
+	osThreadSuspend(target1ThreadID);
+
+	if (!installationReadyFlag) {
+		UDS_request_download(targetECU, downloadSize);
+	} else {
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+		uint8_t resetType = (uint8_t) ER_SOFT_RESET;
+		UDS_ecu_reset(targetECU, resetType);
+	}
 }
 
 void UDS_ER_handle(TargetECU targetECU, uint8_t *responseFrame)
@@ -219,6 +217,9 @@ void UDS_ER_handle(TargetECU targetECU, uint8_t *responseFrame)
 	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+
+	installationReadyFlag = 0;
+	target1InstalledFlag = 1;
 }
 
 void UDS_negative_response_handle(TargetECU targetECU, uint8_t *responseFrame)

@@ -2,7 +2,7 @@
  * NodeMCU_COM.h
  *
  *  Created on: Apr 24, 2023
- *      Author: Maria, Nada
+ *      Author: Maria, Nada, Maram
  */
 
 #ifndef INC_NODEMCU_COM_H_
@@ -53,5 +53,6 @@ void UART_getTargetUpdate(void);
 void UART_downloadFailed(void);
 void UART_getDownloadSize(void);
 void UART_handleData(void);
+static void masterEraseMemory_thread(void *arg);
 
 #endif /* INC_NODEMCU_COM_H_ */

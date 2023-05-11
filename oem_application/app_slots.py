@@ -191,7 +191,7 @@ def upload_process(window):
             targeted_ecus = targeted_ecus | (1<<2)
 
         # determine directories
-        security_dir = f"OEM/{current_pckg}/{target}/Security/"
+        security_dir = f"OEM/{current_pckg}/{target}/Secure/"
         binary_dir = f"OEM/{current_pckg}/{target}/Binary/"
 
         # set the CRC of the image & combined file in realtime attributes

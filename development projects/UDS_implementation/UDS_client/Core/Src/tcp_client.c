@@ -12,6 +12,9 @@
 void (*uds_req_clbk) (TargetECU targetECU);
 void (*uds_recv_resp_clbk) (TargetECU targetECU, uint8_t *responseFrame);
 
+osThreadId_t target1ThreadID;
+osThreadId_t target2ThreadID;
+extern osThreadId_t UartTaskHandle;
 //====================================================================
 static struct netconn *conn1;
 static struct netconn *conn2;
@@ -39,6 +42,7 @@ static void tcpinit_thread(void *arg)
 	struct netbuf *buf;
 	err_t err, connect_error;
 	ip_addr_t dest_addr;
+	osThreadId_t targetThreadID;
 
 
 	// Extract the IP address, port number and the target ECU
@@ -53,9 +57,11 @@ static void tcpinit_thread(void *arg)
 	if (target_ECU == PS_TARGET) {
 		conn1 = netconn_new(NETCONN_TCP);
 		conn = conn1;
+		targetThreadID = target1ThreadID;
 	} else {
 		conn2 = netconn_new(NETCONN_TCP);
 		conn = conn2;
+		targetThreadID = target2ThreadID;
 	}
 
 	if (conn!=NULL) // conn
@@ -69,12 +75,23 @@ static void tcpinit_thread(void *arg)
 			err = ipaddr_aton(ip_address, &dest_addr);
 			//dest_port = 10;  // server port
 
+			//suspend UART task to start connection
+			osThreadSuspend(UartTaskHandle);
+
 			/* Connect to the TCP Server */
 			connect_error = netconn_connect(conn, &dest_addr, dest_port);
 
 			// If the connection to the server is established, the following will continue, else delete the connection
 			if (connect_error == ERR_OK)
 			{
+				/* Blink LED to indicate connection is successful */
+				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+				HAL_Delay(500);
+				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
+
+				//make target task priority the same as that of UART task
+				osThreadSetPriority(targetThreadID, osPriorityNormal1);
+
 				// UDS_req callback
 				uds_req_clbk(target_ECU);
 
@@ -142,13 +159,13 @@ void tcpclient_init (uint8_t* targetToConnectWith)
 		target_1.portNum = 10;
 		target_1.targetECU = PS_TARGET;
 
-		sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+		target1ThreadID = sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_1, DEFAULT_THREAD_STACKSIZE,osPriorityNormal2);
 	}
 	if (targetToConnectWith[2]) {
 		target_2.ip_add = "169.254.84.57";
 		target_2.portNum = 7;
 		target_2.targetECU = WIPERS_TARGET;
 
-		sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_2, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+		target2ThreadID = sys_thread_new("tcpinit_thread", tcpinit_thread, (void*)&target_2, DEFAULT_THREAD_STACKSIZE,osPriorityNormal2);
 	}
 }

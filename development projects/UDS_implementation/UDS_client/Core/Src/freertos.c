@@ -28,6 +28,7 @@
 #include "NodeMCU_COM.h"
 #include "usart.h"
 #include "uds_client.h"
+#include "bootloader.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,9 +48,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-sys_sem_t uartSem;
-sys_sem_t udsSem1;
-sys_sem_t udsSem2;
+uint8_t installationReadyFlag = 0;
 /* USER CODE END Variables */
 /* Definitions for UdsTask */
 osThreadId_t UdsTaskHandle;
@@ -65,6 +64,13 @@ const osThreadAttr_t UartTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal1,
 };
+/* Definitions for InstallTask */
+osThreadId_t InstallTaskHandle;
+const osThreadAttr_t InstallTask_attributes = {
+  .name = "InstallTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal1,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -72,6 +78,7 @@ const osThreadAttr_t UartTask_attributes = {
 
 void StartUdsTask(void *argument);
 void StartUartTask(void *argument);
+void StartInstallTask(void *argument);
 
 extern void MX_LWIP_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -109,6 +116,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of UartTask */
   UartTaskHandle = osThreadNew(StartUartTask, NULL, &UartTask_attributes);
 
+  /* creation of InstallTask */
+  InstallTaskHandle = osThreadNew(StartInstallTask, NULL, &InstallTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -131,8 +141,16 @@ void StartUdsTask(void *argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN StartUdsTask */
-  sys_arch_sem_wait(&udsSem1, HAL_MAX_DELAY);
+/*----------------------------------------------------------------*/
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+  HAL_Delay(500);
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+/*----------------------------------------------------------------*/
   UDS_init(target_update);
+//  osThreadSetPriority(UdsTaskHandle, osPriorityNormal);
+  osThreadTerminate(UdsTaskHandle);
+  // Terminate task !!!!!
+
   /* Infinite loop */
   for(;;)
   {
@@ -162,10 +180,44 @@ void StartUartTask(void *argument)
 			UART_stateHandler();
 		}
 		else{
-			//sys_arch_sem_wait(&uartSem, HAL_MAX_DELAY);
+			// Do Nothing
 		}
 	}
   /* USER CODE END StartUartTask */
+}
+
+/* USER CODE BEGIN Header_StartInstallTask */
+/**
+* @brief Function implementing the InstallTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartInstallTask */
+void StartInstallTask(void *argument)
+{
+  /* USER CODE BEGIN StartInstallTask */
+  /* Infinite loop */
+  for(;;)
+  {
+	if (downloadFinishedFlag && HAL_GPIO_ReadPin(USER_Btn_GPIO_Port, USER_Btn_Pin) == GPIO_PIN_SET) {
+		installationReadyFlag = 1;
+		//ask user to install
+
+		osThreadTerminate(UartTaskHandle);
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+		if (target_update[1]) {
+			osThreadResume(target1ThreadID);
+		}
+	}
+	if (target_update[0] && target1InstalledFlag) {
+		// reboot
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+		bootloader_switch_to_inactive_bank();
+		bootloader_reboot();
+	}
+    osDelay(1);
+  }
+  /* USER CODE END StartInstallTask */
 }
 
 /* Private application code --------------------------------------------------*/
