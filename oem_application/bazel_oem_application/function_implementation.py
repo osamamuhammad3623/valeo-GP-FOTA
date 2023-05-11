@@ -17,7 +17,9 @@ def write_metadata_file(image_info):
     root_index = image_info["root_index"]
     size = str(image_info["size"])
     # for metadata parsing [abdo's 7antafa]:
-    if len(size) == 5:
+    if len(size) == 4:
+        size += "   "
+    elif len(size) == 5:
         size += "  "
     elif len(size) == 6:
         size += " "
@@ -29,6 +31,7 @@ def write_metadata_file(image_info):
     metadata_file_byte = open(f'metadata_{img_num}.txt', 'ab') # write digest in bytes mode
     metadata_file_byte.write(digest)
     metadata_file_byte.close()
+    print(f"[IMAGE {img_num}] Metadata file created successfully.")
 
 
 def get_package_data():
@@ -67,7 +70,7 @@ def sign_metadata(img_num):
     binary_data = open(f"metadata_{img_num}.txt","rb").read()
     base64_data = base64.b64encode(binary_data).decode('utf-8')
     url2 = url+"/sign"
-    post_data ={"name": "metadata.txt", "content":base64_data,"username": SIGNING_SERVER_USERNAME,"password": SIGNING_SERVER_PASSWORD}
+    post_data ={"name": "metadata.txt", "content":base64_data,"username":SIGNING_SERVER_USERNAME,"password": SIGNING_SERVER_PASSWORD}
     response = requests.post(url2, json=post_data)
 
     data =response.json()
@@ -78,7 +81,6 @@ def sign_metadata(img_num):
         Root_der_cert_bin = base64.b64decode(Root_der_cert_base64)
         SB_der_cert_bin = base64.b64decode(SB_der_cert_base64)
         signature_bin = base64.b64decode(signature_base64)
-
         with open('ROOT__cert.bin', 'wb') as file:
             file.write(Root_der_cert_bin)
         with open('SB_cert.bin', 'wb') as file:
@@ -90,7 +92,6 @@ def sign_metadata(img_num):
     else:
         print(data["detail"])
         return False
-
 
 '''
 when the user presses Signing Request button:
