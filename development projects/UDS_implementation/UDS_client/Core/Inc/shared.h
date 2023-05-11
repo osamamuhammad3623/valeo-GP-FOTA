@@ -17,9 +17,12 @@
 extern osThreadId_t UartTaskHandle;
 extern osThreadId_t UdsTaskHandle;
 extern osThreadId_t target1ThreadID;
+extern osThreadId_t InstallTaskHandle;
 
 //data related variables
 extern uint8_t dataFlag;
+extern uint8_t installationReadyFlag;
+extern uint8_t target1InstalledFlag;
 extern uint16_t chunkSize;
 extern uint32_t downloadSize;
 extern uint8_t data_received[ARRAY_SIZE];	//cannot be variable size!

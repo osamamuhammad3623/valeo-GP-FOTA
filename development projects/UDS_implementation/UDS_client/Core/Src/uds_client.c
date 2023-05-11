@@ -8,6 +8,7 @@
  *******************************************************************************/ 
 #include "uds_client.h"
 
+uint8_t target1InstalledFlag = 0;
 uint8_t transferDataFrame[ARRAY_SIZE + 1];
 /*******************************************************************************
  *                      Functions Implementations		* 
@@ -198,13 +199,16 @@ void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
 	//check crc
 
-	HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
 	osThreadResume(UartTaskHandle);
 	osThreadSuspend(target1ThreadID);
 
-	UDS_request_download(targetECU, downloadSize);
-	HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	if (!installationReadyFlag) {
+		UDS_request_download(targetECU, downloadSize);
+	} else {
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+		uint8_t resetType = (uint8_t) ER_SOFT_RESET;
+		UDS_ecu_reset(targetECU, resetType);
+	}
 }
 
 void UDS_ER_handle(TargetECU targetECU, uint8_t *responseFrame)
@@ -213,6 +217,9 @@ void UDS_ER_handle(TargetECU targetECU, uint8_t *responseFrame)
 	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+
+	installationReadyFlag = 0;
+	target1InstalledFlag = 1;
 }
 
 void UDS_negative_response_handle(TargetECU targetECU, uint8_t *responseFrame)

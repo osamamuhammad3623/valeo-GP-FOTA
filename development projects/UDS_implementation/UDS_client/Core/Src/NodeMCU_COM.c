@@ -2,7 +2,7 @@
  * NodeMCU_COM.c
  *
  *  Created on: Apr 24, 2023
- *      Author: Maria, Nada
+ *      Author: Maria, Nada, Maram
  */
 
 #include "NodeMCU_COM.h"
