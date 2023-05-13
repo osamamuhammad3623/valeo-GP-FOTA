@@ -1,35 +1,49 @@
 /*
- * flash_memory.h
+ * flash_memory_v2.h
  *
- *  Created on: Dec 3, 2022
+ *  Created on: May 11, 2023
  *      Author: Nada Youssef
  */
 
-#ifndef INC_FLASH_MEMORY_H_
-#define INC_FLASH_MEMORY_H_
-
+#ifndef FLASH_MEMORY_V2_H_
+#define FLASH_MEMORY_V2_H_
 #include "stm32f4xx_hal.h"
 
-/******************************* DEFINITIONS **************************/
+/******************************************************************************/
+/******************************************************************************/
+/******************************** Definitions *********************************/
+/******************************************************************************/
+/******************************************************************************/
 #define SUCCEED              1
 #define FAILED               0
 
-#define APP_START_ADDRESS_BANK1        0x08002100
-#define APP_START_ADDRESS_BANK2        0x08100000 //0x08102100
-#define META_DATA_START_ADDRESS_BANK1  0x08002000
-#define META_DATA_START_ADDRESS_BANK2  0x08102000
+#define APP_START_ADDRESS_BANK1        0x08060000    //sector 7
+#define APP_START_ADDRESS_BANK2        0x08140000    //sector 18
+#define COM_DATA_START_ADDRESS_BANK1  0x08040000     //sector 6
+#define COM_DATA_START_ADDRESS_BANK2  0x08120000     //sector 17
 
-#define MAIN_APP_SECTOR_BANK1          FLASH_SECTOR_7
-#define MAIN_APP_SECTOR_BANK2          FLASH_SECTOR_12; // FLASH_SECTOR_18
+#define START_SECTOR_BANK1          FLASH_SECTOR_6
+#define START_SECTOR_BANK2          FLASH_SECTOR_17;
 
+#define BANK1                           0U            //Bank1
+#define BANK2                           1U            //Bank2
 
-/************************* TYPES DDECLERATIONS ************************/
+#define APP_SELECTOR_REG               4U            //RTC_REG
+/******************************************************************************/
+/******************************************************************************/
+/**************************** TYPES DDECLERATIONS *****************************/
+/******************************************************************************/
+/******************************************************************************/
 typedef enum
 {
-	META_DATA,APP
+	COM_DATA,APP
 }FLASH_DataType;
 
-/************************* FUNCTION PROTOTYPING ***********************/
+/******************************************************************************/
+/******************************************************************************/
+/*************************** Functions Prototypes *****************************/
+/******************************************************************************/
+/******************************************************************************/
 /*
  * Description:
  * Function to erase data from specific sector in the flash memory given the start address
@@ -60,4 +74,8 @@ uint8_t Flash_Memory_Write(uint32_t StartSectorAddress ,uint32_t *data, uint32_t
  * */
 void Flash_Memory_Read (uint32_t StartSectorAddress, uint32_t *buffer, uint16_t numofWords);
 
-#endif /* INC_FLASH_MEMORY_H_ */
+uint8_t read_backup_reg(uint8_t reg);
+
+void write_backup_reg(uint8_t reg, uint32_t data) ;
+
+#endif /* FLASH_MEMORY_V2_H_ */

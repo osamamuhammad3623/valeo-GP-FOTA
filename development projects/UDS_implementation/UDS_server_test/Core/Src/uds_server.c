@@ -22,6 +22,7 @@ uint8_t isDataFrame = 0;
 uint32_t CRC_result; 
 uint32_t downloadSize;
 
+FLASH_DataType fileType = COM_DATA;
 UDS_Session currentSession;
 UDS_Security_Access currentAccessState;
 
@@ -278,7 +279,7 @@ void UDS_process_data(uint8_t *requestFrame)
 		isDataFrame = 0;
 	}
 
-	errorState = flash_memory_write((uint32_t *)dataBytes, dataSizeInWords, APP); // always APP just for testing
+	errorState = flash_memory_write((uint32_t *)dataBytes, dataSizeInWords, fileType); /////////
 
 	if (errorState == FAILED)
 	{
@@ -311,6 +312,11 @@ void UDS_exit_download(uint8_t *requestFrame)
 
 	// send response with final CRC
 	uint8_t crcResult[] = {((uint32_t)CRC_result&(0xFF000000))>>(8*3), ((uint32_t)CRC_result&(0x00FF0000))>>(8*2), ((uint32_t)CRC_result&(0x0000FF00))>>8, CRC_result&(0x000000FF)};
+
+	__HAL_CRC_DR_RESET(&hcrc);
+
+	fileType = (fileType == COM_DATA) ? APP : COM_DATA; ///////
+
 	uint8_t responseFrame[] = {REQUEST_TRANSFER_EXIT + POSITIVE_RESPONSE_OFFSET, crcResult[0], crcResult[1], crcResult[2], crcResult[3]};
 	tcp_SendResponse(responseFrame, sizeof(responseFrame));
 }
@@ -336,7 +342,9 @@ void UDS_reboot(uint8_t *requestFrame)
 	tcp_SendResponse(responseFrame, sizeof(responseFrame));
 
 	// reboot
-	bootloader_switch_to_inactive_bank();
+//	bootloader_switch_to_inactive_bank();
+	uint8_t currentApp = read_backup_reg(4);
+	write_backup_reg(4, !currentApp);
 	bootloader_reboot();
 }
 
