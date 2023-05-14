@@ -171,8 +171,10 @@ def upload_process():
         
         # get the targeted ECU
         target = image["target"]
+        # get the application linking address index
+        linking_index = image["linking_address_index"]
 
-        if target == "Master ECU":
+        if target == "MasterECU":
             targeted_ecus = targeted_ecus | (1<<0)
         elif target == "Target 1":
             targeted_ecus = targeted_ecus | (1<<1)
@@ -180,8 +182,8 @@ def upload_process():
             targeted_ecus = targeted_ecus | (1<<2)
 
         # determine directories
-        security_dir = f"OEM/{current_pckg}/{target}/Secure/"
-        binary_dir = f"OEM/{current_pckg}/{target}/Binary/"
+        security_dir = f"OEM/{target}/Secure/"
+        binary_dir = f"OEM/{target}/Binary/"
 
         # set the CRC of the image & combined file in realtime attributes
         realtime_attributes["crc"][target]["image"] = image["crc"]
@@ -189,8 +191,8 @@ def upload_process():
 
         print(f"[IMAGE {i}] Uploading the image files to Firebase")
         # upload image files
-        firebase_connection.firebase_upload_file(f"{security_dir}combined.bin", f"combined_{i}.bin")
-        firebase_connection.firebase_upload_file(f"{binary_dir}app.bin", image["path"])
+        firebase_connection.firebase_upload_file(f"{security_dir}meta{linking_index}.txt", f"combined_{i}.bin")
+        firebase_connection.firebase_upload_file(f"{binary_dir}app{linking_index}.txt", image["path"])
 
     # read package attributes
     realtime_attributes["is_urgent"] = package_info["urgency"]
