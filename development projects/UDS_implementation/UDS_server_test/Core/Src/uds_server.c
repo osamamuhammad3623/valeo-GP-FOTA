@@ -23,6 +23,7 @@ uint32_t CRC_result;
 uint32_t downloadSize;
 
 FLASH_DataType fileType = COM_DATA;
+//FLASH_DataType fileType = META_DATA;
 UDS_Session currentSession;
 UDS_Security_Access currentAccessState;
 
@@ -275,7 +276,11 @@ void UDS_process_data(uint8_t *requestFrame)
 	if (downloadSize >= CHUNK_SIZE) {
 		dataSizeInWords = CHUNK_SIZE/4;
 	} else {
-		dataSizeInWords = downloadSize/4;
+		if (downloadSize%4 == 0) {
+			dataSizeInWords = downloadSize/4;
+		} else {
+			dataSizeInWords = downloadSize/4 + 1;
+		}
 		isDataFrame = 0;
 	}
 
@@ -316,6 +321,7 @@ void UDS_exit_download(uint8_t *requestFrame)
 	__HAL_CRC_DR_RESET(&hcrc);
 
 	fileType = (fileType == COM_DATA) ? APP : COM_DATA; ///////
+//	fileType = (fileType == META_DATA) ? APP : META_DATA;
 
 	uint8_t responseFrame[] = {REQUEST_TRANSFER_EXIT + POSITIVE_RESPONSE_OFFSET, crcResult[0], crcResult[1], crcResult[2], crcResult[3]};
 	tcp_SendResponse(responseFrame, sizeof(responseFrame));

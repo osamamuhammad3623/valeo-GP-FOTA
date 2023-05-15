@@ -8,7 +8,7 @@
 #ifndef INC_TCP_SERVER_H_
 #define INC_TCP_SERVER_H_
 
-#define CHUNK_SIZE						20000U
+#define CHUNK_SIZE						5000 //20000U
 
 void tcpserver_init (void);
 void tcp_SendResponse(uint8_t *data , int len);

@@ -281,12 +281,16 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 	uint32_t numofWords=dataSizeInWords;     /*getting number of words to write*/
 	uint32_t numofWordsWritten=0;
 	uint8_t result;
+	static uint8_t ComFlag=0;
+	static uint8_t AppFlag=0;
+
 
 	/*depending on the type of data to be written, the start address will be determined*/
 
 	switch (dataType){
 	case COM_DATA:
 		/*check the inactive bank to write in*/
+		if (ComFlag==0){
 		if(read_backup_reg(APP_SELECTOR_REG)){
 			/* active bank -> bank2
 			 * inactive bank -> bank1
@@ -299,11 +303,16 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 			 */
 			StartAddress=COM_DATA_START_ADDRESS_BANK2;
 		}
+		ComFlag=1;
+		}
+		else{
+
+		}
 
 		break;
 
 	case APP:
-		if (StartAddress==0){
+		if (AppFlag==0){
 		/*check the inactive bank to write in*/
 		if(read_backup_reg(APP_SELECTOR_REG)){
 			/* active bank -> bank2
@@ -317,6 +326,7 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 			 */
 			StartAddress=APP_START_ADDRESS_BANK2;
 		}
+		AppFlag=1;
 		}
 		else{
 
@@ -353,12 +363,12 @@ uint8_t flash_memory_write(uint32_t *data, uint32_t dataSizeInWords, FLASH_DataT
 	HAL_FLASH_Lock();
 
 	result= SUCCEED;
-	if (dataType == COM_DATA){
-		StartAddress=0;
-	}
-	else{
-
-	}
+//	if (dataType == COM_DATA){
+//		StartAddress=0;
+//	}
+//	else{
+//
+//	}
 
 	return result;
 }
