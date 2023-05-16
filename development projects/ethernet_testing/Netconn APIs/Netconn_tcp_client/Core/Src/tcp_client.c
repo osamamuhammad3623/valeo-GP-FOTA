@@ -1,7 +1,7 @@
 /*
  * tcp_client.c
  *
- *  Created on: Feb 24, 2023
+ *  Created on: MAy 17, 2023
  *      Author: Kyrillos Sawiris
  */
 
@@ -13,6 +13,8 @@
 #include "tcp_client.h"
 #include "string.h"
 
+
+#define MAX_BACKOFF_MS 100000
 //=============================================================================
 
 //============netconn parameters=============================================
@@ -32,7 +34,7 @@ char* ProgramToSend = (char*)0x10000000;
 
 // Function to send the data to the server
 static void tcp_ReseveMessage (void );
-void tcp_SendMessage (char *Message , int messageLength);
+
 
 //==========================================================
 
@@ -69,25 +71,89 @@ void UDS_receive_response(char* message)
 	}
 }
 
-void tcp_SendMessage (char *Message , int messageLength)
+
+
+
+static void tcpinit_thread(void *arg)
 {
-	err_t err;
-	err = netconn_write(conn, Message, messageLength, NETCONN_COPY);
-	printf("Receive Error -->ERR = %d",err);
+
+	err_t err, connect_error;
+	 TickType_t backoff = 5000 ;
+	IP_ADDR4(&dest_addr, 169, 254, 84, 57);/* The designation IP address */
+	dest_port = 10;  // server port
+
+	while(1)
+	{
+		//First Try to connect
+		backoff = 5000 ;
+		conn = netconn_new(NETCONN_TCP);//make new tcp connection
+
+		if (conn!=NULL)
+		{
+			err = netconn_bind(conn, IP_ADDR_ANY, 10);/* Bind connection to the port number 10 (port of the Client). */
+			if (err == ERR_OK)
+			{
+				connect_error = netconn_connect(conn, &dest_addr, dest_port);/* Connect to the TCP Server */
+			}
+		}
+
+		while(connect_error != ERR_OK)
+		{
+			osDelay(backoff);
+
+			//delete conn
+			netconn_delete(conn);
+			conn = netconn_new(NETCONN_TCP);//make new tcp connection
+
+			if (conn!= NULL)
+			{
+				err = netconn_bind(conn, IP_ADDR_ANY, 10);/* Bind connection to the port number 10 (port of the Client). */
+				if (err == ERR_OK)
+				{
+					connect_error = netconn_connect(conn, &dest_addr, dest_port);/* Connect to the TCP Server */
+				}
+			}
+			if(backoff < MAX_BACKOFF_MS)
+			backoff *=2;
+		}
+		//send a "hi" message at first
+		int messageLength = sprintf(ToSendMessage , "hi");
+		err = tcp_SendMessage(ToSendMessage, messageLength);
+		if(err == ERR_OK)
+		{
+			//start receiving
+			tcp_ReseveMessage();
+		}
+
+		/* Close connection and discard connection identifier. */
+		netconn_close(conn);
+		netconn_delete(conn);
+
+
+
+		osDelay(20000);
+
+	}
 
 }
 
-static void tcp_ReseveMessage (void)
+
+
+err_t tcp_SendMessage (char *Message , int messageLength)
 {
 	err_t err;
+	err = netconn_write(conn, Message, messageLength, NETCONN_COPY);
+	return err;
+}
+
+
+static void tcp_ReseveMessage (void)
+{
 
 	while (1)
 	{
 		/* wait until the data is sent by the server */
-		err = netconn_recv(conn, &buf);
-		printf("Receive Error -->ERR = %d",err);
-
-		if(err == ERR_OK)
+		if (netconn_recv(conn, &buf) == ERR_OK)
 		{
 			/* If there is some data remaining to be sent, the following process will continue */
 			do
@@ -100,63 +166,8 @@ static void tcp_ReseveMessage (void)
 
 			netbuf_delete(buf);
 		}
-		else if(err == ERR_CLSD)
+		else
 			break;
-	}
-}
-
-//
-//
-//
-//
-//
-//
-//
-void netconn_tcp_client_task(void *pvParameters)
-{
-	ip_addr_t server_ip;
-	err_t err;
-	const TickType_t xTicksToWait = pdMS_TO_TICKS(5000); // 1 second timeout
-
-	// Set up the server IP address
-	IP4_ADDR(&server_ip, 169, 254, 84, 57);
-
-	while (1)
-	{
-		// Create a new Netconn connection object
-		conn = netconn_new(NETCONN_TCP);
-
-		/* Bind connection to the port number 10 (port of the Client). */
-		netconn_bind(conn, IP_ADDR_ANY, 10);
-
-		// Connect to the remote server
-		err = netconn_connect(conn, &server_ip, 10);
-
-		while (err != ERR_OK)
-		{
-			netconn_delete(conn);
-			conn = NULL; // Reset the connection object
-			if (conn == NULL) {
-				// Create a new Netconn connection object
-				conn = netconn_new(NETCONN_TCP);
-				netconn_bind(conn, IP_ADDR_ANY, 10);
-			}
-			vTaskDelay(xTicksToWait); // Wait for 1 second before attempting to reconnect
-			err = netconn_connect(conn, &server_ip, 10);
-		}
-
-		// send a "hi" message at first
-		int messageLength = sprintf(ToSendMessage , "hi");
-		tcp_SendMessage(ToSendMessage, messageLength);
-
-		//start receiving
-		tcp_ReseveMessage();
-
-		//it will reach here when the connection is closed
-		netconn_close(conn);
-		netconn_delete(conn);
-		conn = NULL; // Reset the connection object
-		vTaskDelay(xTicksToWait); // Wait for 1 second before attempting to reconnect
 	}
 }
 
@@ -168,6 +179,6 @@ void tcpclient_init (void)
 		ProgramToSend[i] = 'a';
 	}
 
-	sys_thread_new("tcpinit_thread", netconn_tcp_client_task, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
+	sys_thread_new("tcpinit_thread", tcpinit_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
 
 }
