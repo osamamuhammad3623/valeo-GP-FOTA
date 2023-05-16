@@ -1,0 +1,4 @@
+tcp_client.c:72:6:tcp_SendMessage	16	static
+tcp_client.c:39:6:UDS_receive_response	8	static
+tcp_client.c:155:6:netconn_tcp_client_task	32	static
+tcp_client.c:204:6:tcpclient_init	16	static
