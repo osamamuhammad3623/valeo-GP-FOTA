@@ -1,7 +1,7 @@
 /*
  * tcp_server.c
  *
- *  Created on: Feb 24, 2023
+ *  Created on: JUN 16, 2023
  *      Author: Kyrillos Phelopos Sawiris
  */
 
@@ -10,6 +10,8 @@
 #include "lwip/opt.h"
 #include "lwip/api.h"
 #include "lwip/sys.h"
+#include "lwip/sockets.h"
+
 
 #include "tcp_server.h"
 #include "string.h"
@@ -31,7 +33,7 @@ void UDS_execute_response(char* message)
 {
 	if(strcmp(message,"hi")==0)
 	{
-		int len = sprintf (smsg, "\nhi from the server ");
+		int len = sprintf (smsg, "\n hi from the server ");
 		tcp_SendResponse(smsg , len);
 	}
 	else if(strcmp(message,"delay")==0)
@@ -52,6 +54,7 @@ void UDS_execute_response(char* message)
 			tcp_RecievePrograme(programLength);
 		}
 	}
+
 }
 static void tcp_thread(void *arg)
 {
@@ -65,34 +68,32 @@ static void tcp_thread(void *arg)
 		/* Bind connection to the port number 10. */
 		err = netconn_bind(conn, IP_ADDR_ANY, 10);
 
+
 		if (err == ERR_OK)
 		{
 			/* Tell connection to go into listening mode. */
 			netconn_listen(conn);
-
 			while (1)
 			{
 				/* Grab new connection. */
 				accept_err = netconn_accept(conn, &newconn);
-
 				/* Process the new connection. */
 				if (accept_err == ERR_OK)
 				{
-
 					/* receive the data from the client */
 					while (netconn_recv(newconn, &buf) == ERR_OK)
 					{
 						/* If there is some data remaining to be sent, the following process will continue */
 						do
 						{
+							memset (msg, '\0', 50);
 							strncpy(msg,buf->p->payload,buf->p->len);
 							UDS_execute_response(msg);
 						}
 						while (netbuf_next(buf) >=0);
-
 						netbuf_delete(buf);
+						break;
 					}
-
 					/* Close connection and discard connection identifier. */
 					netconn_close(newconn);
 					netconn_delete(newconn);
@@ -105,6 +106,7 @@ static void tcp_thread(void *arg)
 		}
 	}
 }
+
 
 void tcp_RecievePrograme(int length)
 {
@@ -128,7 +130,7 @@ void tcp_RecievePrograme(int length)
 			while (netbuf_next(buf) >=0);
 
 			if(i<length)
-			netbuf_delete(buf);
+				netbuf_delete(buf);
 		}
 
 	}
