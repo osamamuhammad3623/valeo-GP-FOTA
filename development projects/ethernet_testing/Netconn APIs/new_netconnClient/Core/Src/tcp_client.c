@@ -1,20 +1,18 @@
 /*
  * tcp_client.c
  *
- *  Created on: MAy 17, 2023
+ *  Created on: JUN 16, 2023
  *      Author: Kyrillos Sawiris
  */
 
 #include "lwip/opt.h"
-
 #include "lwip/api.h"
 #include "lwip/sys.h"
-
 #include "tcp_client.h"
 #include "string.h"
 
 
-#define MAX_BACKOFF_MS 100000
+#define MAX_BACKOFF_MS 50000
 //=============================================================================
 
 //============netconn parameters=============================================
@@ -78,28 +76,36 @@ static void tcpinit_thread(void *arg)
 {
 
 	err_t err, connect_error;
-	 TickType_t backoff = 5000 ;
-	IP_ADDR4(&dest_addr, 169, 254, 84, 57);/* The designation IP address */
+	static int i = 0;
+	 TickType_t backoff  ; // its value used as a delay that its value is doubled after each attempt
 	dest_port = 10;  // server port
+	unsigned short my_port = 50;
+	static unsigned short my_port_iterative = 0; // to iterate to change the my port after each connection attemp
 
 	while(1)
 	{
 		//First Try to connect
-		backoff = 5000 ;
+		backoff = 2000 ;
+		conn = NULL;
 		conn = netconn_new(NETCONN_TCP);//make new tcp connection
 
 		if (conn!=NULL)
 		{
-			err = netconn_bind(conn, IP_ADDR_ANY, 10);/* Bind connection to the port number 10 (port of the Client). */
+			err = netconn_bind(conn, IP_ADDR_ANY, my_port + my_port_iterative);/* Bind connection to the port number 10 (port of the Client). */
 			if (err == ERR_OK)
 			{
+				IP_ADDR4(&dest_addr, 192, 168, 1, 3);/* The designation IP address */
+				dest_port = 10;  // server port
 				connect_error = netconn_connect(conn, &dest_addr, dest_port);/* Connect to the TCP Server */
 			}
 		}
+//===========================================================================
+//== execute this loop if the first attemp failed to establish a connection
 
 		while(connect_error != ERR_OK)
 		{
 			osDelay(backoff);
+			i++;
 
 			//delete conn
 			netconn_delete(conn);
@@ -107,15 +113,23 @@ static void tcpinit_thread(void *arg)
 
 			if (conn!= NULL)
 			{
-				err = netconn_bind(conn, IP_ADDR_ANY, 10);/* Bind connection to the port number 10 (port of the Client). */
+				err = netconn_bind(conn, IP_ADDR_ANY, my_port + my_port_iterative);/* Bind connection to the port number 10 (port of the Client). */
 				if (err == ERR_OK)
 				{
+					IP_ADDR4(&dest_addr, 192, 168, 1, 3);/* The designation IP address */
+					dest_port = 10;  // server port
 					connect_error = netconn_connect(conn, &dest_addr, dest_port);/* Connect to the TCP Server */
 				}
 			}
 			if(backoff < MAX_BACKOFF_MS)
 			backoff *=2;
 		}
+//==========================================================================
+//====== this section is reached when the connection is established successfully
+
+		HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin); // to indicate that the connection is established
+		HAL_Delay(100);
+
 		//send a "hi" message at first
 		int messageLength = sprintf(ToSendMessage , "hi");
 		err = tcp_SendMessage(ToSendMessage, messageLength);
@@ -125,13 +139,16 @@ static void tcpinit_thread(void *arg)
 			tcp_ReseveMessage();
 		}
 
+//=================================================================
+// this section reached after the connection is closed
+//====================================================================
+
 		/* Close connection and discard connection identifier. */
 		netconn_close(conn);
 		netconn_delete(conn);
-
-
-
-		osDelay(20000);
+		my_port_iterative ++;
+		osDelay(5000); //Delay after the connection is closed
+//======================================================================
 
 	}
 
@@ -161,13 +178,22 @@ static void tcp_ReseveMessage (void)
 				memset (ReceivedMessage, '\0', 100);
 				strncpy(ReceivedMessage,buf->p->payload, buf->p->len);
 				UDS_receive_response(ReceivedMessage);
+
+				//to indicate that the a message is received
+				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+				HAL_Delay(100);
 			}
 			while (netbuf_next(buf) >=0);
-
 			netbuf_delete(buf);
 		}
 		else
+		{
+			// to indicate that the connection is closed
+			HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+			HAL_Delay(100);
 			break;
+		}
+
 	}
 }
 
@@ -182,3 +208,4 @@ void tcpclient_init (void)
 	sys_thread_new("tcpinit_thread", tcpinit_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal);
 
 }
+

@@ -78,15 +78,38 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
 return len;
 }
 
+//__attribute__((weak)) int _write(int file, char *ptr, int len)
+//{
+//	int DataIdx;
+//
+//	for (DataIdx = 0; DataIdx < len; DataIdx++)
+//	{
+//		__io_putchar(*ptr++);
+//	}
+//	return len;
+//}
+#define DEMCR *((volatile unsigned long*)0xE000EDFC)
+#define ITM_SIMULUS_PORT0 *((volatile unsigned long*)0xE0000000)
+#define ITM_TRACE_EN *((volatile unsigned long*)0xE0000E00)
+
+void Custom_ITM_Sender(unsigned char data){
+	DEMCR |= (1<<24);
+	ITM_TRACE_EN |=(1<<0);
+	while(!(ITM_SIMULUS_PORT0 & 1));
+	ITM_SIMULUS_PORT0 =data;
+}
 __attribute__((weak)) int _write(int file, char *ptr, int len)
 {
-	int DataIdx;
+  (void)file;
+  int DataIdx;
 
-	for (DataIdx = 0; DataIdx < len; DataIdx++)
-	{
-		__io_putchar(*ptr++);
-	}
-	return len;
+  for (DataIdx = 0; DataIdx < len; DataIdx++)
+  {
+    //__io_putchar(*ptr++);
+	  Custom_ITM_Sender(*ptr++);
+
+  }
+  return len;
 }
 
 int _close(int file)
