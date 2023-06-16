@@ -4,6 +4,7 @@ import os, hashlib, binascii
 import firebase_connection
 from combine_bins import combine_security_files
 from package_config import *
+from mpeg2_crc import get_file_crc
 
 
 '''
@@ -171,8 +172,6 @@ def upload_process():
         
         # get the targeted ECU
         target = image["target"]
-        # get the application linking address index
-        linking_index = image["linking_address_index"]
 
         if target == "MasterECU":
             targeted_ecus = targeted_ecus | (1<<0)
@@ -188,11 +187,11 @@ def upload_process():
         # set the CRC of the image & combined file in realtime attributes
         realtime_attributes["crc"][target]["image"] = image["crc"]
         realtime_attributes["crc"][target]["update_data"] = get_file_crc(f"combined_{i}.bin")
-
         print(f"[IMAGE {i}] Uploading the image files to Firebase")
+
         # upload image files
-        firebase_connection.firebase_upload_file(f"{security_dir}meta{linking_index}.txt", f"combined_{i}.bin")
-        firebase_connection.firebase_upload_file(f"{binary_dir}app{linking_index}.txt", image["path"])
+        firebase_connection.firebase_upload_file(f"{security_dir}meta.bin", f"combined_{i}.bin")
+        firebase_connection.firebase_upload_file(f"{binary_dir}app.bin", image["path"])
 
     # read package attributes
     realtime_attributes["is_urgent"] = package_info["urgency"]
@@ -218,12 +217,3 @@ A function to calculate the digest of a file
 def get_file_digest(file_path):
     with open(file_path, 'rb', buffering=0) as f:
         return hashlib.file_digest(f, 'sha256').digest()
-
-
-'''
-A function to calculate the CRC of a file
-'''
-def get_file_crc(file_path):
-    buf = open(file_path,'rb').read()
-    hash = binascii.crc32(buf) & 0xFFFFFFFF
-    return int("%08X" % hash, 16)
