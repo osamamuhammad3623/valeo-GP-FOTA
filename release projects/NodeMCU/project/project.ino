@@ -6,13 +6,15 @@ FirebaseAuth auth;
 FirebaseConfig config;
 bool taskCompleted = false;
 
-file_paths master_paths {"OEM/MasterECU/Binary/app.txt", "OEM/MasterECU/Secure/meta.txt"};
-file_paths target1_paths {"OEM/Target 1/Binary/app.txt", "OEM/Target 1/Secure/meta.txt"};
-file_paths target2_paths {"OEM/Target 2/Binary/app.txt", "OEM/Target 2/Secure/meta.txt"};
+file_paths master_paths  {"OEM/MasterECU/Binary/app.bin", "OEM/MasterECU/Secure/meta.bin"};
+file_paths target1_paths {"OEM/Target 1/Binary/app.bin" , "OEM/Target 1/Secure/meta.bin"};
+file_paths target2_paths {"OEM/Target 2/Binary/app.bin" , "OEM/Target 2/Secure/meta.bin"};
 
 file_paths ECUs_paths[3] = {master_paths, target1_paths, target2_paths};
+CRC_Att ECUs_CRCs[3];
 
 String file_to_be_send;
+int CRC_to_be_send;
 
 //version of package currently running on ECUs
 uint8_t ECUs_major;
@@ -27,11 +29,6 @@ uint8_t pckg_patch;
 //urgency and detection
 int is_urgent;
 int targeted_ecus_21m;
-
-//CRC_Att structs
-struct CRC_Att master_crc;
-struct CRC_Att target1_crc;
-struct CRC_Att target2_crc;
 
 //storage vairables for CRC_Att structs
 int master_crc_image;
@@ -82,7 +79,7 @@ void loop()
      if (Serial.available() > 0) 
      {
         uint8_t Frame_id = Serial.read();
-        char size[4];
+        char size_CRC[8];
 
         int targetID;
         int Filetype;
@@ -113,12 +110,17 @@ void loop()
              targetID = Serial.read();
              Filetype = Serial.read();
              fileSize = (int)get_file_size((target_id)targetID, (file_type)Filetype);
-             size[0] = 0x06;
-             size[1]= ((fileSize >> 16)  & 0xFF);
-             size[2]= ((fileSize >> 8) & 0xFF);
-             size[3]= fileSize;
+             size_CRC[0] = 0x06;
+             size_CRC[1] = ((fileSize >> 16)  & 0xFF);
+             size_CRC[2] = ((fileSize >> 8) & 0xFF);
+             size_CRC[3] = fileSize;
 
-             Serial.write(size, 4);
+             size_CRC[4] = ((CRC_to_be_send >> 24)  & 0xFF);
+             size_CRC[5] = ((CRC_to_be_send >> 16)  & 0xFF);
+             size_CRC[6] = ((CRC_to_be_send >> 8) & 0xFF);
+             size_CRC[7] = CRC_to_be_send;
+
+             Serial.write(size_CRC, 8);
              break;
           
           case 0x07: 
@@ -217,27 +219,26 @@ void get_attributes()
   //getting crc struct for master from firebase
   Firebase.RTDB.getInt(&fbdo, F("/CRC/Master ECU/image") , &master_crc_image );
   Serial1.println(master_crc_image);
-  master_crc.image=master_crc_image;
+  ECUs_CRCs[0].image=master_crc_image;
   Firebase.RTDB.getInt(&fbdo, F("/CRC/Master ECU/update_data") , &master_crc_update_data );
-  master_crc.update_data=master_crc_update_data;
-  Serial1.println(master_crc.update_data);
+  ECUs_CRCs[0].update_data=master_crc_update_data;
 
   //getting crc struct for target1 from firebase
   Firebase.RTDB.getInt(&fbdo, F("/CRC/Target 1/image") , &target1_crc_image );
   Serial1.println(target1_crc_image);
   
-  target1_crc.image=target1_crc_image;
+  ECUs_CRCs[1].image=target1_crc_image;
   Firebase.RTDB.getInt(&fbdo, F("/CRC/Target 1/update_data") , &target1_crc_update_data );
   Serial1.println(target1_crc_update_data);
-  target1_crc.update_data=target1_crc_update_data;
+  ECUs_CRCs[1].update_data=target1_crc_update_data;
 
   //getting crc struct for target2 from firebase
   Firebase.RTDB.getInt(&fbdo, F("/CRC/Target 2/image") , &target2_crc_image );
   Serial1.println(target2_crc_image);
-  target2_crc.image=target2_crc_image;
+  ECUs_CRCs[2].image=target2_crc_image;
   Firebase.RTDB.getInt(&fbdo, F("/CRC/Target 2/update_data") , &target2_crc_update_data );
   Serial1.println(target2_crc_update_data);
-  target2_crc.update_data=target2_crc_update_data;
+  ECUs_CRCs[2].update_data=target2_crc_update_data;
 }
 
 
@@ -263,11 +264,13 @@ size_t get_file_size(target_id id, file_type type)
   {
     file = SPIFFS.open( "/"+ECUs_paths[id].bin, "r");
     file_to_be_send = ECUs_paths[id].bin;
+    CRC_to_be_send = ECUs_CRCs[id].image;
   }
   else if(type == data)
   {
     file = SPIFFS.open( "/"+ECUs_paths[id].data, "r");
     file_to_be_send = ECUs_paths[id].data;
+    CRC_to_be_send = ECUs_CRCs[id].update_data;
   } 
   
   if(file.available()) 
@@ -402,7 +405,7 @@ void WIFI_Connect()
 {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   #if _DEBUG_
-    Serial1.print("\nConnecting to Wi-Fi");
+    Serial.print("\nConnecting to Wi-Fi");
   #endif
   char counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
@@ -418,7 +421,7 @@ void WIFI_Connect()
   switch (WiFi.status()) {
   case WL_CONNECTED:
     #if _DEBUG_    
-      Serial1.println("WiFi connected");
+      Serial.println("WiFi connected");
       Serial1.println(WiFi.SSID());
       Serial1.println(WiFi.localIP());
     #endif
