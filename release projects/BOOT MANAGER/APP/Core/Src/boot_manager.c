@@ -113,12 +113,12 @@ uint8_t secure_boot_verify(void){
 	uint32_t root_cert_size = atoi((uint8_t *)CERTIFICATES_METADATA_ADDRESS +ROOT_CERT_SIZE_C_METADATA_OFFSET);
 
 	/*************** Root certificates Revocation*********************/
-	uint8_t root_1_revoked = *((uint8_t *)ROOT_1_REVOCATION_ADDRESS);
-	uint8_t root_2_revoked = *((uint8_t *)ROOT_2_REVOCATION_ADDRESS);
+	uint8_t root_1_revoked = read_backup_reg(ROOT_1_REVOCATION_reg);
+	uint8_t root_2_revoked = read_backup_reg(ROOT_2_REVOCATION_reg);
 	//still need Revisited
 	if( (rootIndex != 1) && (rootIndex != 2) ){
 			  return FAILED;
-    }else if(((rootIndex == 1) && (root_1_revoked == 0x00)) || ((rootIndex == 2) && (root_2_revoked == 0x00))){
+    }else if(((rootIndex == 1) && (root_1_revoked == 0x01)) || ((rootIndex == 2) && (root_2_revoked == 0x01))){
     	return FAILED;
     }
 
@@ -251,7 +251,7 @@ uint8_t secure_boot_verify(void){
 	/************* Hash  ***************/
 	uint8_t *Hash_value_in_metatdata= (uint8_t*)(Meta_Data+APP_HASH__METADATA_OFFSET);
 	uint8_t *Start_Add_App = (uint8_t*)MAIN_APPLICATION_START_ADDRESS;
-	uint8_t *Hash_Result = CalculateDigest( Start_Add_App ,appSize );
+	uint8_t *Hash_Result = CalculateDigest( Start_Add_App ,appSize);
 	ret = DigestCompare ( Hash_Result , Hash_value_in_metatdata);
 	if(ret!=SUCCEEDED){
 		return FAILED;
@@ -261,28 +261,6 @@ uint8_t secure_boot_verify(void){
 	return SUCCEEDED;
 }
 
-
-	/* First, disable all IRQs */
-//	__disable_irq(); // ensure to __enable_irq() in the application main function
-//
-//	// set vector table offset
-//	//0x08160000
-//	SCB->VTOR = (start_addr - 0x08000000);
-//
-//	/* Get the main application start address */
-//	//start_addr-= 0x0100000;
-//	uint32_t jump_address = *(uint32_t *)(start_addr + 4);
-//
-//	/* Set the main stack pointer to to the application start address */
-//	__set_MSP(*(uint32_t *)start_addr);
-//	//__set_PSP(*(uint32_t *)start_addr);
-//
-//	// Create function pointer for the main application
-//	void (*app_ptr)(void);
-//	app_ptr = (void *)(jump_address);
-//
-//	// Now jump to the main application
-//	app_ptr();
 
 
 void jump_to_application(uint32_t start_addr){

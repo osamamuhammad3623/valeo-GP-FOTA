@@ -69,72 +69,69 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-__enable_irq();
-  /* USER CODE END 1 */
+	 /* USER CODE BEGIN 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+		  /* USER CODE END 1 */
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+		  /* MCU Configuration--------------------------------------------------------*/
 
-  /* USER CODE BEGIN Init */
+		  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+		  HAL_Init();
 
-  /* USER CODE END Init */
+		  /* USER CODE BEGIN Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+		  /* USER CODE END Init */
 
-  /* USER CODE BEGIN SysInit */
-  MX_RTC_Init();
+		  /* Configure the system clock */
+		  SystemClock_Config();
 
-  	uint8_t Attempt_counter = read_backup_reg(0);
-  	Attempt_counter++;
-	write_Attempt_Counter(Attempt_counter);
-	if(Attempt_counter > 3){
-		write_Attempt_Counter(0x00);
-		//swap banks
-		bootloader_switch_to_inactive_bank();
-		bootloader_reboot();
-	}else{
-		//continue in the main function
-	}
-  /* USER CODE END SysInit */
+		  /* USER CODE BEGIN SysInit */
+		  MX_RTC_Init();
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_RNG_Init();
-  MX_UART4_Init();
-  MX_IWDG_Init();
-  HAL_IWDG_Refresh(&hiwdg);
-  /* USER CODE BEGIN 2 */
+		uint8_t Attempt_counter = read_backup_reg(0);
+		Attempt_counter++;
+		write_Attempt_Counter(Attempt_counter);
+		if(Attempt_counter > 3){
+			write_Attempt_Counter(0x00);
+			//swap banks
+			bootloader_switch_to_inactive_bank();
+			bootloader_reboot();
+		}else{
+			//continue in the main function
+		}
+		  /* USER CODE END SysInit */
 
-  //int ret =FAILED;
-  int ret =SUCCEEDED;
-  ret = secure_boot_verify();
-  if(ret == SUCCEEDED){
-	  //jump to application
-	  jump_to_application(MAIN_APPLICATION_START_ADDRESS);
+		  /* Initialize all configured peripherals */
+		  MX_GPIO_Init();
+		  MX_RNG_Init();
+		  MX_UART4_Init();
+		  MX_IWDG_Init();
+		  HAL_IWDG_Refresh(&hiwdg);
+		  /* USER CODE BEGIN 2 */
 
-  }else{
-	 // printf("%d\n",Attempt_counter);
-  }
+		  int ret = secure_boot_verify();
+		  if(ret == SUCCEEDED){
+			  //jump to application
+			 jump_to_application(MAIN_APPLICATION_START_ADDRESS);
 
 
-  /* USER CODE END 2 */
+		  }else{
+			 // printf("%d\n",Attempt_counter);
+		  }
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-//	  HAL_GPIO_TogglePin(green_GPIO_Port, red_Pin);
-//	  HAL_Delay(500);
+		  /* USER CODE END 2 */
 
-    /* USER CODE BEGIN 3 */
+		  /* Infinite loop */
+		  /* USER CODE BEGIN WHILE */
+		  while (1)
+		  {
+		    /* USER CODE END WHILE */
 
-  }
-  /* USER CODE END 3 */
+		    /* USER CODE BEGIN 3 */
+
+		  }
+		  /* USER CODE END 3 */
+
 }
 
 /**
@@ -149,7 +146,7 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -160,11 +157,18 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 192;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 180;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 8;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Activate the Over-Drive mode
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -173,12 +177,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }

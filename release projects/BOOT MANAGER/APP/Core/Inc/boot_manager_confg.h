@@ -50,8 +50,8 @@
  *                         */
 /******************************************************************************/
 
-#define ROOT_1_REVOCATION_ADDRESS  (0x1fff7800)
-#define ROOT_2_REVOCATION_ADDRESS  (0x1fff7820)
+#define ROOT_1_REVOCATION_reg  (0x4)
+#define ROOT_2_REVOCATION_reg  (0x5)
 
 
 /******************************************************************************

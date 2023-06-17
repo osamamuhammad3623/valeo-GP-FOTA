@@ -27,7 +27,7 @@
 
 /**
 	MiddleWare name : wolfSSL.I-CUBE-wolfSSL.5.5.4
-	MiddleWare fileName : ./wolfSSL.I-CUBE-wolfSSL_conf.h
+	MiddleWare fileName : wolfSSL.I-CUBE-wolfSSL_conf.h
 	MiddleWare version :
 */
 /*---------- WOLF_CONF_DEBUG -----------*/
