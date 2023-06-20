@@ -4,7 +4,7 @@ import os, hashlib, binascii
 import firebase_connection
 from combine_bins import combine_security_files
 from package_config import *
-from mpeg2_crc import get_file_crc
+import crcsolver
 
 
 '''
@@ -217,3 +217,12 @@ A function to calculate the digest of a file
 def get_file_digest(file_path):
     with open(file_path, 'rb', buffering=0) as f:
         return hashlib.file_digest(f, 'sha256').digest()
+
+
+'''
+A function to calculate the CRC32/MPEG2 of a file
+'''
+def get_file_crc(file_path):
+    with open(file_path, "rb") as f:
+        contents = f.read()
+        return ((crcsolver.compute((contents), 'CRC-32/MPEG-2')))

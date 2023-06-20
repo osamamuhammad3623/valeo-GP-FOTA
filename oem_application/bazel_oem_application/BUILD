@@ -8,7 +8,6 @@ py_binary(
           "combine_bins.py", 
           "package_config.py", 
           "firebase_connection.py",
-          "mpeg2_crc.py",
     ],
 
     data = ["serviceAccountKey.json"],
