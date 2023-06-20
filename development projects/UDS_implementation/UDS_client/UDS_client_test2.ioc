@@ -1,5 +1,6 @@
 #MicroXplorer Configuration settings - do not modify
-ETH.IPParameters=MediaInterface,PhyAddress,RxMode
+ETH.IPParameters=MediaInterface,PhyAddress,RxMode,MACAddr
+ETH.MACAddr=00\:80\:E1\:00\:00\:10
 ETH.MediaInterface=ETH_MEDIA_INTERFACE_RMII
 ETH.PhyAddress=0
 ETH.RxMode=ETH_RXINTERRUPT_MODE

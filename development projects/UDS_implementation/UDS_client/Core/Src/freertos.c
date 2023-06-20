@@ -49,6 +49,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 uint8_t installationReadyFlag = 0;
+//uint8_t uartTerminated = 0;
 /* USER CODE END Variables */
 /* Definitions for UdsTask */
 osThreadId_t UdsTaskHandle;
@@ -203,17 +204,29 @@ void StartInstallTask(void *argument)
 		installationReadyFlag = 1;
 		//ask user to install
 
+//		uartTerminated = 1;
 		osThreadTerminate(UartTaskHandle);
+
+		downloadFinishedFlag = 0; // must be handled in case of installation failure
+
 		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
 		if (target_update[1]) {
 			osThreadResume(target1ThreadID);
 		}
+		osThreadSuspend(InstallTaskHandle);
 	}
 	if (target_update[0] && target1InstalledFlag) {
 		// reboot
 		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
 		bootloader_switch_to_inactive_bank();
 		bootloader_reboot();
+	} else if (!target_update[0] && target1InstalledFlag && osThreadGetState(UartTaskHandle) == osThreadTerminated) {
+		current_version_number[0] = new_version_number[0];
+		current_version_number[1] = new_version_number[1];
+		current_version_number[2] = new_version_number[2];
+		UartTaskHandle = osThreadNew(StartUartTask, NULL, &UartTask_attributes);
+		UdsTaskHandle = osThreadNew(StartUdsTask, NULL, &UdsTask_attributes);
+		target1InstalledFlag = 0;
 	}
     osDelay(1);
   }

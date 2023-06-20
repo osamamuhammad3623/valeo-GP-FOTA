@@ -23,6 +23,10 @@ struct target_confg {
 	TargetECU targetECU;
 };
 
+//================ definitions============================
+#define MAX_BACKOFF_MS 100000 // backoff max delay
+//========================================================
+
 void tcpclient_init (uint8_t* targetToConnectWith);
 //void UDS_receive_response(struct netconn *conn ,char* message);
 // Function to send the data to the server

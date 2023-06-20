@@ -12,9 +12,12 @@
 void (*uds_req_clbk) (TargetECU targetECU);
 void (*uds_recv_resp_clbk) (TargetECU targetECU, uint8_t *responseFrame);
 
+extern uint8_t target1_version_received;
 osThreadId_t target1ThreadID;
 osThreadId_t target2ThreadID;
 extern osThreadId_t UartTaskHandle;
+extern osThreadId_t InstallTaskHandle;
+extern uint8_t uartTerminated;
 //====================================================================
 static struct netconn *conn1;
 static struct netconn *conn2;
@@ -43,6 +46,8 @@ static void tcpinit_thread(void *arg)
 	err_t err, connect_error;
 	ip_addr_t dest_addr;
 	osThreadId_t targetThreadID;
+	static int my_port_iterative = 0;
+	TickType_t backoff;
 
 
 	// Extract the IP address, port number and the target ECU
@@ -64,53 +69,177 @@ static void tcpinit_thread(void *arg)
 		targetThreadID = target2ThreadID;
 	}
 
-	if (conn!=NULL) // conn
+	ipaddr_aton(ip_address, &dest_addr);
+
+	while(1)
 	{
-		/* Bind connection to the port number 10 (port of the Client). */
-		err = netconn_bind(conn, IP_ADDR_ANY, dest_port);
+		//=====================First attemp to connect ================================
 
-		if (err == ERR_OK)
+		backoff = 2000 ; //used as initial delay value
+		/* Create a new connection identifier. */
+		if (target_ECU == PS_TARGET) {
+		conn1 = netconn_new(NETCONN_TCP);
+		conn = conn1;
+		targetThreadID = target1ThreadID;
+		} else {
+		conn2 = netconn_new(NETCONN_TCP);
+		conn = conn2;
+		targetThreadID = target2ThreadID;
+		}
+
+		if(conn != NULL)
 		{
-			/* The designation IP address of the computer */
-			err = ipaddr_aton(ip_address, &dest_addr);
-			//dest_port = 10;  // server port
-
-			//suspend UART task to start connection
-			osThreadSuspend(UartTaskHandle);
-
-			/* Connect to the TCP Server */
-			connect_error = netconn_connect(conn, &dest_addr, dest_port);
-
-			// If the connection to the server is established, the following will continue, else delete the connection
-			if (connect_error == ERR_OK)
+			/* Bind connection to the port number 10 (port of the Client). */
+			err = netconn_bind(conn, IP_ADDR_ANY, dest_port+my_port_iterative);
+			if (err == ERR_OK)
 			{
-				/* Blink LED to indicate connection is successful */
-				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
-				HAL_Delay(500);
-				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
-
-				//make target task priority the same as that of UART task
-				osThreadSetPriority(targetThreadID, osPriorityNormal1);
-
-				// UDS_req callback
-				uds_req_clbk(target_ECU);
-
-				//start receiving
-				tcp_ReceiveMessage(target_ECU, conn, buf);
-			}
-			else
-			{
-				/* Close connection and discard connection identifier. */
-				netconn_close(conn);
-				netconn_delete(conn);
+				//suspend UART task to start connection
+				if (osThreadGetState(UartTaskHandle) != osThreadTerminated) {
+					osThreadSuspend(UartTaskHandle);
+				}
+				connect_error = netconn_connect(conn, &dest_addr, dest_port);/* Connect to the TCP Server */
 			}
 		}
-		else
+
+		//==========================================================================================
+		//if First Attempt to connection is Faild Try to connect again based on Back off algorithm
+		while(connect_error != ERR_OK)
 		{
-			// if the binding wasn't successful, delete the netconn connection
-			netconn_delete(conn);
+			my_port_iterative++;
+			osDelay(backoff);
+			//delete conn
+			if (conn != NULL) {
+			    netconn_delete(conn);
+			}
+			conn = NULL;
+
+			//make new tcp connection
+			if (target_ECU == PS_TARGET) {
+			conn1 = netconn_new(NETCONN_TCP);
+			conn = conn1;
+			} else {
+			conn2 = netconn_new(NETCONN_TCP);
+			conn = conn2;
+			}
+
+			if(conn != NULL)
+			{
+				/* Bind connection to the port number 10 (port of the Client). */
+				err = netconn_bind(conn, IP_ADDR_ANY, dest_port+my_port_iterative);
+				if (err == ERR_OK)
+				{
+					connect_error = netconn_connect(conn, &dest_addr, dest_port);/* Connect to the TCP Server */
+				}
+			}
+
+			if(backoff < MAX_BACKOFF_MS) // double the delay value between attemptions to connect based on backoff algorithm
+			backoff *=2;
 		}
+		//==================================================================
+		//============= Connection is Successfully established
+		/* Blink LED to indicate successful connection */
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+		HAL_Delay(500);
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
+
+		//make target task priority the same as that of UART task
+		osThreadSetPriority(targetThreadID, osPriorityNormal1);
+
+		// UDS_req callback
+		uds_req_clbk(target_ECU);
+
+		//start receiving
+		tcp_ReceiveMessage(target_ECU, conn, buf);
+
+		//================================================
+		//== if there was error in the connection it was closed it will get to this section
+		//===========================================================================
+
+		//close the connection to retry to connect to it again
+
+		/* Close connection and discard connection identifier. */
+		netconn_close(conn);
+		netconn_delete(conn);
+		osDelay(5000);
+		my_port_iterative++;
 	}
+
+
+
+//	if (conn!=NULL) // conn
+//	{
+//		/* Bind connection to the port number 10 (port of the Client). */
+//		err = netconn_bind(conn, IP_ADDR_ANY, dest_port+my_port_iterative); //////////
+//
+//
+//		while(connect_error != ERR_OK)
+//		{
+//			osDelay(backoff);
+//			my_port_iterative++;
+//
+//			//delete conn
+//			netconn_delete(conn);
+//			conn = netconn_new(NETCONN_TCP);//make new tcp connection
+//
+//			if (conn!= NULL)
+//			{
+//				err = netconn_bind(conn, IP_ADDR_ANY, dest_port + my_port_iterative);/* Bind connection to the port number 10 (port of the Client). */
+//				if (err == ERR_OK)
+//				{
+//					IP_ADDR4(&dest_addr, 192, 168, 1, 3);/* The designation IP address */
+//					dest_port = 10;  // server port
+//					connect_error = netconn_connect(conn, &dest_addr, dest_port);/* Connect to the TCP Server */
+//				}
+//			}
+//			if(backoff < MAX_BACKOFF_MS)
+//				backoff *=2;
+//		}
+
+
+
+
+//		if (err == ERR_OK)
+//		{
+//			/* The designation IP address of the computer */
+//			err = ipaddr_aton(ip_address, &dest_addr);
+//			//dest_port = 10;  // server port
+//
+//			//suspend UART task to start connection
+//			osThreadSuspend(UartTaskHandle);
+//
+//			/* Connect to the TCP Server */
+//			connect_error = netconn_connect(conn, &dest_addr, dest_port);
+//
+//			// If the connection to the server is established, the following will continue, else delete the connection
+//			if (connect_error == ERR_OK)
+//			{
+//				/* Blink LED to indicate connection is successful */
+//				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+//				HAL_Delay(500);
+//				HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
+//
+//				//make target task priority the same as that of UART task
+//				osThreadSetPriority(targetThreadID, osPriorityNormal1);
+//
+//				// UDS_req callback
+//				uds_req_clbk(target_ECU);
+//
+//				//start receiving
+//				tcp_ReceiveMessage(target_ECU, conn, buf);
+//			}
+//			else
+//			{
+//				/* Close connection and discard connection identifier. */
+//				netconn_close(conn);
+//				netconn_delete(conn);
+//			}
+//		}
+//		else
+//		{
+//			// if the binding wasn't successful, delete the netconn connection
+//			netconn_delete(conn);
+//		}
+//	}
 }
 
 void tcp_SendMessage (TargetECU targetECU, uint8_t *Message , int messageLength)
@@ -144,10 +273,17 @@ static void tcp_ReceiveMessage (TargetECU targetECU, struct netconn *conn ,struc
 
 				// uds receive response callback
 				uds_recv_resp_clbk(targetECU, ReceivedMessage);
+
+				if(target1_version_received) {
+					target1_version_received = 0;
+					osThreadTerminate(target1ThreadID); // will server know the connection has closed?
+				}
 			}
 			while (netbuf_next(buf) >0);
 
 			netbuf_delete(buf);
+		} else {
+			break;///////
 		}
 	}
 }

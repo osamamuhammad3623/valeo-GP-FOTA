@@ -9,7 +9,10 @@
 #include "uds_client.h"
 
 uint8_t target1InstalledFlag = 0;
+uint8_t target1_version_received = 0;
 uint8_t transferDataFrame[ARRAY_SIZE + 1];
+uint8_t target1_version_number[3];
+uint32_t target_calculated_CRC;
 /*******************************************************************************
  *                      Functions Implementations		* 
  *******************************************************************************/ 
@@ -20,8 +23,17 @@ void UDS_init(uint8_t *targetToConnectWith){
 }
 
 void UDS_start_request(TargetECU targetECU) {
-	uint8_t sessionType = (uint8_t) EXTENDED;
-	UDS_diagnostics_session_control(targetECU, sessionType);
+	if (!target1InstalledFlag) {
+		uint8_t sessionType = (uint8_t) EXTENDED;
+		UDS_diagnostics_session_control(targetECU, sessionType);
+	} else {
+		UDS_get_version_number(targetECU);
+	}
+}
+
+void UDS_get_version_number(TargetECU targetECU) {
+	uint8_t requestFrame[] = {READ_DATA_BY_IDENTIFIER, 0x01, 0x11};
+	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
 void UDS_diagnostics_session_control(TargetECU targetECU, uint8_t session)
@@ -97,6 +109,9 @@ void UDS_receive_response(TargetECU targetECU, uint8_t *responseFrame)
 		return;
 	}
 	switch(responseFrame[0]){
+	case READ_DATA_BY_IDENTIFIER + POSITIVE_RESPONSE_OFFSET:
+		UDS_RDBI_handle(targetECU, responseFrame);
+		break;
 	case DIAGNOSTICS_SESSION_CONTROL + POSITIVE_RESPONSE_OFFSET:
 		UDS_DSC_handle(targetECU, responseFrame);
 		break;
@@ -123,6 +138,22 @@ void UDS_receive_response(TargetECU targetECU, uint8_t *responseFrame)
 		break;
 	default:		break;
 	}
+}
+
+void UDS_RDBI_handle(TargetECU targetECU, uint8_t *responseFrame) {
+	if (responseFrame[1] == 0xF1 && responseFrame[2] == 0x95) {
+		target1_version_number[0] = responseFrame[3];
+		target1_version_number[1] = responseFrame[4];
+		target1_version_number[2] = responseFrame[5];
+		target1_version_received = 1;
+//		netconn_close(conn);
+//		netconn_delete(conn);
+	}
+	else{
+		// Do nothing
+	}
+	osThreadResume(InstallTaskHandle);
+
 }
 
 void UDS_DSC_handle(TargetECU targetECU, uint8_t *responseFrame)
@@ -198,6 +229,7 @@ void UDS_TD_handle(TargetECU targetECU, uint8_t *responseFrame)
 void UDS_RTE_handle(TargetECU targetECU, uint8_t *responseFrame)
 {
 	//check crc
+	target_calculated_CRC = (((uint32_t)responseFrame[1])<<3*8 |((uint32_t)responseFrame[2])<<2*8 |((uint32_t)responseFrame[3])<<8 |((uint32_t)responseFrame[4]));
 
 	osThreadResume(UartTaskHandle);
 	osThreadSuspend(target1ThreadID);
