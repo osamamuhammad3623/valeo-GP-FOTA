@@ -11,11 +11,14 @@
 /*******************************************************************************
  *                      Global Variables				*
  *******************************************************************************/
+uint8_t fileType = META_DATA;
+int8_t counter = -1;
 uint8_t dataFlag = 0;
 uint8_t downloadFinishedFlag = 0;
 uint8_t targetToUpdate;
 uint16_t chunkSize;
 uint32_t downloadSize;
+uint32_t file_CRC;
 
 uint8_t data_received[ARRAY_SIZE] = {0};
 uint8_t target_update[NUM_OF_TARGETS] = {0};
@@ -78,6 +81,8 @@ void UART_packageDetection(void)
 	uint8_t downloadPackageFrame[] = {DOWNLOAD_PACKAGE, new_version_number[0], new_version_number[1], new_version_number[2]};
 	HAL_UART_Transmit(&huart2, (uint8_t *)downloadPackageFrame, sizeof(downloadPackageFrame), HAL_MAX_DELAY);
 
+	counter = -1;
+
 	if(target_update[0]){
 		// create task for erasing master inactive bank
 		masterEraseMemory = sys_thread_new("masterEraseMemory_thread", masterEraseMemory_thread, NULL, DEFAULT_THREAD_STACKSIZE,osPriorityNormal1);
@@ -93,9 +98,6 @@ void UART_packageDetection(void)
 
 void UART_getTargetUpdate(void)
 {
-	static uint8_t fileType = META_DATA;
-	static int8_t counter = -1;
-
 	if(fileType == META_DATA){
 		counter = (counter==-1) ? 1 : (counter==1) ? 2 : (counter==2) ? 0 : 4;
 		if(counter == 4){
@@ -121,7 +123,7 @@ void UART_getTargetUpdate(void)
 
 	uint8_t getTargetUpdateFrame[] = {GET_TARGET_UPDATE, targetToUpdate, fileType};
 	HAL_UART_Transmit(&huart2, (uint8_t *)getTargetUpdateFrame, sizeof(getTargetUpdateFrame), HAL_MAX_DELAY);
-	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 4, HAL_MAX_DELAY);
+	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 8, HAL_MAX_DELAY);
 
 	fileType = (fileType == META_DATA) ? APP : META_DATA;
 }
@@ -137,6 +139,7 @@ void UART_downloadFailed(void)
 void UART_getDownloadSize(void)
 {
 	downloadSize = (((uint32_t)data_received[1])<<2*8 |((uint32_t)data_received[2])<<8 |((uint32_t)data_received[3]));
+	file_CRC = (((uint32_t)data_received[4])<<3*8 |((uint32_t)data_received[5])<<2*8 |((uint32_t)data_received[6])<<8 |((uint32_t)data_received[7]));
 
 	if(targetToUpdate != 0){
 		// Resume target task to send uds request download
@@ -197,6 +200,12 @@ void UART_handleData(void)
 			osThreadSuspend(UartTaskHandle);
 		}
 
+//		if (file_CRC != target_calculated_CRC) {
+//			if (fileType == APP) {
+//				counter = (counter==1) ? -1 : (counter==2) ? 1 : 2;
+//			}
+//			fileType = (fileType == META_DATA) ? APP : META_DATA;
+//		}
 		UART_getTargetUpdate();
 	}
 }

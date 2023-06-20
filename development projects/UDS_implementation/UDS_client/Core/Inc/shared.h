@@ -26,5 +26,8 @@ extern uint8_t target1InstalledFlag;
 extern uint16_t chunkSize;
 extern uint32_t downloadSize;
 extern uint8_t data_received[ARRAY_SIZE];	//cannot be variable size!
+extern uint8_t target1_version_number[3];
+extern uint8_t new_version_number[3];
+extern uint32_t target_calculated_CRC;
 
 #endif /* INC_SHARED_H_ */

@@ -18,6 +18,7 @@
 /******************************************************************************* 
  *                                Definitions                                  * 
  *******************************************************************************/
+#define READ_DATA_BY_IDENTIFIER			0x22U
 #define DIAGNOSTICS_SESSION_CONTROL		0x10U 
 #define SECURITY_ACCESS					0x27U
 #define SA_REQUEST_SEED					0x01U
@@ -54,6 +55,7 @@ typedef enum
 void UDS_init(uint8_t *targetToConnectWith);
 void UDS_start_request(TargetECU targetECU);
 
+void UDS_get_version_number(TargetECU targetECU);
 void UDS_diagnostics_session_control(TargetECU targetECU, uint8_t session);
 void UDS_SA_request_seed(TargetECU targetECU);
 void UDS_SA_send_key(TargetECU targetECU, uint8_t *seed);
@@ -66,6 +68,7 @@ void UDS_ecu_reset(TargetECU targetECU, uint8_t resetType);
 
 void UDS_receive_response(TargetECU targetECU, uint8_t *responseFrame);
 
+void UDS_RDBI_handle(TargetECU targetECU, uint8_t *responseFrame);
 void UDS_DSC_handle(TargetECU targetECU, uint8_t *responseFrame);
 void UDS_SA_handle(TargetECU targetECU, uint8_t *responseFrame);
 void UDS_RC_handle(TargetECU targetECU, uint8_t *responseFrame);
