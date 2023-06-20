@@ -2,11 +2,9 @@ SIGNING_SERVER_PASSWORD = "987654321"
 SIGNING_SERVER_USERNAME = "Alaa"
 
 '''
-Possible Values for image info
-
-"target"                    -> "MasterECU", "Target 1", "Target 2"
-"linking_address_index"     -> 1, 2
-"root_index"                -> 1, 2
+Possible Values for image info:
+"target"           -> "MasterECU", "Target 1", "Target 2"
+"root_index"       -> 1, 2
 '''
 
 
@@ -16,9 +14,8 @@ image1_info = {
     "digest" : "",      # READ-ONLY
     "crc": 0,           # READ-ONLY
     "target" : "Target 1",
-    "linking_address_index": 1,
-    "path" : "D:\\CSE\\GraduationProject\\valeo-GP-FOTA\\oem_application\\bazel_oem_application\\netconnServer_test2.bin",
-    "root_index" : 2
+    "path" : "D:\\CSE_\\GraduationProject\\valeo-GP-FOTA\\oem_application\\bazel_oem_application\\app.bin",
+    "root_index" : 1
 }
 
 image2_info = {
@@ -44,8 +41,8 @@ image3_info = {
 }
 
 package_info = {
-    "package_version": "5.5.5",
-    "urgency" : 0,
+    "package_version": "7.7.7",
+    "urgency" : 1,
     "n_images" : 1,
     "image1_info": image1_info,     # READ-ONLY
     "image2_info": image2_info,     # READ-ONLY
