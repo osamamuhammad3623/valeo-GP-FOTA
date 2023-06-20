@@ -24,7 +24,7 @@
  * secure boot certificates ->  0x08040800
  * Application Meta data ->     0x08041000
  * Signature ->                 0x08041400
- * certificate meta data->      0x08041600
+ * certificate meta data->      0x08041602
  * APPLICATION                  0x08060000       */
 /******************************************************************************/
 
@@ -35,7 +35,7 @@
 #define SB_CERT_ADDRESS 			    (APPLICATION_EXENSIONS_ADDRESS + 0x0800)
 #define META_DATA_ADDRESS               (APPLICATION_EXENSIONS_ADDRESS + 0x01000)
 #define SIGNATURE_ADDRESS               (APPLICATION_EXENSIONS_ADDRESS + 0x01400)
-#define CERTIFICATES_METADATA_ADDRESS   (APPLICATION_EXENSIONS_ADDRESS + 0x01600)
+#define CERTIFICATES_METADATA_ADDRESS   (APPLICATION_EXENSIONS_ADDRESS + 0x01602)
 
 #define MAIN_APPLICATION_START_ADDRESS  (0x08060000)   //128k byte offset from Application_extensions_Address
 /******************************************************************************/
