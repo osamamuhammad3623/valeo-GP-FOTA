@@ -477,9 +477,9 @@ void FIREBASE_init() {
 
   
   /* In case the certificate data was used  */
-  // config.cert.data = rootCACert;
-  // //set the root certificate for each FirebaseData object
-  // fbdo.setCert(rootCACert);
+   config.cert.data = rootCACert;
+  //set the root certificate for each FirebaseData object
+   fbdo.setCert(rootCACert);
 
   //config.cert.file = "/gtsr1.pem";
   //config.cert.file_storage = mem_storage_type_flash;
