@@ -220,7 +220,7 @@ uint8_t secure_boot_verify(void){
 		}
 		else if(Minor_Version == threshold_Minor_Version){
 			//check patch
-			if(Patch_Version >threshold_Patch_Version){
+			if(Patch_Version >= threshold_Patch_Version){
 				//approved
 				threshold_approval=SUCCEEDED;
 			}
@@ -531,9 +531,9 @@ uint8_t read_backup_reg(uint8_t reg) {
     return (uint8_t)HAL_RTCEx_BKUPRead(&hrtc, reg);
 }
 
-void write_Attempt_Counter(uint32_t data) {
+void write_backup_reg(uint32_t reg ,uint32_t data){
     HAL_PWR_EnableBkUpAccess();
-    HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR0, data);
+    HAL_RTCEx_BKUPWrite(&hrtc, reg, data);
     HAL_PWR_DisableBkUpAccess();
 
 }

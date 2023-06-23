@@ -90,9 +90,9 @@ int main(void)
 
 		uint8_t Attempt_counter = read_backup_reg(0);
 		Attempt_counter++;
-		write_Attempt_Counter(Attempt_counter);
+		write_backup_reg(0x00 ,Attempt_counter);
 		if(Attempt_counter > 3){
-			write_Attempt_Counter(0x00);
+			write_backup_reg(0x00, 0x00);
 			//swap banks
 			bootloader_switch_to_inactive_bank();
 			bootloader_reboot();
@@ -112,11 +112,13 @@ int main(void)
 		  int ret = secure_boot_verify();
 		  if(ret == SUCCEEDED){
 			  //jump to application
+			  HAL_GPIO_WritePin(blue_GPIO_Port, blue_Pin, GPIO_PIN_SET);
+			  HAL_Delay(1000);
 			 jump_to_application(MAIN_APPLICATION_START_ADDRESS);
 
 
 		  }else{
-			 // printf("%d\n",Attempt_counter);
+			  HAL_GPIO_WritePin(red_GPIO_Port, red_Pin, GPIO_PIN_SET);
 		  }
 
 		  /* USER CODE END 2 */
