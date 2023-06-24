@@ -47,10 +47,13 @@ void lcd_write_string(char *str);
 void lcd_set_cursor(uint8_t row, uint8_t column);
 void lcd_clear(void);
 void lcd_backlight(uint8_t state);
-void lcd_write_up(char *str);
-void lcd_write_down(char *str);
+void lcd_write_string_up(char *str);
+void lcd_write_string_down(char *str);
 void lcd_write_int_up(int data);
 void lcd_write_int_down(int data);
+void lcd_clear_line_up();
+void lcd_clear_line_down();
+
 
 
 
