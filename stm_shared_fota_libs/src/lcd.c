@@ -104,27 +104,25 @@ void lcd_backlight(uint8_t state) {
 	}
 }
 
-void lcd_write_up(char *str) {
-	char buff[16];
-	int len = strlen(str);
-	strcpy(buff, str);
-	for(int i=len;i<16;i++){
-		buff [i]=' ';
-	}
+//void lcd_write_up(char *str) {
+//	char buff[16];
+//	int len = strlen(str);
+//	strcpy(buff, str);
+//	for(int i=len;i<16;i++){
+//		buff [i]=' ';
+//	}
+//
+//	lcd_set_cursor(0, 0);
+//	lcd_write_string(buff);
+//}
+void lcd_write_string_up(char *str) {
 
 	lcd_set_cursor(0, 0);
-	lcd_write_string(buff);
+	lcd_write_string(str);
 }
-void lcd_write_down(char *str) {
-	char buff[16];
-	int len = strlen(str);
-	strcpy(buff, str);
-	//char* spaces;
-	for(int i=len;i<16;i++){
-		buff [i]=' ';
-	}
+void lcd_write_string_down(char *str) {
 	lcd_set_cursor(1, 0);
-	lcd_write_string(buff);
+	lcd_write_string(str);
 }
 /*
  * Description :
@@ -133,10 +131,6 @@ void lcd_write_down(char *str) {
 void lcd_write_int_up(int data) {
 	char buff[16]; /* String to hold the ascii result */
 	itoa(data,buff,10); /* Use itoa C function to convert the data to its corresponding ASCII value, 10 for decimal */
-	int len = strlen(buff);
-	for(int i=len;i<16;i++){
-		buff [i]=' ';
-	}
 	lcd_set_cursor(0, 0);
 	lcd_write_string(buff); /* Display the string */
 }
@@ -144,12 +138,19 @@ void lcd_write_int_up(int data) {
 void lcd_write_int_down(int data) {
 	char buff[16]; /* String to hold the ascii result */
 	itoa(data,buff,10); /* Use itoa C function to convert the data to its corresponding ASCII value, 10 for decimal */
-	int len = strlen(buff);
-	for(int i=len;i<16;i++){
-		buff [i]=' ';
-	}
 	lcd_set_cursor(1, 0);
 	lcd_write_string(buff); /* Display the string */
 
 }
 
+void lcd_clear_line_up(){
+	char* spaces ="                ";
+	lcd_set_cursor(0, 0);
+	lcd_write_string(spaces);
+
+}
+void lcd_clear_line_down(){
+	char* spaces ="                ";
+	lcd_set_cursor(1, 0);
+	lcd_write_string(spaces);
+}
