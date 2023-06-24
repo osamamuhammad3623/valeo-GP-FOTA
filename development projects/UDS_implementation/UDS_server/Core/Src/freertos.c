@@ -22,6 +22,8 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "ultrasonic.h"
+#include "buzzer.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -147,12 +149,16 @@ void StartDefaultTask(void *argument)
 void startBlinkingLED(void *argument)
 {
   /* USER CODE BEGIN startBlinkingLED */
+	ultrasonic_init();
   /* Infinite loop */
   for(;;)
   {
-	  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
-	  HAL_Delay(500);
-	  osDelay(1);
+	  ultrasonic_get_distance();
+	  if (g_ultrasonic_last_measured_distance <= ULTRASONIC_MINIMUM_DISTANCE){
+		  buzzer_on();
+	  }else{
+		  buzzer_off();
+	  }
   }
   /* USER CODE END startBlinkingLED */
 }

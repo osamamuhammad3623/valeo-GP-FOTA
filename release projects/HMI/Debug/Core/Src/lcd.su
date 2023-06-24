@@ -1,0 +1,14 @@
+../Core/Src/lcd.c:28:6:lcd_write_nibble	32	static
+../Core/Src/lcd.c:39:6:lcd_send_cmd	24	static
+../Core/Src/lcd.c:49:6:lcd_send_data	24	static
+../Core/Src/lcd.c:56:6:lcd_init	8	static
+../Core/Src/lcd.c:72:6:lcd_write_string	16	static
+../Core/Src/lcd.c:78:6:lcd_set_cursor	24	static
+../Core/Src/lcd.c:94:6:lcd_clear	8	static
+../Core/Src/lcd.c:99:6:lcd_backlight	16	static
+../Core/Src/lcd.c:118:6:lcd_write_string_up	16	static
+../Core/Src/lcd.c:123:6:lcd_write_string_down	16	static
+../Core/Src/lcd.c:131:6:lcd_write_int_up	32	static
+../Core/Src/lcd.c:138:6:lcd_write_int_down	32	static
+../Core/Src/lcd.c:146:6:lcd_clear_line_up	16	static
+../Core/Src/lcd.c:152:6:lcd_clear_line_down	16	static
