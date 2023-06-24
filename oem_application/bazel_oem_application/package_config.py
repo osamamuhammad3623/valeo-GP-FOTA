@@ -7,6 +7,7 @@ Possible Values for image info:
 "root_index"       -> 1, 2
 '''
 
+SRC_DIRECTORY_PATH = "D:\\CSE_\\GraduationProject\\valeo-GP-FOTA\\oem_application\\bazel_oem_application"
 
 image1_info = {
     "img" : 1,          # READ-ONLY
@@ -24,7 +25,6 @@ image2_info = {
     "digest" : "",      # READ-ONLY
     "crc": 0,           # READ-ONLY
     "target" : "",
-    "linking_address_index": 1,
     "path" : "",
     "root_index" : 0
 }
@@ -35,7 +35,6 @@ image3_info = {
     "digest" : "",      # READ-ONLY
     "crc": 0,           # READ-ONLY
     "target" : "",
-    "linking_address_index": 1,
     "path" : "",
     "root_index" : 0
 }
