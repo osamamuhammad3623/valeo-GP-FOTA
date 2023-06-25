@@ -11,7 +11,7 @@
 /*******************************************************************************
  *                      Global Variables				*
  *******************************************************************************/
-uint8_t fileType = META_DATA;
+uint8_t fileType = COM_DATA;
 int8_t counter = -1;
 uint8_t dataFlag = 0;
 uint8_t downloadFinishedFlag = 0;
@@ -93,12 +93,12 @@ void UART_packageDetection(void)
 		osThreadSetPriority(UdsTaskHandle, osPriorityNormal2);
 	}
 
-	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 1, HAL_MAX_DELAY);
+	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 1, HAL_MAX_DELAY); //HAL_MAX_DELAY
 }
 
 void UART_getTargetUpdate(void)
 {
-	if(fileType == META_DATA){
+	if(fileType == COM_DATA){
 		counter = (counter==-1) ? 1 : (counter==1) ? 2 : (counter==2) ? 0 : 4;
 		if(counter == 4){
 			//seq finished
@@ -106,11 +106,17 @@ void UART_getTargetUpdate(void)
 			return;
 		}
 		while(1){
-			if(target_update[counter]){
+			if(!target_update[counter]){
+				counter = (counter==1) ? 2 : (counter==2) ? 0 : 4;
+			} else {
 				targetToUpdate = counter;
 				break;
 			}
-			counter = (counter==1) ? 2 : (counter==2) ? 0 : 4;
+//			if(target_update[counter]){
+//				targetToUpdate = counter;
+//				break;
+//			}
+//			counter = (counter==1) ? 2 : (counter==2) ? 0 : 4;
 			if(counter == 4){
 				//seq finished
 				downloadFinishedFlag = 1;
@@ -125,7 +131,11 @@ void UART_getTargetUpdate(void)
 	HAL_UART_Transmit(&huart2, (uint8_t *)getTargetUpdateFrame, sizeof(getTargetUpdateFrame), HAL_MAX_DELAY);
 	HAL_UART_Receive(&huart2, (uint8_t *)data_received, 8, HAL_MAX_DELAY);
 
-	fileType = (fileType == META_DATA) ? APP : META_DATA;
+
+	// flash in fota master
+	if (targetToUpdate != 0) { //////////
+		fileType = (fileType == COM_DATA) ? APP : COM_DATA;
+	}
 }
 
 void UART_downloadFailed(void)
@@ -168,7 +178,7 @@ void UART_handleData(void)
 	switch(targetToUpdate){
 	case 0:
 		//flash
-		errorState = flash_memory_write((uint32_t *)data_received, (uint32_t)size/4, APP);
+		errorState = flash_memory_write((uint32_t *)data_received, (uint32_t)size/4, fileType); // APP
 		break;
 
 	case 1:
@@ -185,13 +195,16 @@ void UART_handleData(void)
 	if(downloadSize > chunkSize){
 		//ok or not ok!
 		uint8_t okFrame[] = {OK};
-		HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
 		downloadSize -= chunkSize;
 		uint16_t size = (downloadSize > chunkSize) ? chunkSize : downloadSize;
+		HAL_UART_Transmit(&huart2, (uint8_t *)okFrame, sizeof(okFrame), HAL_MAX_DELAY);
 		HAL_UART_Receive(&huart2, (uint8_t *)data_received, size, HAL_MAX_DELAY);
 	}
 	else{
 		dataFlag = 0;
+		if (targetToUpdate == 0) {
+			fileType = (fileType == COM_DATA) ? APP : COM_DATA; ////////
+		}
 
 		osDelay(1);
 		if (targetToUpdate != 0) {

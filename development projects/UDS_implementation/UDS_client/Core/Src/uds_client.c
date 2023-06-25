@@ -32,7 +32,7 @@ void UDS_start_request(TargetECU targetECU) {
 }
 
 void UDS_get_version_number(TargetECU targetECU) {
-	uint8_t requestFrame[] = {READ_DATA_BY_IDENTIFIER, 0x01, 0x11};
+	uint8_t requestFrame[] = {READ_DATA_BY_IDENTIFIER, 0xF1, 0x95};
 	tcp_SendMessage(targetECU, requestFrame, sizeof(requestFrame));
 }
 
@@ -152,7 +152,7 @@ void UDS_RDBI_handle(TargetECU targetECU, uint8_t *responseFrame) {
 	else{
 		// Do nothing
 	}
-	osThreadResume(InstallTaskHandle);
+
 
 }
 

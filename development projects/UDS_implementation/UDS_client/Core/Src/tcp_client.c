@@ -128,6 +128,10 @@ static void tcpinit_thread(void *arg)
 				err = netconn_bind(conn, IP_ADDR_ANY, dest_port+my_port_iterative);
 				if (err == ERR_OK)
 				{
+					//suspend UART task to start connection
+					if (osThreadGetState(UartTaskHandle) != osThreadTerminated) {
+						osThreadSuspend(UartTaskHandle);
+					}
 					connect_error = netconn_connect(conn, &dest_addr, dest_port);/* Connect to the TCP Server */
 				}
 			}
@@ -160,8 +164,17 @@ static void tcpinit_thread(void *arg)
 		/* Close connection and discard connection identifier. */
 		netconn_close(conn);
 		netconn_delete(conn);
-		osDelay(5000);
+		conn = NULL;
 		my_port_iterative++;
+
+		if(target1_version_received) {
+//			target1_version_received = 0; //////////
+			osThreadResume(InstallTaskHandle);
+//			osThreadTerminate(target1ThreadID); // will server know the connection has closed?
+		}
+
+		osDelay(5000);
+//		my_port_iterative++;
 	}
 
 
@@ -274,15 +287,12 @@ static void tcp_ReceiveMessage (TargetECU targetECU, struct netconn *conn ,struc
 				// uds receive response callback
 				uds_recv_resp_clbk(targetECU, ReceivedMessage);
 
-				if(target1_version_received) {
-					target1_version_received = 0;
-					osThreadTerminate(target1ThreadID); // will server know the connection has closed?
-				}
 			}
 			while (netbuf_next(buf) >0);
 
 			netbuf_delete(buf);
 		} else {
+
 			break;///////
 		}
 	}

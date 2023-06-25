@@ -139,8 +139,6 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_StartUdsTask */
 void StartUdsTask(void *argument)
 {
-  /* init code for LWIP */
-  MX_LWIP_Init();
   /* USER CODE BEGIN StartUdsTask */
 /*----------------------------------------------------------------*/
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
@@ -183,6 +181,7 @@ void StartUartTask(void *argument)
 		else{
 			// Do Nothing
 		}
+		osDelay(1);
 	}
   /* USER CODE END StartUartTask */
 }
@@ -215,8 +214,10 @@ void StartInstallTask(void *argument)
 		}
 		osThreadSuspend(InstallTaskHandle);
 	}
-	if (target_update[0] && target1InstalledFlag) {
+	if (target_update[0] && target1InstalledFlag && target1_version_received) { // target_update[0] && (target_update[1] ^ (target1InstalledFlag && target1_version_received))
 		// reboot
+		target1_version_received = 0;////////
+		target1InstalledFlag = 0;///////////
 		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
 		bootloader_switch_to_inactive_bank();
 		bootloader_reboot();
@@ -224,8 +225,11 @@ void StartInstallTask(void *argument)
 		current_version_number[0] = new_version_number[0];
 		current_version_number[1] = new_version_number[1];
 		current_version_number[2] = new_version_number[2];
-		UartTaskHandle = osThreadNew(StartUartTask, NULL, &UartTask_attributes);
+		osThreadTerminate(target1ThreadID);
+
 		UdsTaskHandle = osThreadNew(StartUdsTask, NULL, &UdsTask_attributes);
+		UartTaskHandle = osThreadNew(StartUartTask, NULL, &UartTask_attributes);
+		target1_version_received = 0; /////////
 		target1InstalledFlag = 0;
 	}
     osDelay(1);

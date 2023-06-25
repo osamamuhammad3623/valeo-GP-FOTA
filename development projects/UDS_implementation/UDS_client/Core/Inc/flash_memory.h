@@ -1,8 +1,8 @@
 /*
  * flash_memory.h
  *
- *  Created on: Dec 3, 2022
- *      Author: Nada Youssef
+ *  Created on: May 15, 2023
+ *      Author: hp
  */
 
 #ifndef INC_FLASH_MEMORY_H_
@@ -10,26 +10,39 @@
 
 #include "stm32f4xx_hal.h"
 
-/******************************* DEFINITIONS **************************/
+/******************************************************************************/
+/******************************************************************************/
+/******************************** Definitions *********************************/
+/******************************************************************************/
+/******************************************************************************/
 #define SUCCEED              1
 #define FAILED               0
 
-#define APP_START_ADDRESS_BANK1        0x08000000 //0x08002100
-#define APP_START_ADDRESS_BANK2        0x08100000 //0x08102100
-#define META_DATA_START_ADDRESS_BANK1  0x08002000
-#define META_DATA_START_ADDRESS_BANK2  0x08102000
+#define APP_START_ADDRESS        0x08160000
+#define COM_DATA_START_ADDRESS   0x08140000
 
-#define MAIN_APP_SECTOR_BANK1          FLASH_SECTOR_0   // FLASH_SECTOR_7
-#define MAIN_APP_SECTOR_BANK2          FLASH_SECTOR_12  // FLASH_SECTOR_18
+#define START_SECTOR_BANK1          FLASH_SECTOR_6
+#define START_SECTOR_BANK2          FLASH_SECTOR_18;
 
-
-/************************* TYPES DDECLERATIONS ************************/
+#define META_DATA_ADDRESS               0x08041000
+#define MAJOR_V_METADATA_OFFSET           8
+#define MINOR_V_METADATA_OFFSET           10
+#define PATCH_V_METADATA_OFFSET           12
+/******************************************************************************/
+/******************************************************************************/
+/**************************** TYPES DDECLERATIONS *****************************/
+/******************************************************************************/
+/******************************************************************************/
 typedef enum
 {
-	META_DATA,APP
+	COM_DATA,APP
 }FLASH_DataType;
 
-/************************* FUNCTION PROTOTYPING ***********************/
+/******************************************************************************/
+/******************************************************************************/
+/*************************** Functions Prototypes *****************************/
+/******************************************************************************/
+/******************************************************************************/
 /*
  * Description:
  * Function to erase data from specific sector in the flash memory given the start address
@@ -59,10 +72,15 @@ uint8_t Flash_Memory_Write(uint32_t StartSectorAddress ,uint32_t *data, uint32_t
  * starting from a specific address and store the data into array.
  * */
 void Flash_Memory_Read (uint32_t StartSectorAddress, uint32_t *buffer, uint16_t numofWords);
-
-int bytesToWords(uint8_t* dataBytes, uint32_t dataSizeInBytes, uint32_t * dataWords);
-
-void padWithOnes(uint32_t dataSizeInBytes, uint32_t * dataWords, uint32_t dataSizeInWords);
-
-
+/*
+ * Description:
+ * Function to erase the whole inactive bank completly
+ * */
+uint8_t erase_whole_inactive_bank(void);
+/*
+ * Description:
+ * Function to read the current version from memory and return it.
+ * inputs: pointer to buffer to fill it with the current version
+ * */
+void get_version_number(uint8_t* buffer);
 #endif /* INC_FLASH_MEMORY_H_ */

@@ -92,6 +92,8 @@ int main(void)
   MX_HASH_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  /* init code for LWIP */
+  MX_LWIP_Init();
   /* USER CODE END 2 */
 
   /* Init scheduler */

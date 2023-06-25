@@ -34,7 +34,7 @@
     <stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.low_power_debug" value="enable"/>
     <stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.max_halt_delay" value="2"/>
     <stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.reset_strategy" value="connect_under_reset"/>
-    <booleanAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.stlink_check_serial_number" value="false"/>
+    <booleanAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.stlink_check_serial_number" value="true"/>
     <stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.stlink_txt_serial_number" value="0672FF565282494867221751"/>
     <stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.watchdog_config" value="none"/>
     <booleanAttribute key="com.st.stm32cube.ide.mcu.debug.stlinkenable_rtos" value="false"/>
@@ -75,6 +75,6 @@
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="4"/>
     </listAttribute>
-    <stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;memoryBlockExpressionList context=&quot;reserved-for-future-use&quot;/&gt;"/>
+    <stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;memoryBlockExpressionList context=&quot;reserved-for-future-use&quot;&gt;&lt;gdbmemoryBlockExpression address=&quot;1073759236&quot; label=&quot;0x40004404&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;134225920&quot; label=&quot;0x8002000&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;135266304&quot; label=&quot;0x08100000&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;135528448&quot; label=&quot;0x08140000&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;135659520&quot; label=&quot;0x08160000&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;135679520&quot; label=&quot;0x08164e20&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;135782248&quot; label=&quot;0x0817df68&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;135534120&quot; label=&quot;0x08141628&quot;/&gt;&lt;/memoryBlockExpressionList&gt;"/>
     <stringAttribute key="process_factory_id" value="com.st.stm32cube.ide.mcu.debug.launch.HardwareDebugProcessFactory"/>
 </launchConfiguration>

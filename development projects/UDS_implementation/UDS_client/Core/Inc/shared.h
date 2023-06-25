@@ -11,7 +11,7 @@
 #include "flash_memory.h" //needed for FLASH_DataType enum
 #include "lwip/sys.h"
 
-#define ARRAY_SIZE 					20000U
+#define ARRAY_SIZE 					5000U//20000U
 
 //thread handles
 extern osThreadId_t UartTaskHandle;
@@ -23,6 +23,7 @@ extern osThreadId_t InstallTaskHandle;
 extern uint8_t dataFlag;
 extern uint8_t installationReadyFlag;
 extern uint8_t target1InstalledFlag;
+extern uint8_t target1_version_received; //////////
 extern uint16_t chunkSize;
 extern uint32_t downloadSize;
 extern uint8_t data_received[ARRAY_SIZE];	//cannot be variable size!
