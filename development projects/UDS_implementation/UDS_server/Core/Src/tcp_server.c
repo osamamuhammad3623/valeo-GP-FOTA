@@ -23,6 +23,7 @@ uint8_t msg[100];
 uint8_t chunk[CHUNK_SIZE+1];
 uint32_t recv_len = 0;
 extern uint8_t isDataFrame;
+extern uint8_t closeConnection;
 extern uint32_t downloadSize;
 
 //==============================================================================
@@ -96,6 +97,10 @@ static void tcp_thread(void *arg)
 							recv_len = 0;
 
 							netbuf_delete(buf);
+							if (closeConnection) {
+								closeConnection = 0;
+								break;
+							}
 						}
 					}
 

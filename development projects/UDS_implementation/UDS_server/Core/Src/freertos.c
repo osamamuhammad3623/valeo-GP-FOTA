@@ -22,12 +22,12 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "ultrasonic.h"
-#include "buzzer.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "uds_server.h"
+#include "ultrasonic.h"
+#include "buzzer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -134,7 +134,8 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  osDelay(1);
+
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -154,11 +155,23 @@ void startBlinkingLED(void *argument)
   for(;;)
   {
 	  ultrasonic_get_distance();
-	  if (g_ultrasonic_last_measured_distance <= ULTRASONIC_MINIMUM_DISTANCE){
+	  if (g_ultrasonic_last_measured_distance <= ULTRASONIC_DISTANCE_2){
 		  buzzer_on();
-	  }else{
+		  HAL_Delay(200);
+		  buzzer_off();
+		  HAL_Delay(200);
+	  }
+	  else if (g_ultrasonic_last_measured_distance <= ULTRASONIC_DISTANCE_1) {
+		  buzzer_on();
+		  HAL_Delay(400);
+		  buzzer_off();
+		  HAL_Delay(400);
+	  }
+	  else{
 		  buzzer_off();
 	  }
+
+	  osDelay(1);
   }
   /* USER CODE END startBlinkingLED */
 }

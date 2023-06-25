@@ -23,6 +23,7 @@ uint32_t dataWords[CHUNK_SIZE/4];
 //uint32_t *dataWords;
 uint8_t seedRequestedFlag = 0;
 uint8_t isDataFrame = 0;
+uint8_t closeConnection = 0;
 uint32_t CRC_result; 
 uint32_t downloadSize;
 
@@ -105,6 +106,7 @@ void UDS_read_data(uint8_t *requestFrame)
 		tcp_SendResponse(responseFrame, sizeof(responseFrame));
 	}
 
+	closeConnection = 1;
 //	netconn_close(newconn);
 //	netconn_delete(newconn);
 //	netconn_close(conn);
