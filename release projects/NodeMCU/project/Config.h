@@ -66,7 +66,8 @@ struct CRC_Att
   int update_data;
 };
 
-const char* rootCACert PROGMEM = "MIIFVzCCAz+gAwIBAgINAgPlk28xsBNJiGuiFzANBgkqhkiG9w0BAQwFADBHMQsw"
+const char rootCACert[] PROGMEM = "-----BEGIN CERTIFICATE-----"
+                                  "MIIFVzCCAz+gAwIBAgINAgPlk28xsBNJiGuiFzANBgkqhkiG9w0BAQwFADBHMQsw"
                                   "CQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzEU"
                                   "MBIGA1UEAxMLR1RTIFJvb3QgUjEwHhcNMTYwNjIyMDAwMDAwWhcNMzYwNjIyMDAw"
                                   "MDAwWjBHMQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZp"
@@ -94,7 +95,8 @@ const char* rootCACert PROGMEM = "MIIFVzCCAz+gAwIBAgINAgPlk28xsBNJiGuiFzANBgkqhk
                                   "6u9AWpQKXCBfTkBdYiJ23//OYb2MI3jSNwLgjt7RETeJ9r/tSQdirpLsQBqvFAnZ"
                                   "0E6yove+7u7Y/9waLd64NnHi/Hm3lCXRSHNboTXns5lndcEZOitHTtNCjv0xyBZm"
                                   "2tIMPNuzjsmhDYAPexZ3FL//2wmUspO8IFgV6dtxQ/PeEMMA3KgqlbbC1j+Qa3bb"
-                                  "bP6MvPJwNQzcmRk13NfIRmPVNnGuV/u3gm3c";
+                                  "bP6MvPJwNQzcmRk13NfIRmPVNnGuV/u3gm3c"
+                                  "-----END CERTIFICATE-----";
                                   
 
                                
