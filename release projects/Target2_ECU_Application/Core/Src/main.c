@@ -59,6 +59,7 @@ static void MX_ETH_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_TIM2_Init(void);
+static void M_SET_TIMER_DUTY(unsigned int DUTY_CYCLE);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -386,7 +387,10 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+static void M_SET_TIMER_DUTY(unsigned int DUTY_CYCLE)
+{
+	htim2.Instance -> CCR2 = DUTY_CYCLE;
+}
 /* USER CODE END 4 */
 
 /**
