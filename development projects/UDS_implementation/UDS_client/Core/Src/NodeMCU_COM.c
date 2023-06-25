@@ -22,7 +22,7 @@ uint32_t file_CRC;
 
 uint8_t data_received[ARRAY_SIZE] = {0};
 uint8_t target_update[NUM_OF_TARGETS] = {0};
-uint8_t current_version_number[3] = {1, 1, 1};
+uint8_t current_version_number[3];
 uint8_t new_version_number[3];
 
 osThreadId_t masterEraseMemory;

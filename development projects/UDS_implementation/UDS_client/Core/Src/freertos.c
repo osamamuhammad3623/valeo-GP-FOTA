@@ -168,6 +168,7 @@ void StartUdsTask(void *argument)
 void StartUartTask(void *argument)
 {
   /* USER CODE BEGIN StartUartTask */
+	get_version_number(current_version_number);
 	uint8_t versionNumberFrame[4] = {VERSION_NUMBER, current_version_number[0], current_version_number[1], current_version_number[2]};
 	HAL_UART_Transmit(&huart2, (uint8_t *)versionNumberFrame, sizeof(versionNumberFrame), HAL_MAX_DELAY);
 	while(HAL_UART_Receive(&huart2, (uint8_t *)data_received, 6, HAL_MAX_DELAY) != HAL_OK);
@@ -199,6 +200,9 @@ void StartInstallTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+	  HAL_Delay(500);
+
 	if (downloadFinishedFlag && HAL_GPIO_ReadPin(USER_Btn_GPIO_Port, USER_Btn_Pin) == GPIO_PIN_SET) {
 		installationReadyFlag = 1;
 		//ask user to install
