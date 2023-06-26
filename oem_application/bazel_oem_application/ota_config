@@ -2,6 +2,15 @@
 # OTA Configuration File
 ###########################################
 ###########################################
+# Parsing Rules
+- Paths shall NOT have spaces.
+- IMAGE_n_TARGET shall take one of the following values: MasterECU, Target 1, Target 2.
+- IMAGE_n_ROOT_INDEX shall take one of the following values: 1, 2.
+- PACKAGE_URGENCY shall take one of the following values: 0, 1
+- PACKAGE_VERSION shall be on the form: i.j.k, where i, j & k are 1-digit numbers.
+###########################################
+###########################################
+
 
 # Server Config
 SIGNING_SERVER_PASSWORD     987654321
