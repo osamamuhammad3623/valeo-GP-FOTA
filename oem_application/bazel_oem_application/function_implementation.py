@@ -3,7 +3,7 @@ import base64
 import os, hashlib
 import firebase_connection
 from combine_bins import combine_security_files
-from package_config import *
+from config_parser import *
 import crcsolver
 
 

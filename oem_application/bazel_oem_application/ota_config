@@ -1,0 +1,30 @@
+###########################################
+# OTA Configuration File
+###########################################
+###########################################
+
+SRC_DIRECTORY_PATH  D:\CSE_\GraduationProject\valeo-GP-FOTA\oem_application\bazel_oem_application
+
+# Server Config
+SIGNING_SERVER_PASSWORD     987654321
+SIGNING_SERVER_USERNAME     Alaa
+###########################################
+# Image 1 Config
+IMAGE_1_TARGET              Target 1
+IMAGE_1_BINARY_PATH         D:\CSE_\GraduationProject\valeo-GP-FOTA\oem_application\bazel_oem_application\app.bin
+IMAGE_1_ROOT_INDEX          2
+###########################################
+# Image 2 Config
+IMAGE_2_TARGET              Target 2
+IMAGE_2_BINARY_PATH         D:\CSE_\GraduationProject\valeo-GP-FOTA\oem_application\bazel_oem_application\app.bin
+IMAGE_2_ROOT_INDEX          1
+###########################################
+# Image 3 Config
+IMAGE_3_TARGET              MasterECU
+IMAGE_3_BINARY_PATH         D:\CSE_\GraduationProject\valeo-GP-FOTA\oem_application\bazel_oem_application\app.bin
+IMAGE_3_ROOT_INDEX          2
+###########################################
+# Package Config
+PACKAGE_VERSION             5.5.8
+PACKAGE_URGENCY             0
+PACKAGE_IMAGES_NUM          1

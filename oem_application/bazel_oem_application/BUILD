@@ -6,9 +6,12 @@ py_binary(
   srcs = ["main.py",
           "function_implementation.py", 
           "combine_bins.py", 
-          "package_config.py", 
+          "config_parser.py", 
           "firebase_connection.py",
     ],
 
-    data = ["serviceAccountKey.json"],
+    data = [
+      "serviceAccountKey.json", 
+      "ota_config",
+    ],
 )
