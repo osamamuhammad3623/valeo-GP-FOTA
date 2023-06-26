@@ -3,8 +3,6 @@
 ###########################################
 ###########################################
 
-SRC_DIRECTORY_PATH  D:\CSE_\GraduationProject\valeo-GP-FOTA\oem_application\bazel_oem_application
-
 # Server Config
 SIGNING_SERVER_PASSWORD     987654321
 SIGNING_SERVER_USERNAME     Alaa

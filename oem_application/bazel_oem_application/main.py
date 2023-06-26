@@ -7,10 +7,9 @@ print("[PRE] Configuration file is parsed successfully")
 ####################################################
 
 # Install all needed Python requirements 
-import subprocess
-from config_parser import SRC_DIRECTORY_PATH
+import subprocess, os
 print("[PRE] Installing needed Python libraries")
-subprocess.run(f"pip install -r {SRC_DIRECTORY_PATH}\\requirements.in", stdout=subprocess.DEVNULL)
+subprocess.run(f"pip install -r {os.path.dirname(__file__)}\\requirements.in", stdout=subprocess.DEVNULL)
 print("[PRE] Python libraries are installed successfully")
 
 ####################################################
