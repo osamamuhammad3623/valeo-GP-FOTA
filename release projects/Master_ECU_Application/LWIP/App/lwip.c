@@ -26,18 +26,22 @@
 #include "lwip/sio.h"
 #endif /* MDK ARM Compiler */
 #include "ethernetif.h"
+#include <string.h>
 
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
 /* Private function prototypes -----------------------------------------------*/
-static void ethernet_link_status_updated(struct netif *netif);
 /* ETH Variables initialization ----------------------------------------------*/
 void Error_Handler(void);
 
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
+/* Semaphore to signal Ethernet Link state update */
+osSemaphoreId Netif_LinkSemaphore = NULL;
+/* Ethernet link thread Argument */
+struct link_str link_arg;
 
 /* Variables Initialization */
 struct netif gnetif;
@@ -47,6 +51,10 @@ ip4_addr_t gw;
 uint8_t IP_ADDRESS[4];
 uint8_t NETMASK_ADDRESS[4];
 uint8_t GATEWAY_ADDRESS[4];
+/* USER CODE BEGIN OS_THREAD_ATTR_CMSIS_RTOS_V2 */
+#define INTERFACE_THREAD_STACK_SIZE ( 1024 )
+osThreadAttr_t attributes;
+/* USER CODE END OS_THREAD_ATTR_CMSIS_RTOS_V2 */
 
 /* USER CODE BEGIN 2 */
 
@@ -69,7 +77,7 @@ void MX_LWIP_Init(void)
   GATEWAY_ADDRESS[0] = 169;
   GATEWAY_ADDRESS[1] = 254;
   GATEWAY_ADDRESS[2] = 84;
-  GATEWAY_ADDRESS[3] = 59;
+  GATEWAY_ADDRESS[3] = 58;
 
 /* USER CODE BEGIN IP_ADDRESSES */
 /* USER CODE END IP_ADDRESSES */
@@ -100,13 +108,21 @@ void MX_LWIP_Init(void)
   }
 
   /* Set the link callback function, this function is called on change of link status*/
-  netif_set_link_callback(&gnetif, ethernet_link_status_updated);
+  netif_set_link_callback(&gnetif, ethernetif_update_config);
 
+  /* create a binary semaphore used for informing ethernetif of frame reception */
+  Netif_LinkSemaphore = osSemaphoreNew(1, 1, NULL);
+
+  link_arg.netif = &gnetif;
+  link_arg.semaphore = Netif_LinkSemaphore;
   /* Create the Ethernet link handler thread */
-/* USER CODE BEGIN H7_OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
-  osThreadDef(EthLink, ethernet_link_thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE *2);
-  osThreadCreate (osThread(EthLink), &gnetif);
-/* USER CODE END H7_OS_THREAD_DEF_CREATE_CMSIS_RTOS_V1 */
+/* USER CODE BEGIN OS_THREAD_NEW_CMSIS_RTOS_V2 */
+  memset(&attributes, 0x0, sizeof(osThreadAttr_t));
+  attributes.name = "LinkThr";
+  attributes.stack_size = INTERFACE_THREAD_STACK_SIZE;
+  attributes.priority = osPriorityBelowNormal;
+  osThreadNew(ethernetif_set_link, &link_arg, &attributes);
+/* USER CODE END OS_THREAD_NEW_CMSIS_RTOS_V2 */
 
 /* USER CODE BEGIN 3 */
 
@@ -119,25 +135,6 @@ void MX_LWIP_Init(void)
 /* USER CODE BEGIN 4 */
 /* USER CODE END 4 */
 #endif
-
-/**
-  * @brief  Notify the User about the network interface config status
-  * @param  netif: the network interface
-  * @retval None
-  */
-static void ethernet_link_status_updated(struct netif *netif)
-{
-  if (netif_is_up(netif))
-  {
-/* USER CODE BEGIN 5 */
-/* USER CODE END 5 */
-  }
-  else /* netif is down */
-  {
-/* USER CODE BEGIN 6 */
-/* USER CODE END 6 */
-  }
-}
 
 #if defined ( __CC_ARM )  /* MDK ARM Compiler */
 /**

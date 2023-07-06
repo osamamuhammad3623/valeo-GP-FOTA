@@ -1,4 +1,0 @@
-../Core/Src/main.c:136:6:SystemClock_Config	88	static,ignoring_inline_asm
-../Core/Src/main.c:67:5:osama	72	static
-../Core/Src/main.c:271:6:HAL_TIM_PeriodElapsedCallback	0	static
-../Core/Src/main.c:288:6:Error_Handler	0	static,ignoring_inline_asm
