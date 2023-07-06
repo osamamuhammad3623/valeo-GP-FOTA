@@ -16,7 +16,8 @@
 #define ULTRASONIC_PORT					GPIOA
 #define ULTRASONIC_TRIGGER_PIN			GPIO_PIN_4
 #define ULTRASONIC_ECHO_PIN				GPIO_PIN_0
-#define ULTRASONIC_MINIMUM_DISTANCE		20
+#define ULTRASONIC_DISTANCE_1			20
+#define ULTRASONIC_DISTANCE_2			10
 
 extern uint32_t g_ultrasonic_last_measured_distance;
 

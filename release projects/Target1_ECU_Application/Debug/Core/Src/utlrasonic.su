@@ -1,3 +1,0 @@
-../Core/Src/utlrasonic.c:13:6:DWT_Delay_us	24	static
-../Core/Src/utlrasonic.c:24:6:ultrasonic_get_distance	16	static
-../Core/Src/utlrasonic.c:42:6:ultrasonic_init	4	static,ignoring_inline_asm
