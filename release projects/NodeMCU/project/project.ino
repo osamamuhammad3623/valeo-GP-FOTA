@@ -60,6 +60,7 @@ boolean check_pckg_version();
 
 void setup() 
 {
+  
     init_all();
 }
 
@@ -104,6 +105,7 @@ void loop()
                break;
              }
              Serial.write(PACKAGE_DOWNLOADED);
+//             taskCompleted = false; /////////
              break;
       
           case 0x05: 
@@ -244,7 +246,9 @@ void get_attributes()
 
 //whole system initialization
 void init_all(){
+  
   Serial.begin(UART_BAUDRATE);
+  Serial1.begin(UART_BAUDRATE);
   WIFI_Connect();
   FIREBASE_init();
   FILESYSTEM_init();
@@ -254,7 +258,7 @@ size_t get_file_size(target_id id, file_type type)
 {
   Serial1.println("calculating file size...");
 
-  SPIFFS.begin();
+// LittleFS.begin();
 
   size_t filesize;
 
@@ -262,13 +266,13 @@ size_t get_file_size(target_id id, file_type type)
 
   if(type == bin)
   {
-    file = SPIFFS.open( "/"+ECUs_paths[id].bin, "r");
+    file = LittleFS.open( "/"+ECUs_paths[id].bin, "r");
     file_to_be_send = ECUs_paths[id].bin;
     CRC_to_be_send = ECUs_CRCs[id].image;
   }
   else if(type == data)
   {
-    file = SPIFFS.open( "/"+ECUs_paths[id].data, "r");
+    file = LittleFS.open( "/"+ECUs_paths[id].data, "r");
     file_to_be_send = ECUs_paths[id].data;
     CRC_to_be_send = ECUs_CRCs[id].update_data;
   } 
@@ -279,7 +283,7 @@ size_t get_file_size(target_id id, file_type type)
     Serial1.println(filesize);
   }
   file.close();
-  SPIFFS.end();
+// LittleFS.end();
   
   Serial1.println("file size is calculated");
   return filesize;
@@ -297,7 +301,7 @@ boolean Download_Files() {
   {
     if (Firebase.ready() && !taskCompleted) 
     {
-      taskCompleted = true;
+//      taskCompleted = true;
 
       Serial1.println("Download file...");
       
@@ -306,17 +310,18 @@ boolean Download_Files() {
         if ((!(Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,master_paths.data  /* path of remote file stored in the bucket */,master_paths.data /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))) 
             || (!(Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,master_paths.bin  /* path of remote file stored in the bucket */,master_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
         {
-          Serial1.println(fbdo.errorReason());
+          Serial1.println(fbdo.errorReason()); ////////
           return false;
         }
       }
-
+      
       if(((targeted_ecus_21m >> 1) & 1))
       {
+       
         if ((!(Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target1_paths.data  /* path of remote file stored in the bucket */,target1_paths.data /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))) 
             || (!(Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target1_paths.bin  /* path of remote file stored in the bucket */,target1_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
         {
-          Serial1.println(fbdo.errorReason());
+          Serial1.println(fbdo.errorReason()); //////////
           return false;
         }
       }
@@ -326,14 +331,18 @@ boolean Download_Files() {
         if ((!(Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target2_paths.data  /* path of remote file stored in the bucket */,target2_paths.data /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))) 
             || (!(Firebase.Storage.download(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */,target2_paths.bin  /* path of remote file stored in the bucket */,target2_paths.bin /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, fcsDownloadCallback /* callback function */))))
         {
-          Serial1.println(fbdo.errorReason());
+          Serial1.println(fbdo.errorReason()); //////////
           return false;
         }
       }
+      yield();
+
       break;
     }
+    
     yield();
   }
+  
   return true;
 }
 
@@ -341,9 +350,8 @@ void Send_update(String path)
 {
     Serial1.println("sending file...");
 
-    SPIFFS.begin();
 
-    File file = SPIFFS.open( "/"+path , "r");
+    File file = LittleFS.open( "/"+path , "r");
 
     static int count = 0;
   
@@ -376,28 +384,13 @@ void Send_update(String path)
     }
     count = 0;
     file.close();
-    SPIFFS.end();
+
 }
 
 void FILESYSTEM_init()
 {
-    SPIFFS.begin();
+   LittleFS.begin();
 
-    SPIFFS.mkdir("/OEM");
-
-    SPIFFS.mkdir("/OEM/MasterECU");
-    SPIFFS.mkdir("/OEM/MasterECU/Secure");
-    SPIFFS.mkdir("/OEM/MasterECU/Binary");
-
-    SPIFFS.mkdir("/OEM/Target 1");
-    SPIFFS.mkdir("/OEM/Target 1/Secure");
-    SPIFFS.mkdir("/OEM/Target 1/Binary");
-
-    SPIFFS.mkdir("/OEM/Target 2");
-    SPIFFS.mkdir("/OEM/Target 2/Secure");
-    SPIFFS.mkdir("/OEM/Target 2/Binary");
-
-    SPIFFS.end();
 }
 
 //Wifi initialization Function
@@ -405,7 +398,7 @@ void WIFI_Connect()
 {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   #if _DEBUG_
-    Serial.print("\nConnecting to Wi-Fi");
+    Serial1.print("\nConnecting to Wi-Fi");
   #endif
   char counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
@@ -421,7 +414,7 @@ void WIFI_Connect()
   switch (WiFi.status()) {
   case WL_CONNECTED:
     #if _DEBUG_    
-      Serial.println("WiFi connected");
+      Serial1.println("WiFi connected");
       Serial1.println(WiFi.SSID());
       Serial1.println(WiFi.localIP());
     #endif
@@ -477,9 +470,9 @@ void FIREBASE_init() {
 
   
   /* In case the certificate data was used  */
-   config.cert.data = rootCACert;
-  //set the root certificate for each FirebaseData object
-   fbdo.setCert(rootCACert);
+  // config.cert.data = rootCACert;
+  // //set the root certificate for each FirebaseData object
+  // fbdo.setCert(rootCACert);
 
   //config.cert.file = "/gtsr1.pem";
   //config.cert.file_storage = mem_storage_type_flash;
@@ -509,17 +502,17 @@ void fcsDownloadCallback(FCS_DownloadStatusInfo info) {
 
 //get all files in FileSystem
 void listAllFilesInDir(String dir_path) {
-  Dir dir = SPIFFS.openDir(dir_path);
+  Dir dir = LittleFS.openDir(dir_path);
   while (dir.next()) {
     if (dir.isFile()) {
     // print file names
-      Serial.print("File: ");
-      Serial.println(dir_path + dir.fileName());
+      Serial1.print("File: ");
+      Serial1.println(dir_path + dir.fileName());
     }
     if (dir.isDirectory()) {
       // print directory names
-      Serial.print("Dir: ");
-      Serial.println(dir_path + dir.fileName() + "/");
+      Serial1.print("Dir: ");
+      Serial1.println(dir_path + dir.fileName() + "/");
       // recursive file listing inside new directory
       listAllFilesInDir(dir_path + dir.fileName() + "/");
     }
