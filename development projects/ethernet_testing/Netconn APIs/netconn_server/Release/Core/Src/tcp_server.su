@@ -1,5 +1,0 @@
-tcp_server.c:189:6:tcp_SendResponse	16	static
-tcp_server.c:159:6:tcp_RecievePrograme	40	static
-tcp_server.c:32:6:UDS_execute_response	16	static
-tcp_server.c:59:13:tcp_thread	24	static
-tcp_server.c:195:6:tcpserver_init	16	static
