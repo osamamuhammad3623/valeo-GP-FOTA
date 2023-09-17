@@ -1,2 +1,0 @@
-../Core/Src/KEYPAD.c:12:6:H_KeyPad_void_KeyPadInit	8	static
-../Core/Src/KEYPAD.c:64:6:Keys_Detect	8	static
